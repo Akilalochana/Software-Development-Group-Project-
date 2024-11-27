@@ -6,7 +6,8 @@ In today's fast-paced world, many individuals unknowingly consume vegetables and
 
 Our system not only assists users in planning their gardens efficiently but also promotes sustainable living and offers opportunities to generate additional income through surplus sales.
 
-![Group Image](images/GroupImg.jpg)
+![Group Image](images/GroupImage.jpg)
+
 
 ## 🛠 Features
 
