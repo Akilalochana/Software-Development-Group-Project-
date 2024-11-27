@@ -46,6 +46,6 @@ Our system not only assists users in planning their gardens efficiently but also
 
 ## basic UI design
 
-![UI Image](images/UI 1.jpg)
-![UI Image](images/UI 2.jpg)
-![UI Image](images/UI 3.jpg)
+![UI Image](images/UI1.jpg)
+![UI Image](images/UI2.jpg)
+![UI Image](images/UI3.jpg)
