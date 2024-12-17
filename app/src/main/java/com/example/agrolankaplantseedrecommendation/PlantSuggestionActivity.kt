@@ -11,7 +11,7 @@ class PlantSuggestionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_plant_suggestion)
-
++++++
         recyclerView = findViewById(R.id.plant_recycler_view)
         setupPlantList()
     }
