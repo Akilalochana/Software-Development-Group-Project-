@@ -6,7 +6,6 @@ In today's fast-paced world, many individuals unknowingly consume vegetables and
 
 Our system not only assists users in planning their gardens efficiently but also promotes sustainable living and offers opportunities to generate additional income through surplus sales.
 
-![alt text](GroupImage.jpg)
 
 ## 🛠 Features
 
@@ -45,6 +44,3 @@ Our system not only assists users in planning their gardens efficiently but also
 
 ## basic UI design
 
-![App Screenshot](UI 1.jpg)
-![App Screenshot](UI 2.jpg)
-![App Screenshot](UI 3.jpg)
