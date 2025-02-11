@@ -20,13 +20,10 @@ class MainActivity : AppCompatActivity() {
     private var arFragment: ArFragment? = null
     private val placedAnchors = ArrayList<Anchor>()
     private val placedAnchorNodes = ArrayList<AnchorNode>()
+    private val measurementNodes = ArrayList<Node>()
     private val points = ArrayList<Vector3>()
     private var measurementText: TextView? = null
-    private var currentMeasurementMode = MeasurementMode.LINE
-
-    enum class MeasurementMode {
-        LINE, QUADRILATERAL
-    }
+    private var isDrawing = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,15 +37,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupUI() {
-        findViewById<Button>(R.id.switchModeButton)?.setOnClickListener {
-            currentMeasurementMode = if (currentMeasurementMode == MeasurementMode.LINE) {
-                MeasurementMode.QUADRILATERAL
-            } else {
-                MeasurementMode.LINE
-            }
-            clearMeasurement()
-        }
-
         findViewById<Button>(R.id.clearButton)?.setOnClickListener {
             clearMeasurement()
         }
@@ -56,100 +44,94 @@ class MainActivity : AppCompatActivity() {
 
     private fun initializeARScene() {
         arFragment?.setOnTapArPlaneListener { hitResult, _, _ ->
-            when (currentMeasurementMode) {
-                MeasurementMode.LINE -> handleLineMeasurement(hitResult)
-                MeasurementMode.QUADRILATERAL -> handleQuadrilateralMeasurement(hitResult)
+            if (!isDrawing) {
+                handleQuadrilateralMeasurement(hitResult)
             }
         }
     }
-
-    private fun handleLineMeasurement(hitResult: HitResult) {
-        if (points.size >= 2) {
-            clearMeasurement()
-            return  // Add return to ensure we start fresh
-        }
-        placePoint(hitResult)
-        if (points.size == 2) {
-            val distance = calculateDistance(points[0], points[1])
-            measurementText?.text = String.format("Distance: %.2f cm", distance * 100)
-        }
-    }
-
 
     private fun handleQuadrilateralMeasurement(hitResult: HitResult) {
         if (points.size >= 4) {
             clearMeasurement()
-            return  // Add return to ensure we start fresh
+            return
         }
 
+        isDrawing = true
         placePoint(hitResult)
 
-        // Draw lines between points
         if (points.size > 1) {
             drawLine(points[points.size - 2], points[points.size - 1])
 
-            // If we have 4 points, complete the quadrilateral
             if (points.size == 4) {
-                // Draw the closing line
                 drawLine(points[3], points[0])
                 calculateAndDisplayQuadrilateralArea()
             }
         }
+        isDrawing = false
     }
 
     private fun placePoint(hitResult: HitResult) {
-        val anchor = hitResult.createAnchor()
-        placedAnchors.add(anchor)
+        try {
+            val anchor = hitResult.createAnchor()
+            placedAnchors.add(anchor)
 
-        val anchorNode = AnchorNode(anchor).apply {
-            setParent(arFragment?.arSceneView?.scene)
-        }
-        placedAnchorNodes.add(anchorNode)
-
-        MaterialFactory.makeOpaqueWithColor(this, com.google.ar.sceneform.rendering.Color(Color.RED))
-            .thenAccept { material ->
-                val sphere = ShapeFactory.makeSphere(0.02f, Vector3.zero(), material)
-                TransformableNode(arFragment?.transformationSystem).apply {
-                    renderable = sphere
-                    setParent(anchorNode)
-                }
+            val anchorNode = AnchorNode(anchor).apply {
+                setParent(arFragment?.arSceneView?.scene)
             }
+            placedAnchorNodes.add(anchorNode)
 
-        points.add(anchorNode.worldPosition)
+            MaterialFactory.makeOpaqueWithColor(this, com.google.ar.sceneform.rendering.Color(Color.RED))
+                .thenAccept { material ->
+                    val sphere = ShapeFactory.makeSphere(0.02f, Vector3.zero(), material)
+                    TransformableNode(arFragment?.transformationSystem).apply {
+                        renderable = sphere
+                        setParent(anchorNode)
+                    }
+                }
+
+            points.add(anchorNode.worldPosition)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun drawLine(from: Vector3, to: Vector3) {
-        val difference = Vector3.subtract(to, from)
-        val directionFromTopToBottom = difference.normalized()
-        val rotationFromAToB = Quaternion.lookRotation(directionFromTopToBottom, Vector3.up())
-        val distance = difference.length()
+        try {
+            val difference = Vector3.subtract(to, from)
+            val directionFromTopToBottom = difference.normalized()
+            val rotationFromAToB = Quaternion.lookRotation(directionFromTopToBottom, Vector3.up())
+            val distance = difference.length()
 
-        MaterialFactory.makeOpaqueWithColor(this, com.google.ar.sceneform.rendering.Color(Color.BLUE))
-            .thenAccept { material ->
-                val cube = ShapeFactory.makeCube(Vector3(0.01f, 0.01f, distance), Vector3.zero(), material)
-                Node().apply {
-                    setParent(arFragment?.arSceneView?.scene)
-                    localPosition = Vector3.add(from, difference.scaled(0.5f))
-                    localRotation = rotationFromAToB
-                    renderable = cube
+            MaterialFactory.makeOpaqueWithColor(this, com.google.ar.sceneform.rendering.Color(Color.BLUE))
+                .thenAccept { material ->
+                    val cube = ShapeFactory.makeCube(Vector3(0.01f, 0.01f, distance), Vector3.zero(), material)
+                    Node().apply {
+                        setParent(arFragment?.arSceneView?.scene)
+                        localPosition = Vector3.add(from, difference.scaled(0.5f))
+                        localRotation = rotationFromAToB
+                        renderable = cube
+                        measurementNodes.add(this)
+                    }
                 }
-            }
-    }
-
-    private fun calculateDistance(from: Vector3, to: Vector3): Float {
-        return Vector3.subtract(to, from).length()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun calculateAndDisplayQuadrilateralArea() {
         if (points.size == 4) {
-            val area = calculateQuadrilateralArea(points)
-            val perimeter = calculatePerimeter(points)
-            measurementText?.text = String.format("Area: %.2f cm², Perimeter: %.2f cm", area * 10000, perimeter * 100)
+            try {
+                val area = calculateQuadrilateralArea(points)
+                val perimeter = calculatePerimeter(points)
+                measurementText?.text = String.format("Area: %.2f m², Perimeter: %.2f m", area, perimeter)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                measurementText?.text = "Error calculating measurements"
+            }
         }
     }
 
     private fun calculateQuadrilateralArea(points: List<Vector3>): Float {
-        // Using the shoelace formula (Surveyor's formula)
         var area = 0f
         for (i in points.indices) {
             val j = (i + 1) % points.size
@@ -162,35 +144,31 @@ class MainActivity : AppCompatActivity() {
         var perimeter = 0f
         for (i in points.indices) {
             val j = (i + 1) % points.size
-            perimeter += calculateDistance(points[i], points[j])
+            perimeter += Vector3.subtract(points[j], points[i]).length()
         }
         return perimeter
     }
 
     private fun clearMeasurement() {
-        // Remove anchors first
-        placedAnchors.forEach { it.detach() }
-        placedAnchors.clear()
+        try {
+            placedAnchors.forEach { it.detach() }
+            placedAnchors.clear()
 
-        // Clear the scene of all nodes except the ArFragment
-        arFragment?.arSceneView?.scene?.let { scene ->
-            val children = scene.children.toList()
-            children.forEach { node ->
-                if (node !is ArFragment) {
-                    scene.removeChild(node)
-                }
+            placedAnchorNodes.forEach { node ->
+                node.anchor?.detach()
+                node.setParent(null)
             }
-        }
+            placedAnchorNodes.clear()
 
-        // Clear anchor nodes
-        placedAnchorNodes.forEach { node ->
-            node.anchor?.detach()
-            node.setParent(null)
-        }
-        placedAnchorNodes.clear()
+            measurementNodes.forEach { node ->
+                node.setParent(null)
+            }
+            measurementNodes.clear()
 
-        // Clear points and reset text
-        points.clear()
-        measurementText?.text = ""
+            points.clear()
+            measurementText?.text = ""
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
