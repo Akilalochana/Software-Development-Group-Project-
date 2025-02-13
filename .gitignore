@@ -1,37 +1,24 @@
 # ===== Backend (Kotlin/Gradle) =====
-/backend-kotlin/.gradle/
-/backend-kotlin/build/
-/backend-kotlin/out/
-/backend-kotlin/.idea/
+/cg_mobile_app/.gradle/
+/cg_mobile_app/build/
+/cg_mobile_app/out/
+/cg_mobile_app/.idea/
 *.iml
 
 # Logs and temp files
-/backend-kotlin/logs/
-/backend-kotlin/*.log
-/backend-kotlin/tmp/
+/cg_mobile_app/logs/
+/cg_mobile_app/*.log
+/cg_mobile_app/tmp/
 
-# Ignore local environment files
-/backend-kotlin/.env
 
-# ===== Frontend (React) =====
-/frontend-react/node_modules/
-/frontend-react/build/
-/frontend-react/.parcel-cache/
-/frontend-react/.next/
-/frontend-react/dist/
+/cg_marketing_website/node_modules/
+/cg_marketing_website/build/
+/cg_marketing_website/.parcel-cache/
+/cg_marketing_website/.next/
+/cg_marketing_website/dist/
 
 # Ignore React environment variables
-/frontend-react/.env
-/frontend-react/.env.local
-/frontend-react/.env.development
-/frontend-react/.env.production
-
-# Logs
-/frontend-react/npm-debug.log*
-/frontend-react/yarn-debug.log*
-/frontend-react/yarn-error.log*
-/frontend-react/pnpm-debug.log*
-
-# ===== System Files =====
-.DS_Store
-Thumbs.db
+/cg_marketing_website/.env
+/cg_marketing_website/.env.local
+/cg_marketing_website/.env.development
+/cg_marketing_website/.env.production
