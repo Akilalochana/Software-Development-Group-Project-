@@ -1,15 +1,24 @@
+# ===== Backend (Kotlin/Gradle) =====
+/cg_mobile_app/.gradle/
+/cg_mobile_app/build/
+/cg_mobile_app/out/
+/cg_mobile_app/.idea/
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+
+# Logs and temp files
+/cg_mobile_app/logs/
+/cg_mobile_app/*.log
+/cg_mobile_app/tmp/
+
+
+/cg_marketing_website/node_modules/
+/cg_marketing_website/build/
+/cg_marketing_website/.parcel-cache/
+/cg_marketing_website/.next/
+/cg_marketing_website/dist/
+
+# Ignore React environment variables
+/cg_marketing_website/.env
+/cg_marketing_website/.env.local
+/cg_marketing_website/.env.development
+/cg_marketing_website/.env.production
