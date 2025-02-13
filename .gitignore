@@ -1,0 +1,37 @@
+# ===== Backend (Kotlin/Gradle) =====
+/backend-kotlin/.gradle/
+/backend-kotlin/build/
+/backend-kotlin/out/
+/backend-kotlin/.idea/
+*.iml
+
+# Logs and temp files
+/backend-kotlin/logs/
+/backend-kotlin/*.log
+/backend-kotlin/tmp/
+
+# Ignore local environment files
+/backend-kotlin/.env
+
+# ===== Frontend (React) =====
+/frontend-react/node_modules/
+/frontend-react/build/
+/frontend-react/.parcel-cache/
+/frontend-react/.next/
+/frontend-react/dist/
+
+# Ignore React environment variables
+/frontend-react/.env
+/frontend-react/.env.local
+/frontend-react/.env.development
+/frontend-react/.env.production
+
+# Logs
+/frontend-react/npm-debug.log*
+/frontend-react/yarn-debug.log*
+/frontend-react/yarn-error.log*
+/frontend-react/pnpm-debug.log*
+
+# ===== System Files =====
+.DS_Store
+Thumbs.db
