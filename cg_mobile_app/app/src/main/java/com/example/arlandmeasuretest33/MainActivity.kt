@@ -27,6 +27,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Get garden information from intent
+        val gardenName = intent.getStringExtra("GARDEN_NAME") ?: ""
+        val selectedDistrict = intent.getStringExtra("SELECTED_DISTRICT") ?: ""
+
         setContentView(R.layout.activity_main)
 
         arFragment = supportFragmentManager.findFragmentById(R.id.arFragment) as ArFragment

@@ -35,6 +35,9 @@
             android:name=".MainActivity"
             android:exported="true" />
 
+        <activity
+            android:name=".LocationSelectionActivity"
+            android:exported="false" />
 
     </application>
 

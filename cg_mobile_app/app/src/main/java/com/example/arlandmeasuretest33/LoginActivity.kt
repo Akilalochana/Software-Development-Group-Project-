@@ -2,68 +2,69 @@ package com.example.arlandmeasuretest33
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.textfield.TextInputEditText
 
 class LoginActivity : AppCompatActivity() {
+    private lateinit var usernameInputLayout: TextInputLayout
+    private lateinit var passwordInputLayout: TextInputLayout
     private lateinit var usernameEditText: TextInputEditText
     private lateinit var passwordEditText: TextInputEditText
-    private lateinit var loginButton: MaterialButton
+    private lateinit var loginButton: Button
+    private lateinit var forgotPasswordText: TextView
+    private lateinit var signUpText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Initialize views
+        initializeViews()
+        setupListeners()
+    }
+
+    private fun initializeViews() {
+        usernameInputLayout = findViewById(R.id.usernameInputLayout)
+        passwordInputLayout = findViewById(R.id.passwordInputLayout)
         usernameEditText = findViewById(R.id.usernameEditText)
         passwordEditText = findViewById(R.id.passwordEditText)
         loginButton = findViewById(R.id.loginButton)
+        forgotPasswordText = findViewById(R.id.forgotPasswordText)
+        signUpText = findViewById(R.id.signUpText)
+    }
 
-        // Set up login button click listener
+    private fun setupListeners() {
         loginButton.setOnClickListener {
-            val username = usernameEditText.text?.toString() ?: ""
-            val password = passwordEditText.text?.toString() ?: ""
+            val username = usernameEditText.text.toString()
+            val password = passwordEditText.text.toString()
 
-            if (validateCredentials(username, password)) {
-                try {
-                    // Create an intent to start MainActivity
-                    val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                    startActivity(intent)
-
-                    // Optional: add transition animation
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-
-                    // Close LoginActivity
-                    finish()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    Toast.makeText(this, "Error launching AR: ${e.message}", Toast.LENGTH_LONG).show()
+            when {
+                username.isEmpty() -> {
+                    usernameInputLayout.error = "Username cannot be empty"
                 }
-            } else {
-                Toast.makeText(this, "Please enter valid credentials", Toast.LENGTH_SHORT).show()
+                password.isEmpty() -> {
+                    passwordInputLayout.error = "Password cannot be empty"
+                }
+                username == "admin" && password == "password" -> {
+                    startActivity(Intent(this, LocationSelectionActivity::class.java))
+                    finish()
+                }
+                else -> {
+                    Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                }
             }
         }
-    }
 
-    private fun validateCredentials(username: String, password: String): Boolean {
-        // Add your authentication logic here
-        // For testing, we'll just check if fields are not empty
-        if (username.isEmpty()) {
-            usernameEditText.error = "Username required"
-            return false
+        forgotPasswordText.setOnClickListener {
+            Toast.makeText(this, "Forgot Password clicked", Toast.LENGTH_SHORT).show()
         }
-        if (password.isEmpty()) {
-            passwordEditText.error = "Password required"
-            return false
-        }
-        return true
-    }
 
-    override fun onBackPressed() {
-        // Optional: Handle back button press
-        super.onBackPressed()
-        finishAffinity() // This will close the app instead of going back
+        signUpText.setOnClickListener {
+            Toast.makeText(this, "Sign Up clicked", Toast.LENGTH_SHORT).show()
+        }
     }
 }
