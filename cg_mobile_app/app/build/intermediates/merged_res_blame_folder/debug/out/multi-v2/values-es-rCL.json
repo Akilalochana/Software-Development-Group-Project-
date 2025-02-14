@@ -1,0 +1,26 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.arlandmeasuretest33.app-mergeDebugResources-56:/values-es-rCL/values-es-rCL.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\Yuneth\\.gradle\\caches\\8.10.2\\transforms\\fc094700d1707148cfd1e91ac5917009\\transformed\\jetified-core-1.41.0\\res\\values-es-rCL\\values.xml",
+                    "from": {
+                        "startLines": "4,5,6,7,8",
+                        "startColumns": "0,0,0,0,0",
+                        "startOffsets": "194,243,295,419,551",
+                        "endColumns": "48,51,123,131,88",
+                        "endOffsets": "242,294,418,550,639"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6",
+                        "startColumns": "4,4,4,4,4",
+                        "startOffsets": "55,108,164,292,428",
+                        "endColumns": "52,55,127,135,92",
+                        "endOffsets": "103,159,287,423,516"
+                    }
+                }
+            ]
+        }
+    ]
+}

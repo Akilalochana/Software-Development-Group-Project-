@@ -1,0 +1,138 @@
+[
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\drawable_dropdown_background.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\drawable\\dropdown_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-hdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-xxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\layout_activity_location_selection.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\layout\\activity_location_selection.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-xxxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-xhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-xxxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\layout_weather.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\layout\\weather.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\drawable_dropdown_popup_background.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\drawable\\dropdown_popup_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\color_dropdown_text_color.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\color\\dropdown_text_color.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-mdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\xml_backup_rules.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\xml\\backup_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\layout_report.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\layout\\report.xml"
+    },
+    {
+        "merged": "com.example.arlandmeasuretest33.app-merged_res-58:/layout_activity_login.xml.flat",
+        "source": "com.example.arlandmeasuretest33.app-main-60:/layout/activity_login.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-xhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\layout_calculation.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\layout\\calculation.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\drawable_ic_garden_sign.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\drawable\\ic_garden_sign.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\drawable\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\drawable_ic_location.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\drawable\\ic_location.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\drawable_garden_sign.png.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\drawable\\garden_sign.png"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-xxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\drawable_dropdown_item_background.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\drawable\\dropdown_item_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-mdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\layout_item_location_dropdown.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\layout\\item_location_dropdown.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\layout_activity_login.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\layout\\activity_login.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\layout_distance_label.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\layout\\distance_label.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\drawable_ic_garden_house.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\drawable\\ic_garden_house.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\xml_data_extraction_rules.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\xml\\data_extraction_rules.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\layout_recommendation.xml.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\layout\\recommendation.xml"
+    },
+    {
+        "merged": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-merged_res-58:\\mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Yuneth\\.gradle\\daemon\\8.10.2\\com.example.arlandmeasuretest33.app-main-60:\\mipmap-hdpi\\ic_launcher_round.webp"
+    }
+]

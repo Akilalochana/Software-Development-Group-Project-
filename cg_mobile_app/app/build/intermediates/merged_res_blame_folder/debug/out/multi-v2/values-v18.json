@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.example.arlandmeasuretest33.app-mergeDebugResources-56:/values-v18/values-v18.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\Yuneth\\.gradle\\caches\\8.10.2\\transforms\\c61c8c7c3a84a10c585cbbbb455ea1b6\\transformed\\appcompat-1.7.0\\res\\values-v18\\values-v18.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "48",
+                        "endOffsets": "99"
+                    }
+                }
+            ]
+        }
+    ]
+}
