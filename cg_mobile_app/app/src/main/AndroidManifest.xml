@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.ar" android:required="true" />
     <uses-feature android:glEsVersion="0x00030000" android:required="true" />
 
@@ -37,6 +38,10 @@
 
         <activity
             android:name=".LocationSelectionActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".PlantRecommendationActivity"
             android:exported="false" />
 
     </application>

@@ -39,6 +39,12 @@ class MainActivity : AppCompatActivity() {
 
         setupUI()
         initializeARScene()
+
+        if (intent.getBooleanExtra("START_AR", false)) {
+            val plantType = intent.getStringExtra("PLANT_TYPE")
+            // Start your AR feature with the plantType
+            // Add your AR initialization code here
+        }
     }
 
     private fun setupUI() {

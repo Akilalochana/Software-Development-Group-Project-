@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import android.widget.TextView
+import android.widget.Button
 
 class LocationSelectionActivity : AppCompatActivity() {
     private lateinit var gardenNameInput: TextInputEditText
@@ -86,25 +87,32 @@ class LocationSelectionActivity : AppCompatActivity() {
             val gardenName = gardenNameInput.text.toString()
             val selectedDistrict = districtSpinner.text.toString()
 
-            when {
-                selectedDistrict.isEmpty() -> {
-                    districtSpinner.error = "Please select a district"
-                }
-                else -> {
-                    // Create intent to start AR feature (MainActivity)
-                    val intent = Intent(this, MainActivity::class.java).apply {
-                        // Pass garden information to AR feature
-                        putExtra("GARDEN_NAME", gardenName)
-                        putExtra("SELECTED_DISTRICT", selectedDistrict)
-                        // Add any additional flags or data needed for AR
-                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    }
-                    
-                    // Start AR feature
-                    startActivity(intent)
-                    finish() // Close the location selection activity
-                }
+            try {
+                // Create intent to start PlantRecommendationActivity
+                val intent = Intent(this, PlantRecommendationActivity::class.java)
+                
+                // Pass any necessary data from location selection
+                intent.putExtra("SELECTED_DISTRICT", selectedDistrict)
+                intent.putExtra("GARDEN_NAME", gardenName)
+                
+                // Start the PlantRecommendationActivity
+                startActivity(intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(this, "Error navigating to recommendations", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun getSelectedDistrict(): String {
+        // Get the selected district from your UI
+        // Replace this with your actual implementation
+        return ""
+    }
+
+    private fun getGardenName(): String {
+        // Get the garden name from your UI
+        // Replace this with your actual implementation
+        return ""
     }
 } 
