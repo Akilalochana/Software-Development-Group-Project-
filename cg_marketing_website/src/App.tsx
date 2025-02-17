@@ -120,9 +120,9 @@ function App() {
           />
         </div>
         <div ref={ctaRef} className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center scale-in">
-          <h2 className="text-5xl font-bold mb-8">Ready to Transform Your Computing?</h2>
+          <h2 className="text-5xl font-bold mb-8">Ready to Transform Your Gardening Experience? </h2>
           <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
-            Join the next generation of distributed computing with Ceilão.Grid.
+            Join the next generation of distributed gardening with Ceilão.Grid.
           </p>
           <button className="bg-white text-black px-8 py-4 rounded-full text-lg font-medium hover:bg-gray-200 transition-all duration-300 hover:scale-105">
             Get Started Now
@@ -134,10 +134,7 @@ function App() {
       <footer className="bg-zinc-900 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-8 md:mb-0">
-              <Grid className="w-6 h-6" />
-              <span className="text-lg font-medium">Ceilão.Grid</span>
-            </div>
+          <img src="/public/ceilão.grid.png" alt="Ceilao.Grid Logo" className="logo" />
             <div className="flex space-x-8 text-sm text-gray-400">
               <a href="#" className="hover:text-white transition-colors duration-300">Privacy</a>
               <a href="#" className="hover:text-white transition-colors duration-300">Terms</a>
