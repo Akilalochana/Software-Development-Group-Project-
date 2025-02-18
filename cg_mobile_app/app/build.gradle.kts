@@ -118,4 +118,6 @@ dependencies {
     //Location
     implementation("com.google.android.gms:play-services-location:21.0.1")
 
+
+    //add again correct project to main to fix others errors
 }
