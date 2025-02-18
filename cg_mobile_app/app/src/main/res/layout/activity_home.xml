@@ -1,0 +1,322 @@
+<!-- layout/activity_home.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/background_gradient"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Home">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fadeScrollbars="false"
+        android:scrollbarThumbVertical="@drawable/scrollbar_thumb">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/homeTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/title_background"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="HOME"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:elevation="4dp"
+                android:layout_marginBottom="24dp"
+                android:textColor="@color/black"/>
+
+            <GridLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:rowCount="5"
+                android:padding="16dp"
+                android:useDefaultMargins="true"
+                android:layout_gravity="center">
+
+                <!-- Time Table -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/timeTableCard"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_margin="12dp"
+                    app:cardBackgroundColor="@color/button_green"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_time_table"
+                            android:tint="?attr/colorPrimary"
+                            android:padding="8dp"
+                            android:background="@drawable/icon_background"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Chat-Bot"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Homework -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/homeworkCard"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_margin="12dp"
+                    app:cardBackgroundColor="@color/button_green"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_homework"
+                            android:tint="?attr/colorPrimary"
+                            android:padding="8dp"
+                            android:background="@drawable/icon_background"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Updates"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Weather -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/weatherCard"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_margin="12dp"
+                    app:cardBackgroundColor="@color/button_green"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_weather"
+                            android:tint="?attr/colorPrimary"
+                            android:padding="8dp"
+                            android:background="@drawable/icon_background"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Weather"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- AR Plot -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/arPlotCard"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_margin="12dp"
+                    app:cardBackgroundColor="@color/button_green"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_ar_plot"
+                            android:tint="?attr/colorPrimary"
+                            android:padding="8dp"
+                            android:background="@drawable/icon_background"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="AR Plot"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Report -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/reportCard"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_margin="12dp"
+                    app:cardBackgroundColor="@color/button_green"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_report"
+                            android:tint="?attr/colorPrimary"
+                            android:padding="8dp"
+                            android:background="@drawable/icon_background"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Report"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Water Cycle -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/waterCycleCard"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_margin="12dp"
+                    app:cardBackgroundColor="@color/button_green"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
+                    android:foreground="?android:attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_water_cycle"
+                            android:tint="?attr/colorPrimary"
+                            android:padding="8dp"
+                            android:background="@drawable/icon_background"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Water Cycle"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"
+                            android:layout_marginTop="8dp"/>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+            </GridLayout>
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- drawable/background_gradient.xml -->
+    <?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+<gradient
+    android:startColor="#F5F5F5"
+    android:endColor="#E0E0E0"
+    android:angle="135"/>
+</shape>
+
+    <!-- drawable/scrollbar_thumb.xml -->
+    <?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+<solid android:color="@color/button_green" />
+<corners android:radius="4dp" />
+</shape>
+
+    <!-- drawable/title_background.xml -->
+    <?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+<solid android:color="@color/button_green" />
+<corners android:radius="24dp" />
+</shape>
+
+    <!-- drawable/icon_background.xml -->
+    <?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+<solid android:color="#FFFFFF" />
+<corners android:radius="12dp" />
+</shape>
+
+    <!-- values/colors.xml (add these colors) -->
+    <?xml version="1.0" encoding="utf-8"?>
+<resources>
+<color name="button_green">#4CAF50</color>
+<color name="white">#FFFFFF</color>
+<color name="black">#000000</color>
+</resources>
