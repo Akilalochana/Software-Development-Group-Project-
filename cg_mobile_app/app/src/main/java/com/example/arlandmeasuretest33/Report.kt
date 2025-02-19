@@ -19,6 +19,9 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument
 import java.io.*
 import okhttp3.*
 import okhttp3.RequestBody.Companion.asRequestBody
+import com.google.firebase.firestore.FirebaseFirestore
+
+val db = FirebaseFirestore.getInstance()
 
 class Report : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
@@ -28,7 +31,18 @@ class Report : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.report)
+
+        db.collection("districts").document("Mannar").collection("crops")
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    println("Crop: ${document.id}")
+                }
+            }
+            .addOnFailureListener { exception ->
+                println("Error getting documents: ${exception.message}")
+            }
 
         // UI Elements
         progressBar = findViewById(R.id.progressBar)
@@ -104,7 +118,12 @@ class Report : AppCompatActivity() {
     }
 
     // Function to modify Word template
-    private fun modifyWordDocument(templatePath: String, outputPath: String, imagePath: String, replacementsMap: Map<String, String>) {
+    private fun modifyWordDocument(
+        templatePath: String,
+        outputPath: String,
+        imagePath: String,
+        replacementsMap: Map<String, String>
+    ) {
         try {
             val doc = XWPFDocument(FileInputStream(templatePath))
 
@@ -134,7 +153,13 @@ class Report : AppCompatActivity() {
 
                     val run = paragraph.createRun()
                     val imgInputStream = FileInputStream(imagePath)
-                    run.addPicture(imgInputStream, XWPFDocument.PICTURE_TYPE_JPEG, imagePath, 600_000, 600_000)
+                    run.addPicture(
+                        imgInputStream,
+                        XWPFDocument.PICTURE_TYPE_JPEG,
+                        imagePath,
+                        600_000,
+                        600_000
+                    )
                     imgInputStream.close()
                 }
             }
@@ -169,7 +194,10 @@ class Report : AppCompatActivity() {
         val request = Request.Builder()
             .url("https://api.apyhub.com/convert/word-file/pdf-file?output=test-sample.pdf&landscape=false")
             .post(requestBody)
-            .header("apy-token", "APY0teeUq8CAtaq9CVw6P98KFjL8i392G0AUt9XI8RjLkpscbE3Neerdd3N1emmCj1rI")  // Replace with your API key
+            .header(
+                "apy-token",
+                "APY0teeUq8CAtaq9CVw6P98KFjL8i392G0AUt9XI8RjLkpscbE3Neerdd3N1emmCj1rI"
+            )  // Replace with your API key
             .header("content-type", "multipart/form-data")
             .build()
 
@@ -201,12 +229,22 @@ class Report : AppCompatActivity() {
     }
 
 
-
     // Function to render PDF first page to an ImageView
     private fun renderPdfToImage(pdfPath: String) {
+        val file = File(pdfPath)
+
+        if (!file.exists()) {
+            Log.e("ERROR", "PDF file does not exist: $pdfPath")
+            runOnUiThread {
+                Toast.makeText(this, "PDF file not found. Please try again.", Toast.LENGTH_LONG)
+                    .show()
+            }
+            return
+        }
+
         try {
-            val file = File(pdfPath)
-            val fileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+            val fileDescriptor =
+                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
             val pdfRenderer = PdfRenderer(fileDescriptor)
             val page = pdfRenderer.openPage(0)
 
@@ -220,11 +258,13 @@ class Report : AppCompatActivity() {
             Log.e("ERROR", "Failed to render PDF: ${e.message}")
         }
     }
+
     // Function to save the PDF to the Downloads folder
     private fun downloadPdfToDownloads(pdfPath: String, fileName: String) {
         try {
             val sourceFile = File(pdfPath)
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val downloadsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val destinationFile = File(downloadsDir, fileName)
 
             if (!downloadsDir.exists()) {

@@ -4,6 +4,7 @@
 /cg_mobile_app/out/
 /cg_mobile_app/.idea/
 *.iml
+*.idea/
 
 # Logs and temp files
 /cg_mobile_app/logs/
