@@ -1,5 +1,6 @@
 plugins {
     id("com.android.application")
+    id("com.google.gms.google-services")
     id("org.jetbrains.kotlin.android")
 }
 
@@ -9,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.arlandmeasuretest33"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -117,6 +118,11 @@ dependencies {
 
     //Location
     implementation("com.google.android.gms:play-services-location:21.0.1")
+    // For Android-compatible logging
+    // SLF4J for logging (Fix SLF4J warnings)
+    implementation (libs.slf4j.api)
+    implementation (libs.slf4j.android)
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
 
     //weather
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
@@ -125,4 +131,30 @@ dependencies {
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation ("androidx.constraintlayout:constraintlayout:2.1.4")
 
+
+
+    implementation("org.apache.poi:poi-ooxml:5.2.3") // For Word processing
+    implementation("com.itextpdf:itext7-core:7.1.16") // For PDF conversion
+
+
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:32.2.0"))
+
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation("com.google.firebase:firebase-analytics")
+
+
+    // Add the dependencies for any other desired Firebase products
+    // https://firebase.google.com/docs/android/setup#available-librarie
+
+    // Firebase Authentication
+    implementation (libs.firebase.auth.ktx)
+
+// Firebase Firestore (for database)
+    implementation (libs.firebase.firestore.ktx)
+
+
+    //add again correct project to main to fix others errors
 }
