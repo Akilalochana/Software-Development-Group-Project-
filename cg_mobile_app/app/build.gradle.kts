@@ -148,4 +148,6 @@ dependencies {
 // Firebase Firestore (for database)
     implementation (libs.firebase.firestore.ktx)
 
+
+    //add again correct project to main to fix others errors
 }
