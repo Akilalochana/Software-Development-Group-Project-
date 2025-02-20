@@ -23,6 +23,12 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
+//        val openReportButton: Button = findViewById(R.id.openReportButton)
+//        openReportButton.setOnClickListener {
+//            val intent = Intent(this, Report::class.java)
+//            startActivity(intent)
+//        }
+
         initializeViews()
         setupListeners()
     }

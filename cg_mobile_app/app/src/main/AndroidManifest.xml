@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -43,6 +46,14 @@
         <activity
             android:name=".PlantRecommendationActivity"
             android:exported="false" />
+        <activity
+            android:name=".WeatherActivity"
+            android:exported="false" />
+
+
+        <activity android:name=".Report" android:exported="false">
+        </activity>
+
 
     </application>
 
