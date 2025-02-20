@@ -1,5 +1,6 @@
 package com.example.arlandmeasuretest33
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
@@ -51,7 +52,23 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.clearButton)?.setOnClickListener {
             clearMeasurement()
         }
+
+        findViewById<Button>(R.id.switchModeButton)?.setOnClickListener {
+            navigateToReport()
+        }
     }
+
+    private fun navigateToReport() {
+        val intent = Intent(this, Report::class.java)
+
+        // Pass relevant data to Report activity
+        intent.putExtra("AREA", measurementText?.text.toString()) // Pass area details
+        intent.putExtra("PLANT_TYPE", "Carrot")  // You can dynamically set this based on user input
+        intent.putExtra("SELECTED_DISTRICT", "Mannar")
+
+        startActivity(intent)
+    }
+
 
     private fun initializeARScene() {
         arFragment?.setOnTapArPlaneListener { hitResult, _, _ ->

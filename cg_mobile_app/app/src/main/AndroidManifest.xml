@@ -50,6 +50,11 @@
             android:name=".WeatherActivity"
             android:exported="false" />
 
+
+        <activity android:name=".Report" android:exported="false">
+        </activity>
+
+
     </application>
 
 </manifest>

@@ -33,6 +33,12 @@ class Report : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.report)
 
+        val receivedArea = intent.getStringExtra("AREA") ?: "No Data"
+        val receivedPlantType = intent.getStringExtra("PLANT_TYPE") ?: "Unknown"
+        val receivedDistrict = intent.getStringExtra("SELECTED_DISTRICT") ?: "Not Selected"
+
+        Log.d("DATA_RECEIVED", "Area: $receivedArea, Plant Type: $receivedPlantType, District: $receivedDistrict")
+
         db.collection("districts").document("Mannar").collection("crops")
             .get()
             .addOnSuccessListener { documents ->
