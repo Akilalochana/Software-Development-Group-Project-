@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SignUp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#326655"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:text="Sign up \nfor your
+Account"
+            android:textColor="#4CD964"
+            android:textSize="30sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/signinPrompt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/titleText"
+            android:layout_marginTop="10dp"
+            android:text="Already have an account? "
+            android:textColor="#FFFFFF"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/titleText"
+            android:layout_marginTop="10dp"
+            android:layout_toRightOf="@id/signinPrompt"
+            android:text="Sign In"
+            android:textColor="#4CD964"/>
+
+        <TextView
+            android:id="@+id/emailLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/signinPrompt"
+            android:layout_marginTop="30dp"
+            android:text="Email"
+            android:textColor="#FFFFFF"/>
+
+        <EditText
+            android:id="@+id/emailInput"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_below="@id/emailLabel"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/border_edittext"
+            android:inputType="textEmailAddress"
+            android:padding="12dp"
+            android:textColor="#FFFFFF"
+            android:focusable="true"
+            android:clickable="true"/>
+
+        <TextView
+            android:id="@+id/passwordLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/emailInput"
+            android:layout_marginTop="20dp"
+            android:text="Password"
+            android:textColor="#FFFFFF"/>
+
+        <EditText
+            android:id="@+id/passwordInput"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_below="@id/passwordLabel"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/border_edittext"
+            android:inputType="textPassword"
+            android:padding="12dp"
+            android:textColor="#FFFFFF"
+            android:focusable="true"
+            android:clickable="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/passwordInput"
+            android:layout_alignParentEnd="true"
+            android:layout_marginTop="20dp"
+            android:text="Forgot Password?"
+            android:textColor="#4ADE80"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/signupButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_below="@id/passwordInput"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/green_button_background"
+            android:text="Sign Up"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"/>
+
+        <TextView
+            android:id="@+id/dividerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/signupButton"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp"
+            android:text="Or Sign Up with"
+            android:textColor="#FFFFFF"/>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/googleSignInButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_below="@id/dividerText"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/outlined_button_background"
+            android:drawableLeft="@drawable/google_icon_small"
+            android:drawablePadding="8dp"
+            android:gravity="center"
+            android:paddingStart="144dp"
+            android:paddingEnd="134dp"
+            android:text="Google"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"/>
+
+    </RelativeLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

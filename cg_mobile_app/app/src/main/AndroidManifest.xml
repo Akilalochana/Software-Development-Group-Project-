@@ -3,16 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="true" />
-    <uses-feature android:name="android.hardware.camera.ar" android:required="true" />
-    <uses-feature android:glEsVersion="0x00030000" android:required="true" />
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature
+        android:name="android.hardware.camera.ar"
+        android:required="true" />
+    <uses-feature
+        android:glEsVersion="0x00030000"
+        android:required="true" />
 
-
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -24,37 +30,47 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ARlandMeasuretest33"
         tools:targetApi="31">
-
-        <meta-data android:name="com.google.ar.core" android:value="required" />
-
-        <activity android:name=".LoginActivity"
+        <activity
+            android:name=".SignUp"
+            android:exported="false" />
+        <activity
+            android:name=".getstartedpage"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required" />
+
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".MainActivity"
             android:exported="true" />
-
         <activity
             android:name=".LocationSelectionActivity"
             android:exported="false" />
-
         <activity
             android:name=".PlantRecommendationActivity"
             android:exported="false" />
         <activity
             android:name=".WeatherActivity"
             android:exported="false" />
-
-
-        <activity android:name=".Report" android:exported="false">
-        </activity>
-
-
+        <activity
+            android:name=".Report"
+            android:exported="false" />
     </application>
 
 </manifest>
