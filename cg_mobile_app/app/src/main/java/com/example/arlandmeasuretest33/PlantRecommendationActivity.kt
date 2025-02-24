@@ -57,9 +57,13 @@ class PlantRecommendationActivity : AppCompatActivity() {
 
     private fun startWeatherActivity() {
         try {
+            println("PlantRecommendationActivity: Starting WeatherActivity")
             val intent = Intent(this, WeatherActivity::class.java)
+            // Remove all flags, keep it simple
             startActivity(intent)
+            println("PlantRecommendationActivity: WeatherActivity started")
         } catch (e: Exception) {
+            println("PlantRecommendationActivity: Error starting WeatherActivity - ${e.message}")
             e.printStackTrace()
         }
     }

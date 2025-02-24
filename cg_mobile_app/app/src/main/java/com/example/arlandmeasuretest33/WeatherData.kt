@@ -1,49 +1,42 @@
 package com.example.arlandmeasuretest33
 
-// WeatherData.kt
-data class WeatherResponse(
-    val location: Location,
-    val current: Current,
-    val forecast: Forecast
+import retrofit2.Call
+import retrofit2.http.GET
+import retrofit2.http.Query
+
+interface WeatherService {
+    @GET("forecast")
+    fun getForecast(
+        @Query("q") location: String,
+        @Query("appid") apiKey: String,
+        @Query("units") units: String = "metric"
+    ): Call<OpenWeatherResponse>
+}
+
+data class OpenWeatherResponse(
+    val list: List<DayForecast>,
+    val city: City
 )
 
-data class Location(
-    val name: String,
-    val region: String,
-    val country: String
+data class DayForecast(
+    val dt: Long,
+    val main: Temperature,
+    val weather: List<Weather>
 )
 
-data class Current(
-    val tempC: Float,
-    val condition: Condition,
-    val windKph: Float,
-    val precipMm: Float,
-    val humidity: Int,
-    val feelslikeC: Float,
-    val uv: Int
+data class Temperature(
+    val temp: Float,
+    val temp_min: Float,
+    val temp_max: Float
 )
 
-data class Condition(
-    val text: String,
+data class Weather(
+    val main: String,
+    val description: String,
     val icon: String
 )
 
-data class Forecast(
-    val forecastday: List<ForecastDay>
-)
-
-data class ForecastDay(
-    val date: String,
-    val day: Day,
-    val astro: Astro
-)
-
-data class Day(
-    val maxtempC: Float,
-    val mintempC: Float
-)
-
-data class Astro(
-    val sunrise: String,
-    val sunset: String
+data class City(
+    val name: String,
+    val country: String
 )
