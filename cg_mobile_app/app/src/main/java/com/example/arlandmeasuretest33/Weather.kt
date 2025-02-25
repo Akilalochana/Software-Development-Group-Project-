@@ -22,12 +22,18 @@ import java.util.*
 class WeatherActivity : AppCompatActivity() {
     private lateinit var forecastAdapter: ForecastAdapter
     private val openWeatherApiKey = "7545a2bc25e9b63cf4b8a41f7c22d03a"
+    private lateinit var selectedLocation: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
             println("WeatherActivity: onCreate START")
             setContentView(R.layout.activity_weather)
+
+            // Get the saved location
+            val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+            selectedLocation = sharedPreferences.getString("SELECTED_LOCATION", "Colombo") ?: "Colombo"
+            println("WeatherActivity: Selected location - $selectedLocation")
 
             // Initialize views and setup
             setupRecyclerView()
@@ -106,7 +112,7 @@ class WeatherActivity : AppCompatActivity() {
 
     private fun fetchWeatherData() {
         try {
-            println("WeatherActivity: fetchWeatherData START")
+            println("WeatherActivity: fetchWeatherData START for location: $selectedLocation")
             val retrofit = Retrofit.Builder()
                 .baseUrl("https://api.openweathermap.org/data/2.5/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -114,9 +120,10 @@ class WeatherActivity : AppCompatActivity() {
 
             val service = retrofit.create(WeatherService::class.java)
             val call = service.getForecast(
-                location = "Colombo",
+                location = selectedLocation,
                 apiKey = openWeatherApiKey,
-                units = "metric"
+                units = "metric",
+                count = 56
             )
 
             println("WeatherActivity: Making API call to: ${call.request().url}")
@@ -178,15 +185,18 @@ class WeatherActivity : AppCompatActivity() {
             .load("https://openweathermap.org/img/w/${currentWeather.weather[0].icon}.png")
             .into(findViewById(R.id.weatherIcon))
 
-        // Group forecasts by day
-        val dailyForecasts = weather.list.groupBy {
-            val date = Date(it.dt * 1000)
-            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            formatter.format(date)
-        }.map { it.value.first() }  // Take first forecast of each day
+        // Process forecasts to get exactly 7 days
+        val dailyForecasts = weather.list
+            .groupBy {
+                val date = Date(it.dt * 1000)
+                val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                formatter.format(date)
+            }
+            .values
+            .map { it.maxBy { forecast -> forecast.main.temp_max } } // Take the forecast with highest temp for each day
+            .take(7) // Ensure we take exactly 7 days
 
-        // Update forecast list
-        println("WeatherActivity: Updating forecast adapter with ${dailyForecasts.size} items")
+        println("WeatherActivity: Processed ${dailyForecasts.size} daily forecasts")
         forecastAdapter.updateForecasts(dailyForecasts)
     }
 }

@@ -21,6 +21,10 @@ class LocationSelectionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_location_selection)
 
+        // Restore the selected position
+        val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        selectedPosition = sharedPreferences.getInt("SELECTED_POSITION", -1)
+
         initializeViews()
         setupDistrictSpinner()
         setupListeners()
@@ -37,8 +41,19 @@ class LocationSelectionActivity : AppCompatActivity() {
             "Colombo",
             "Anuradhapura",
             "Kandy",
-            "Nuwara Eliya"
+            "Nuwara Eliya",
+            "Galle",
+            "Jaffna",
+            "Batticaloa",
+            "Trincomalee",
+            "Matara",
+            "Badulla"
         )
+
+        // Set the initial selection if there was a previously selected item
+        if (selectedPosition >= 0 && selectedPosition < districts.size) {
+            districtSpinner.setText(districts[selectedPosition], false)
+        }
 
         val adapter = object : ArrayAdapter<String>(
             this,
@@ -51,10 +66,10 @@ class LocationSelectionActivity : AppCompatActivity() {
                 parent: android.view.ViewGroup
             ): android.view.View {
                 val view = super.getDropDownView(position, convertView, parent) as TextView
-                
+
                 // Add padding for better spacing
                 view.setPadding(32, 24, 32, 24)
-                
+
                 if (position == selectedPosition) {
                     view.setBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"))
                     view.setTextColor(getColor(R.color.garden_green))
@@ -69,15 +84,21 @@ class LocationSelectionActivity : AppCompatActivity() {
                 if (position < districts.size - 1) {
                     view.setBackgroundResource(R.drawable.dropdown_item_background)
                 }
-                
+
                 return view
             }
         }
-        
+
         districtSpinner.setAdapter(adapter)
-        
+
         districtSpinner.setOnItemClickListener { _, _, position, _ ->
             selectedPosition = position
+            // Save the selected position
+            val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+            sharedPreferences.edit().apply {
+                putInt("SELECTED_POSITION", position)
+                apply()
+            }
             adapter.notifyDataSetChanged()
         }
     }
@@ -88,14 +109,18 @@ class LocationSelectionActivity : AppCompatActivity() {
             val selectedDistrict = districtSpinner.text.toString()
 
             try {
-                // Create intent to start PlantRecommendationActivity
-                val intent = Intent(this, PlantRecommendationActivity::class.java)
-                
-                // Pass any necessary data from location selection
-                intent.putExtra("SELECTED_DISTRICT", selectedDistrict)
-                intent.putExtra("GARDEN_NAME", gardenName)
-                
-                // Start the PlantRecommendationActivity
+                // Store the selected location for weather feature
+                val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+                sharedPreferences.edit().apply {
+                    putString("SELECTED_LOCATION", selectedDistrict)
+                    apply()
+                }
+
+                // Continue to plant recommendations as before
+                val intent = Intent(this, PlantRecommendationActivity::class.java).apply {
+                    putExtra("SELECTED_DISTRICT", selectedDistrict)
+                    putExtra("GARDEN_NAME", gardenName)
+                }
                 startActivity(intent)
             } catch (e: Exception) {
                 e.printStackTrace()
