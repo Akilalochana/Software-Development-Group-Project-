@@ -4,12 +4,13 @@ import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface WeatherService {
+interface  WeatherService {
     @GET("forecast")
     fun getForecast(
         @Query("q") location: String,
         @Query("appid") apiKey: String,
-        @Query("units") units: String = "metric"
+        @Query("units") units: String = "metric",
+        @Query("cnt") count: Int = 56
     ): Call<OpenWeatherResponse>
 }
 
