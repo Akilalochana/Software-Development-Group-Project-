@@ -4,8 +4,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/purple_500"
+    android:background="#1B4D3E"
     android:padding="16dp">
+
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_back"
+        android:contentDescription="Back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/cityNameText"
@@ -14,7 +24,7 @@
         android:layout_marginTop="32dp"
         android:text="Colombo"
         android:textColor="@android:color/white"
-        android:textSize="32sp"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -23,13 +33,21 @@
         android:id="@+id/temperatureText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:text="21°"
         android:textColor="@android:color/white"
-        android:textSize="64sp"
+        android:textSize="72sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cityNameText" />
+
+    <ImageView
+        android:id="@+id/weatherIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toEndOf="@id/temperatureText"
+        app:layout_constraintTop_toTopOf="@id/temperatureText" />
 
     <TextView
         android:id="@+id/conditionText"
@@ -37,6 +55,7 @@
         android:layout_height="wrap_content"
         android:text="Partly Cloudy"
         android:textColor="@android:color/white"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/temperatureText" />
@@ -47,137 +66,40 @@
         android:layout_height="wrap_content"
         android:text="H:29° L:15°"
         android:textColor="@android:color/white"
+        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/conditionText" />
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/forecastLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="7-DAY FORECAST"
+        android:textColor="#80FFFFFF"
+        android:textSize="12sp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/highLowText" />
+
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/highLowText">
+        android:layout_marginTop="8dp"
+        app:cardBackgroundColor="#2A5F4E"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="0dp"
+        app:layout_constraintTop_toBottomOf="@id/forecastLabel">
 
-        <!-- UV Index -->
-        <LinearLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/forecastRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="UV INDEX"
-                android:textColor="@android:color/white" />
-            <TextView
-                android:id="@+id/uvIndexValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textColor="@android:color/white" />
-        </LinearLayout>
+            android:orientation="vertical"
+            android:visibility="visible"
+            android:nestedScrollingEnabled="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
-        <!-- Sunrise -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="SUNRISE"
-                android:textColor="@android:color/white" />
-            <TextView
-                android:id="@+id/sunriseValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="6:28 AM"
-                android:textColor="@android:color/white" />
-        </LinearLayout>
-
-        <!-- Wind -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="WIND"
-                android:textColor="@android:color/white" />
-            <TextView
-                android:id="@+id/windValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="1 km/h"
-                android:textColor="@android:color/white" />
-        </LinearLayout>
-
-        <!-- Rainfall -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="RAINFALL"
-                android:textColor="@android:color/white" />
-            <TextView
-                android:id="@+id/rainfallValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 mm"
-                android:textColor="@android:color/white" />
-        </LinearLayout>
-
-        <!-- Feels Like -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="FEELS LIKE"
-                android:textColor="@android:color/white" />
-            <TextView
-                android:id="@+id/feelsLikeValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="73%"
-                android:textColor="@android:color/white" />
-        </LinearLayout>
-
-        <!-- Humidity -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp">
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="HUMIDITY"
-                android:textColor="@android:color/white" />
-            <TextView
-                android:id="@+id/humidityValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="73%"
-                android:textColor="@android:color/white" />
-        </LinearLayout>
-
-    </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
