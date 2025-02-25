@@ -64,7 +64,7 @@ class SignUp : AppCompatActivity() {
                 if (task.isSuccessful) {
                     Toast.makeText(this, "Sign Up Successful", Toast.LENGTH_SHORT).show()
                     // Navigate to LocationSelectionActivity
-                    val intent = Intent(this, LocationSelectionActivity::class.java)
+                    val intent = Intent(this, HomeActivity::class.java)
                     startActivity(intent)
                 } else {
                     Toast.makeText(this, "Sign Up Failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
