@@ -41,3 +41,22 @@ data class City(
     val name: String,
     val country: String
 )
+
+object WeatherIcons {
+    fun getIconResource(iconCode: String): Int {
+        return when (iconCode) {
+            "01d" -> R.drawable.ic_weather_clear_day
+            "01n" -> R.drawable.ic_weather_clear_night
+            "02d" -> R.drawable.ic_weather_partly_cloudy_day
+            "02n" -> R.drawable.ic_weather_partly_cloudy_night
+            "03d", "03n" -> R.drawable.ic_weather_cloudy
+            "04d", "04n" -> R.drawable.ic_weather_cloudy
+            "09d", "09n" -> R.drawable.ic_weather_rain
+            "10d", "10n" -> R.drawable.ic_weather_rain
+            "11d", "11n" -> R.drawable.ic_weather_thunderstorm
+            "13d", "13n" -> R.drawable.ic_weather_cloudy
+            "50d", "50n" -> R.drawable.ic_weather_fog
+            else -> R.drawable.ic_weather_clear_day
+        }
+    }
+}

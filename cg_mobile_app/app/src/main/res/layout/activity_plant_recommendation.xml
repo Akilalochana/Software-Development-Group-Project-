@@ -92,7 +92,7 @@
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="16dp"
                         android:layout_marginEnd="16dp">
-                        
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
@@ -149,7 +149,7 @@
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="16dp"
                         android:layout_marginEnd="16dp">
-                        
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
@@ -206,7 +206,7 @@
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="16dp"
                         android:layout_marginEnd="16dp">
-                        
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
@@ -263,7 +263,7 @@
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="16dp"
                         android:layout_marginEnd="16dp">
-                        
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
@@ -321,7 +321,7 @@
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="16dp"
                         android:layout_marginEnd="16dp">
-                        
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
@@ -378,7 +378,7 @@
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="16dp"
                         android:layout_marginEnd="16dp">
-                        
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
@@ -435,7 +435,7 @@
                         android:layout_height="wrap_content"
                         app:cardCornerRadius="16dp"
                         android:layout_marginEnd="16dp">
-                        
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="100dp"
@@ -464,62 +464,6 @@
                             android:layout_marginTop="8dp"
                             android:lineSpacingExtra="4dp"
                             android:text="A popular vegetable in African cuisine. Needs warm weather and well-drained soil."
-                            android:textColor="#666666"
-                            android:textSize="14sp" />
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/weatherCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        android:layout_marginEnd="16dp">
-
-                        <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/plants" />
-
-                    </androidx.cardview.widget.CardView>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Weather Information"
-                            android:textColor="@color/garden_green"
-                            android:textSize="20sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:lineSpacingExtra="4dp"
-                            android:text="Check current weather conditions to plan your gardening activities"
                             android:textColor="#666666"
                             android:textSize="14sp" />
                     </LinearLayout>

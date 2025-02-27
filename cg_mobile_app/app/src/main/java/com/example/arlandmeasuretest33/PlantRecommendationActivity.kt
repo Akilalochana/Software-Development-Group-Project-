@@ -24,9 +24,6 @@ class PlantRecommendationActivity : AppCompatActivity() {
             val brinjalCard = findViewById<CardView>(R.id.brinjalCard)
             val okraCard = findViewById<CardView>(R.id.okraCard)
 
-            // Add weather card
-            val weatherCard = findViewById<CardView>(R.id.weatherCard)
-
             // Set click listeners for each plant card
             cabbageCard.setOnClickListener { startARFeature("cabbage") }
             radishCard.setOnClickListener { startARFeature("radish") }
@@ -35,9 +32,6 @@ class PlantRecommendationActivity : AppCompatActivity() {
             capsicumCard.setOnClickListener { startARFeature("capsicum") }
             brinjalCard.setOnClickListener { startARFeature("brinjal") }
             okraCard.setOnClickListener { startARFeature("okra") }
-
-            // Set click listener for weather card
-            weatherCard.setOnClickListener { startWeatherActivity() }
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -51,19 +45,6 @@ class PlantRecommendationActivity : AppCompatActivity() {
             intent.putExtra("START_AR", true)
             startActivity(intent)
         } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun startWeatherActivity() {
-        try {
-            println("PlantRecommendationActivity: Starting WeatherActivity")
-            val intent = Intent(this, WeatherActivity::class.java)
-            // Remove all flags, keep it simple
-            startActivity(intent)
-            println("PlantRecommendationActivity: WeatherActivity started")
-        } catch (e: Exception) {
-            println("PlantRecommendationActivity: Error starting WeatherActivity - ${e.message}")
             e.printStackTrace()
         }
     }
