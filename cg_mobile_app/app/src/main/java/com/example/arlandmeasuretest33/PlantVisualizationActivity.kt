@@ -57,25 +57,33 @@ class PlantVisualizationActivity : AppCompatActivity() {
     }
 
     private fun createGardenBorder() {
-        val border = GradientDrawable()
-        border.shape = GradientDrawable.RECTANGLE
-        border.setStroke(4, Color.parseColor("#4CAF50")) // Green border
-        border.setColor(Color.parseColor("#F1F8E9")) // Light green background
-        border.cornerRadius = resources.displayMetrics.density * 12
+        val border = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setStroke(8, Color.parseColor("#2E7D32")) // Darker green border
+            val gradientColors = intArrayOf(
+                Color.parseColor("#E8F5E9"), // Light green start
+                Color.parseColor("#C8E6C9")  // Slightly darker green end
+            )
+            orientation = GradientDrawable.Orientation.TL_BR
+            colors = gradientColors
+            cornerRadius = resources.displayMetrics.density * 16
+        }
         gardenContainer.background = border
 
-        // Animate garden border appearance
+        // Enhanced animation
         gardenContainer.alpha = 0f
         gardenContainer.scaleX = 0.8f
         gardenContainer.scaleY = 0.8f
-
-        val fadeIn = ObjectAnimator.ofFloat(gardenContainer, View.ALPHA, 0f, 1f)
-        val scaleX = ObjectAnimator.ofFloat(gardenContainer, View.SCALE_X, 0.8f, 1f)
-        val scaleY = ObjectAnimator.ofFloat(gardenContainer, View.SCALE_Y, 0.8f, 1f)
+        gardenContainer.translationY = 100f
 
         AnimatorSet().apply {
-            playTogether(fadeIn, scaleX, scaleY)
-            duration = 500
+            playTogether(
+                ObjectAnimator.ofFloat(gardenContainer, View.ALPHA, 0f, 1f),
+                ObjectAnimator.ofFloat(gardenContainer, View.SCALE_X, 0.8f, 1f),
+                ObjectAnimator.ofFloat(gardenContainer, View.SCALE_Y, 0.8f, 1f),
+                ObjectAnimator.ofFloat(gardenContainer, View.TRANSLATION_Y, 100f, 0f)
+            )
+            duration = 800
             interpolator = AccelerateDecelerateInterpolator()
             start()
         }
@@ -105,31 +113,47 @@ class PlantVisualizationActivity : AppCompatActivity() {
     }
     
     private fun createPlantGrid(area: Float, plantType: String) {
-        val plantsCount = (area / 0.25).toInt()
-        val gridSize = sqrt(plantsCount.toDouble()).toInt()
+        val plantsCount = calculateRecommendedPlants(area, plantType)
         
-        gridLayout.rowCount = gridSize
-        gridLayout.columnCount = gridSize
+        // Calculate grid dimensions to fit exact number of plants
+        val gridColumns = sqrt(plantsCount.toDouble()).ceil().toInt()
+        val gridRows = (plantsCount + gridColumns - 1) / gridColumns // Ceiling division
+        
+        gridLayout.rowCount = gridRows
+        gridLayout.columnCount = gridColumns
         
         val iconResource = getPlantIcon(plantType)
-        val iconSize = (resources.displayMetrics.density * 48).toInt()
-        val margin = (resources.displayMetrics.density * 4).toInt()
+        val screenWidth = resources.displayMetrics.widthPixels
+        val availableWidth = screenWidth - (32 * resources.displayMetrics.density).toInt()
+        val iconSize = (availableWidth / gridColumns.coerceAtLeast(4)).coerceAtMost(
+            (72 * resources.displayMetrics.density).toInt()
+        )
+        val margin = (iconSize * 0.1f).toInt()
         
-        for (i in 0 until gridSize * gridSize) {
+        // Create exactly plantsCount number of icons
+        for (i in 0 until plantsCount) {
+            val row = i / gridColumns
+            val col = i % gridColumns
+            
             val cardView = CardView(this).apply {
                 layoutParams = GridLayout.LayoutParams().apply {
-                    width = iconSize + margin * 2
-                    height = iconSize + margin * 2
+                    width = iconSize
+                    height = iconSize
                     setMargins(margin, margin, margin, margin)
+                    rowSpec = GridLayout.spec(row, 1f)
+                    columnSpec = GridLayout.spec(col, 1f)
                 }
-                radius = (resources.displayMetrics.density * 8)
-                cardElevation = resources.displayMetrics.density * 2
+                radius = iconSize * 0.2f
+                cardElevation = resources.displayMetrics.density * 4
                 alpha = 0f
                 setCardBackgroundColor(Color.WHITE)
             }
             
             val imageView = ImageView(this).apply {
-                layoutParams = LinearLayout.LayoutParams(iconSize, iconSize).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    (iconSize * 0.8f).toInt(),
+                    (iconSize * 0.8f).toInt()
+                ).apply {
                     gravity = android.view.Gravity.CENTER
                 }
                 setImageResource(iconResource)
@@ -140,16 +164,16 @@ class PlantVisualizationActivity : AppCompatActivity() {
             cardView.addView(imageView)
             gridLayout.addView(cardView)
             
-            // Complex animation sequence
+            // Animate each plant icon
             AnimatorSet().apply {
                 val fadeIn = ObjectAnimator.ofFloat(cardView, View.ALPHA, 0f, 1f)
-                val scaleX = ObjectAnimator.ofFloat(cardView, View.SCALE_X, 0.5f, 1.1f, 1f)
-                val scaleY = ObjectAnimator.ofFloat(cardView, View.SCALE_Y, 0.5f, 1.1f, 1f)
-                val rotation = ObjectAnimator.ofFloat(cardView, View.ROTATION, -15f, 15f, 0f)
+                val scaleX = ObjectAnimator.ofFloat(cardView, View.SCALE_X, 0.5f, 1.2f, 1f)
+                val scaleY = ObjectAnimator.ofFloat(cardView, View.SCALE_Y, 0.5f, 1.2f, 1f)
+                val rotation = ObjectAnimator.ofFloat(cardView, View.ROTATION, -10f, 10f, 0f)
                 
                 playTogether(fadeIn, scaleX, scaleY, rotation)
-                duration = 800
-                startDelay = (i * 100).toLong()
+                duration = 600
+                startDelay = (i * 50).toLong()
                 interpolator = AccelerateDecelerateInterpolator()
                 start()
             }
@@ -179,4 +203,6 @@ class PlantVisualizationActivity : AppCompatActivity() {
             finish() // Optional: close this activity when moving to report
         }
     }
+
+    private fun Double.ceil(): Double = kotlin.math.ceil(this)
 } 
