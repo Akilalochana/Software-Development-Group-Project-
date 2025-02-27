@@ -46,10 +46,11 @@ class PlantRecommendationActivity : AppCompatActivity() {
 
     private fun startARFeature(plantType: String) {
         try {
-            val intent = Intent(this, MainActivity::class.java)  // Changed back to MainActivity
-            intent.putExtra("PLANT_TYPE", plantType)
-            intent.putExtra("START_AR", true)
-            startActivity(intent)
+            // Only start AR measurement
+            val arIntent = Intent(this, MainActivity::class.java)
+            arIntent.putExtra("PLANT_TYPE", plantType)
+            arIntent.putExtra("START_AR", true)
+            startActivity(arIntent)
         } catch (e: Exception) {
             e.printStackTrace()
         }
