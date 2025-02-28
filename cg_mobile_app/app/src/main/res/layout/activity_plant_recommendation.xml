@@ -4,473 +4,489 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/light_bg">
+    android:background="#EAF7ED">
 
-    <!-- Header Section -->
-    <ImageView
-        android:id="@+id/plantIcon"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="24dp"
-        android:src="@drawable/plants"
-        android:scaleType="fitCenter"
-        android:adjustViewBounds="true"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
+    <!-- Header for Recommended Plants - Now Centered -->
     <TextView
-        android:id="@+id/titleText"
-        android:layout_width="wrap_content"
+        android:id="@+id/recommendedHeader"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Recommended Plants"
-        android:textSize="28sp"
+        android:textColor="#333333"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/garden_green"
-        android:layout_marginTop="16dp"
-        android:letterSpacing="0.02"
-        android:fontFamily="sans-serif-medium"
-        android:textAlignment="center"
-        app:layout_constraintTop_toBottomOf="@id/plantIcon"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/subtitleText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select a plant to start measuring your garden space"
-        android:textSize="16sp"
-        android:layout_marginTop="8dp"
-        android:textAlignment="center"
-        android:textColor="#666666"
-        android:letterSpacing="0.01"
-        android:fontFamily="sans-serif"
-        android:alpha="0.87"
-        android:layout_marginHorizontal="32dp"
-        app:layout_constraintTop_toBottomOf="@id/titleText"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <!-- Scrollable Content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="24dp"
         android:clipToPadding="false"
         android:paddingHorizontal="16dp"
         android:paddingBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/subtitleText"
-        app:layout_constraintVertical_bias="1.0"
-        tools:layout_editor_absoluteX="33dp">
+        app:layout_constraintTop_toBottomOf="@id/recommendedHeader">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Cabbage Card -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Artichokes Card -->
+            <androidx.cardview.widget.CardView
                 android:id="@+id/cabbageCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="8dp"
+                app:contentPadding="1dp"
+                app:cardUseCompatPadding="true"
+                app:contentPaddingBottom="0dp"
+                app:contentPaddingTop="0dp"
+                app:contentPaddingLeft="0dp"
+                app:contentPaddingRight="0dp"
+                app:cardPreventCornerOverlap="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="8dp"
+                    android:background="#EAF7ED">
 
-                    <androidx.cardview.widget.CardView
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        android:layout_marginEnd="16dp">
+                        app:cardCornerRadius="50dp"
+                        app:cardElevation="0dp">
 
                         <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/img_cabbage" />
-
-                    </androidx.cardview.widget.CardView>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_gravity="center_vertical"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Cabbage"
-                            android:textColor="@color/garden_green"
+                            android:text="Artichokes"
+                            android:textColor="#333333"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:lineSpacingExtra="4dp"
-                            android:text="A leafy green vegetable rich in vitamins. Best grown in cool weather with full sun exposure."
-                            android:textColor="#666666"
-                            android:textSize="14sp" />
+                            android:layout_marginTop="4dp"
+                            android:text="February to April"
+                            android:textColor="#555555"
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
 
-            <!-- Radish -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Basils Card -->
+            <androidx.cardview.widget.CardView
                 android:id="@+id/radishCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="8dp"
+                app:contentPadding="1dp"
+                app:cardUseCompatPadding="true"
+                app:contentPaddingBottom="0dp"
+                app:contentPaddingTop="0dp"
+                app:contentPaddingLeft="0dp"
+                app:contentPaddingRight="0dp"
+                app:cardPreventCornerOverlap="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="8dp"
+                    android:background="#EAF7ED">
 
-                    <androidx.cardview.widget.CardView
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        android:layout_marginEnd="16dp">
+                        app:cardCornerRadius="50dp"
+                        app:cardElevation="0dp">
 
                         <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/img_radish" />
-
-                    </androidx.cardview.widget.CardView>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_gravity="center_vertical"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Radish"
-                            android:textColor="@color/garden_green"
+                            android:text="Basils"
+                            android:textColor="#333333"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:lineSpacingExtra="4dp"
-                            android:text="Quick-growing root vegetable that's perfect for beginners. Ready to harvest in just 3-4 weeks."
-                            android:textColor="#666666"
-                            android:textSize="14sp" />
+                            android:layout_marginTop="4dp"
+                            android:text="April to June"
+                            android:textColor="#555555"
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
 
-            <!-- Carrot -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Beans Card -->
+            <androidx.cardview.widget.CardView
                 android:id="@+id/carrotCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="8dp"
+                app:contentPadding="1dp"
+                app:cardUseCompatPadding="true"
+                app:contentPaddingBottom="0dp"
+                app:contentPaddingTop="0dp"
+                app:contentPaddingLeft="0dp"
+                app:contentPaddingRight="0dp"
+                app:cardPreventCornerOverlap="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="8dp"
+                    android:background="#EAF7ED">
 
-                    <androidx.cardview.widget.CardView
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        android:layout_marginEnd="16dp">
+                        app:cardCornerRadius="50dp"
+                        app:cardElevation="0dp">
 
                         <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/img_carrot" />
-
-                    </androidx.cardview.widget.CardView>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_gravity="center_vertical"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Carrot"
-                            android:textColor="@color/garden_green"
+                            android:text="Beans"
+                            android:textColor="#333333"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:lineSpacingExtra="4dp"
-                            android:text="Sweet root vegetable packed with beta-carotene. Needs deep, loose soil for best growth."
-                            android:textColor="#666666"
-                            android:textSize="14sp" />
+                            android:layout_marginTop="4dp"
+                            android:text="May to June"
+                            android:textColor="#555555"
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
 
-            <!-- Tomato -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Beetroots Card -->
+            <androidx.cardview.widget.CardView
                 android:id="@+id/tomatoCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="8dp"
+                app:contentPadding="1dp"
+                app:cardUseCompatPadding="true"
+                app:contentPaddingBottom="0dp"
+                app:contentPaddingTop="0dp"
+                app:contentPaddingLeft="0dp"
+                app:contentPaddingRight="0dp"
+                app:cardPreventCornerOverlap="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="8dp"
+                    android:background="#EAF7ED">
 
-                    <androidx.cardview.widget.CardView
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        android:layout_marginEnd="16dp">
+                        app:cardCornerRadius="50dp"
+                        app:cardElevation="0dp">
 
                         <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
                             android:scaleType="centerCrop"
-                            android:src="@drawable/img_tomato"
-                            android:contentDescription="Tomato" />
-
-                    </androidx.cardview.widget.CardView>
+                            android:src="@drawable/img_tomato" />
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_gravity="center_vertical"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tomato"
-                            android:textColor="@color/garden_green"
+                            android:text="Beetroots"
+                            android:textColor="#333333"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:lineSpacingExtra="4dp"
-                            android:text="Versatile fruit commonly used as a vegetable. Needs full sun and regular watering."
-                            android:textColor="#666666"
-                            android:textSize="14sp" />
+                            android:layout_marginTop="4dp"
+                            android:text="March to May"
+                            android:textColor="#555555"
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
 
-            <!-- Capsicum -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Capsicum Card -->
+            <androidx.cardview.widget.CardView
                 android:id="@+id/capsicumCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="8dp"
+                app:contentPadding="1dp"
+                app:cardUseCompatPadding="true"
+                app:contentPaddingBottom="0dp"
+                app:contentPaddingTop="0dp"
+                app:contentPaddingLeft="0dp"
+                app:contentPaddingRight="0dp"
+                app:cardPreventCornerOverlap="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="8dp"
+                    android:background="#EAF7ED">
 
-                    <androidx.cardview.widget.CardView
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        android:layout_marginEnd="16dp">
+                        app:cardCornerRadius="50dp"
+                        app:cardElevation="0dp">
 
                         <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/img_capsicum" />
-
-                    </androidx.cardview.widget.CardView>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_gravity="center_vertical"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Capsicum"
-                            android:textColor="@color/garden_green"
+                            android:textColor="#333333"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:lineSpacingExtra="4dp"
-                            android:text="A popular vegetable known for its sweet and spicy taste. Needs warm weather and well-drained soil."
-                            android:textColor="#666666"
-                            android:textSize="14sp" />
+                            android:layout_marginTop="4dp"
+                            android:text="May to August"
+                            android:textColor="#555555"
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
 
-            <!-- Brinjal -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Brinjal Card -->
+            <androidx.cardview.widget.CardView
                 android:id="@+id/brinjalCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="8dp"
+                app:contentPadding="1dp"
+                app:cardUseCompatPadding="true"
+                app:contentPaddingBottom="0dp"
+                app:contentPaddingTop="0dp"
+                app:contentPaddingLeft="0dp"
+                app:contentPaddingRight="0dp"
+                app:cardPreventCornerOverlap="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="8dp"
+                    android:background="#EAF7ED">
 
-                    <androidx.cardview.widget.CardView
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        android:layout_marginEnd="16dp">
+                        app:cardCornerRadius="50dp"
+                        app:cardElevation="0dp">
 
                         <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/img_brinjal" />
-
-                    </androidx.cardview.widget.CardView>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_gravity="center_vertical"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Brinjal"
-                            android:textColor="@color/garden_green"
+                            android:textColor="#333333"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:lineSpacingExtra="4dp"
-                            android:text="A popular vegetable in Indian cuisine. Needs warm weather and well-drained soil."
-                            android:textColor="#666666"
-                            android:textSize="14sp" />
+                            android:layout_marginTop="4dp"
+                            android:text="June to September"
+                            android:textColor="#555555"
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
 
-            <!-- Okra -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Okra Card -->
+            <androidx.cardview.widget.CardView
                 android:id="@+id/okraCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp"
-                app:strokeColor="#E0E0E0"
-                app:strokeWidth="1dp">
+                app:cardBackgroundColor="@color/white"
+                app:cardElevation="0dp"
+                app:cardCornerRadius="8dp"
+                app:contentPadding="1dp"
+                app:cardUseCompatPadding="true"
+                app:contentPaddingBottom="0dp"
+                app:contentPaddingTop="0dp"
+                app:contentPaddingLeft="0dp"
+                app:contentPaddingRight="0dp"
+                app:cardPreventCornerOverlap="true">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp">
+                    android:padding="8dp"
+                    android:background="#EAF7ED">
 
-                    <androidx.cardview.widget.CardView
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:cardCornerRadius="16dp"
-                        android:layout_marginEnd="16dp">
+                        app:cardCornerRadius="50dp"
+                        app:cardElevation="0dp">
 
                         <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="100dp"
+                            android:layout_width="80dp"
+                            android:layout_height="80dp"
                             android:scaleType="centerCrop"
                             android:src="@drawable/img_okra" />
-
-                    </androidx.cardview.widget.CardView>
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:layout_marginStart="16dp"
+                        android:layout_gravity="center_vertical"
                         android:orientation="vertical">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Okra"
-                            android:textColor="@color/garden_green"
+                            android:textColor="#333333"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:lineSpacingExtra="4dp"
-                            android:text="A popular vegetable in African cuisine. Needs warm weather and well-drained soil."
-                            android:textColor="#666666"
-                            android:textSize="14sp" />
+                            android:layout_marginTop="4dp"
+                            android:text="July to September"
+                            android:textColor="#555555"
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            </androidx.cardview.widget.CardView>
+
+
 
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
-
