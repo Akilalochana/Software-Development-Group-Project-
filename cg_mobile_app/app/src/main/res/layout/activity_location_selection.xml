@@ -1,23 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    android:background="@color/light_bg">
+    android:background="#D0E8D0">
 
-    <ImageView
-        android:id="@+id/gardenIcon"
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_marginTop="64dp"
-        android:src="@drawable/garden_sign"
-        android:scaleType="fitCenter"
-        android:adjustViewBounds="true"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
+    <!-- Title Text -->
     <TextView
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
@@ -30,10 +18,11 @@
         android:letterSpacing="0.02"
         android:fontFamily="sans-serif-medium"
         android:textAlignment="center"
-        app:layout_constraintTop_toBottomOf="@id/gardenIcon"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Subtitle Text -->
     <TextView
         android:id="@+id/subtitleText"
         android:layout_width="wrap_content"
@@ -51,6 +40,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Garden Name Input -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/gardenNameLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -76,9 +66,9 @@
             android:padding="16dp"
             android:textSize="16sp"
             android:background="@null"/>
-
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- District Selection -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/districtInputLayout"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
@@ -88,8 +78,6 @@
         android:hint="Select Region"
         app:boxStrokeColor="@color/garden_green"
         app:hintTextColor="@color/garden_green"
-        app:startIconDrawable="@drawable/ic_location"
-        app:startIconTint="@color/garden_green"
         app:boxCornerRadiusTopStart="12dp"
         app:boxCornerRadiusTopEnd="12dp"
         app:boxCornerRadiusBottomStart="12dp"
@@ -108,9 +96,45 @@
             android:dropDownVerticalOffset="4dp"
             android:popupBackground="@drawable/dropdown_popup_background"
             android:background="@null"/>
-
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Tips and Tricks Title outside the Box (Left-aligned) -->
+    <TextView
+        android:id="@+id/tipsTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tips and Tricks"
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:layout_marginTop="32dp"
+        android:gravity="start"
+        app:layout_constraintTop_toBottomOf="@id/districtInputLayout"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- Tips and Tricks Box with lower opacity background but full opacity text and border -->
+    <LinearLayout
+        android:id="@+id/tipsBox"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:orientation="vertical"
+        android:background="@drawable/tips_box_border"
+        android:padding="16dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tipsTitle">
+
+        <TextView
+            android:id="@+id/tipsContent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:layout_marginTop="8dp"
+            android:gravity="start" />
+    </LinearLayout>
+
+    <!-- Continue Button -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/continueButton"
         android:layout_width="match_parent"
@@ -121,6 +145,5 @@
         android:textSize="16sp"
         app:cornerRadius="24dp"
         android:backgroundTint="@color/garden_green"
-        app:layout_constraintTop_toBottomOf="@id/districtInputLayout" />
-
-</androidx.constraintlayout.widget.ConstraintLayout> 
+        app:layout_constraintTop_toBottomOf="@id/tipsBox"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

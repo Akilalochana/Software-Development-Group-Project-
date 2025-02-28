@@ -2,105 +2,110 @@ package com.example.arlandmeasuretest33
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.view.animation.AlphaAnimation
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
-import android.widget.Toast
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
-import android.widget.TextView
-import android.widget.Button
+import android.widget.Toast
 
 class LocationSelectionActivity : AppCompatActivity() {
     private lateinit var gardenNameInput: TextInputEditText
     private lateinit var districtSpinner: AutoCompleteTextView
     private lateinit var continueButton: MaterialButton
-    private var selectedPosition = -1
+    private lateinit var tipsContent: TextView  // Reference to the tips content TextView
+
+    private val tips = arrayOf(
+        "Colombo is known for its diverse climate. Ensure your garden gets enough sunlight.",
+        "Anuradhapura has a hot climate. Regular watering is key to keeping plants healthy.",
+        "Kandy's cooler temperatures are great for certain plants. Keep them in a shaded area.",
+        "Nuwara Eliya has a cooler climate, ideal for a variety of flowers. Consider adding some roses!",
+        "Galle's coastal climate requires salt-tolerant plants. Be mindful of the soil's salinity.",
+        "Jaffna is known for its dry weather. Make sure your garden has good drainage.",
+        "Batticaloa's high humidity helps tropical plants thrive. Keep them well-watered.",
+        "Trincomalee's dry conditions make it perfect for desert plants like cacti.",
+        "Matara has a tropical climate, perfect for growing fruits like papaya and bananas.",
+        "Badulla's cooler, high-altitude climate is great for strawberries and other berries."
+    )
+
+    private val handler = Handler()  // Handler to post updates to UI
+    private var currentTipIndex = 0  // To track the current tip being displayed
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_location_selection)
 
-        // Restore the selected position
-        val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-        selectedPosition = sharedPreferences.getInt("SELECTED_POSITION", -1)
-
+        // Initialize views
         initializeViews()
         setupDistrictSpinner()
-        setupListeners()
+        setupListeners()  // Call the setupListeners method to activate the button
+        startTipsRotation()  // Start the tips rotation process immediately
     }
 
     private fun initializeViews() {
         gardenNameInput = findViewById(R.id.gardenNameInput)
         districtSpinner = findViewById(R.id.districtSpinner)
         continueButton = findViewById(R.id.continueButton)
+        tipsContent = findViewById(R.id.tipsContent)  // Initialize the tips content TextView
+
+        // Set initial tip text so it's visible immediately
+        tipsContent.text = tips[currentTipIndex]
     }
 
     private fun setupDistrictSpinner() {
         val districts = arrayOf(
-            "Colombo",
-            "Anuradhapura",
-            "Kandy",
-            "Nuwara Eliya",
-            "Galle",
-            "Jaffna",
-            "Batticaloa",
-            "Trincomalee",
-            "Matara",
-            "Badulla"
+            "Colombo", "Anuradhapura", "Kandy", "Nuwara Eliya", "Galle",
+            "Jaffna", "Batticaloa", "Trincomalee", "Matara", "Badulla"
         )
 
-        // Set the initial selection if there was a previously selected item
-        if (selectedPosition >= 0 && selectedPosition < districts.size) {
-            districtSpinner.setText(districts[selectedPosition], false)
-        }
-
-        val adapter = object : ArrayAdapter<String>(
+        val adapter = ArrayAdapter<String>(
             this,
             R.layout.item_location_dropdown,
             districts
-        ) {
-            override fun getDropDownView(
-                position: Int,
-                convertView: android.view.View?,
-                parent: android.view.ViewGroup
-            ): android.view.View {
-                val view = super.getDropDownView(position, convertView, parent) as TextView
-
-                // Add padding for better spacing
-                view.setPadding(32, 24, 32, 24)
-
-                if (position == selectedPosition) {
-                    view.setBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"))
-                    view.setTextColor(getColor(R.color.garden_green))
-                    view.typeface = android.graphics.Typeface.DEFAULT_BOLD
-                } else {
-                    view.setBackgroundColor(android.graphics.Color.WHITE)
-                    view.setTextColor(android.graphics.Color.BLACK)
-                    view.typeface = android.graphics.Typeface.DEFAULT
-                }
-
-                // Add divider except for last item
-                if (position < districts.size - 1) {
-                    view.setBackgroundResource(R.drawable.dropdown_item_background)
-                }
-
-                return view
-            }
-        }
+        )
 
         districtSpinner.setAdapter(adapter)
+    }
 
-        districtSpinner.setOnItemClickListener { _, _, position, _ ->
-            selectedPosition = position
-            // Save the selected position
-            val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
-            sharedPreferences.edit().apply {
-                putInt("SELECTED_POSITION", position)
-                apply()
+    private fun startTipsRotation() {
+        // Use a Runnable to change the tips every 5 seconds (5000 ms)
+        val runnable = object : Runnable {
+            override fun run() {
+                // Apply fade-out animation before changing the text
+                val fadeOut = AlphaAnimation(1.0f, 0.0f)
+                fadeOut.duration = 1500 // Slow down the fade-out to 1.5 seconds
+                fadeOut.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
+                    override fun onAnimationStart(animation: android.view.animation.Animation?) {}
+
+                    override fun onAnimationEnd(animation: android.view.animation.Animation?) {
+                        // Change the text after the fade-out completes
+                        tipsContent.text = tips[currentTipIndex]
+
+                        // Apply fade-in animation after changing the text
+                        val fadeIn = AlphaAnimation(0.0f, 1.0f)
+                        fadeIn.duration = 1500 // Slow down the fade-in to 1.5 seconds
+                        tipsContent.startAnimation(fadeIn)
+                    }
+
+                    override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
+                })
+
+                // Start fade-out animation
+                tipsContent.startAnimation(fadeOut)
+
+                // Update the index, cycling back to 0 when the end of the array is reached
+                currentTipIndex = (currentTipIndex + 1) % tips.size
+
+                // Post the next update after 5 seconds (5000 ms)
+                handler.postDelayed(this, 5000)
             }
-            adapter.notifyDataSetChanged()
         }
+
+        // Start the rotation immediately when the activity is created
+        handler.post(runnable)
     }
 
     private fun setupListeners() {
@@ -129,15 +134,9 @@ class LocationSelectionActivity : AppCompatActivity() {
         }
     }
 
-    private fun getSelectedDistrict(): String {
-        // Get the selected district from your UI
-        // Replace this with your actual implementation
-        return ""
+    override fun onDestroy() {
+        super.onDestroy()
+        // Remove any pending callbacks to prevent memory leaks
+        handler.removeCallbacksAndMessages(null)
     }
-
-    private fun getGardenName(): String {
-        // Get the garden name from your UI
-        // Replace this with your actual implementation
-        return ""
-    }
-} 
+}
