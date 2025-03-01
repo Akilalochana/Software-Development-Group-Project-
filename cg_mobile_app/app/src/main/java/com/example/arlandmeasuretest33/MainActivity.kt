@@ -61,9 +61,14 @@ class MainActivity : AppCompatActivity() {
     private fun navigateToReport() {
         val intent = Intent(this, Report::class.java)
 
-        // Pass relevant data to Report activity
-        intent.putExtra("AREA", measurementText?.text.toString()) // Pass area details
-        intent.putExtra("PLANT_TYPE", "Carrot")  // You can dynamically set this based on user input
+        // Get the area and perimeter from AR measurements
+        val area = calculateQuadrilateralArea(points)
+        val perimeter = calculatePerimeter(points)
+
+        // Pass AR measurements to Report activity
+        intent.putExtra("AR_AREA", area)
+        intent.putExtra("AR_PERIMETER", perimeter)
+        intent.putExtra("PLANT_TYPE", "Carrot")
         intent.putExtra("SELECTED_DISTRICT", "Mannar")
 
         startActivity(intent)

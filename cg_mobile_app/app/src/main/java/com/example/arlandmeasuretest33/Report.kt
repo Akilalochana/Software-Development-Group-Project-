@@ -28,16 +28,14 @@ class Report : AppCompatActivity() {
     private lateinit var pdfImageView: ImageView
     private lateinit var downloadButton: Button
     private var pdfFilePath: String = ""
+    private var plantSpacing: Double = 0.0 // Space needed per plant in sq meters
+    private var totalSqm: Double = 0.0 // Total area in sq meters
+    private var numberOfPlants: Int = 0 // Calculated number of plants
+    private var perimeter: Double = 0.0 // Perimeter from AR
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.report)
-
-        val receivedArea = intent.getStringExtra("AREA") ?: "No Data"
-        val receivedPlantType = intent.getStringExtra("PLANT_TYPE") ?: "Unknown"
-        val receivedDistrict = intent.getStringExtra("SELECTED_DISTRICT") ?: "Not Selected"
-
-        Log.d("DATA_RECEIVED", "Area: $receivedArea, Plant Type: $receivedPlantType, District: $receivedDistrict")
 
         db.collection("districts").document("Mannar").collection("crops")
             .get()
@@ -71,13 +69,20 @@ class Report : AppCompatActivity() {
         pdfImageView.visibility = View.GONE
         downloadButton.visibility = View.GONE
 
+        // Get AR measurements from intent and calculate number of plants
+        getArMeasurementsAndCalculatePlants()
+
+        // Format sqm representation: width×height or area value
+        val sqmRepresentation = formatAreaRepresentation()
+
+
         // Generate data map
         val replacements = mapOf(
             "{{date}}" to "2025-02-17",
-            "{{plant_type}}" to "NuwaraEli/Carrot",
+            "{{plant_type}}" to "NuwaraEliya/Carrot",
             "{{description}}" to "The carrot (Daucus carota) is a root vegetable often claimed to be the perfect health food. It is crunchy, tasty, and highly nutritious.",
-            "{{sqm}}" to "250x569",
-            "{{number_of_plants}}" to "43",
+            "{{sqm}}" to sqmRepresentation,
+            "{{number_of_plants}}" to numberOfPlants.toString(),
             "{{estimated_expenses_per_Month}}" to "36000",
             "{{expected_income_per_month}}" to "82000",
             "{{expected_yield_per_plant}}" to "3",
@@ -105,6 +110,77 @@ class Report : AppCompatActivity() {
             downloadPdfToDownloads(pdfFilePath, "GeneratedPDF.pdf")
         }
     }
+
+    // Function to get AR measurements from intent and calculate plants
+    private fun getArMeasurementsAndCalculatePlants() {
+        try {
+            // Get area and perimeter from intent extras (from AR activity)
+            totalSqm = intent.getFloatExtra("AR_AREA", 0f).toDouble()
+            perimeter = intent.getFloatExtra("AR_PERIMETER", 0f).toDouble()
+
+//            // If no AR data was passed, fallback to default values (for testing)
+//            if (totalSqm <= 0) {
+//                Log.d("REPORT", "No AR area data found, using default value")
+//                totalSqm = 0.41 // Default value from screenshot (0.41 m²)
+//                perimeter = 2.65 // Default value from screenshot (2.65 m)
+//            }
+
+            Log.d("REPORT", "Area from AR: $totalSqm sq m, Perimeter: $perimeter m")
+
+            // Get plant spacing from Firebase and calculate number of plants
+            getPlantSpacingFromFirebase("Carrot") { spacing ->
+                plantSpacing = spacing
+                numberOfPlants = (totalSqm / plantSpacing).toInt()
+
+                // Ensure at least 1 plant if area is positive but very small
+                if (totalSqm > 0 && numberOfPlants < 1) {
+                    numberOfPlants = 1
+                }
+
+                Log.d("PLANTS", "Area: $totalSqm sq m, Plants per sq m: $plantSpacing, Total plants: $numberOfPlants")
+            }
+        } catch (e: Exception) {
+            Log.e("ERROR", "Failed to calculate number of plants: ${e.message}")
+            numberOfPlants = 43 // Fallback to hardcoded value
+        }
+    }
+    // Format area for display in the document
+    private fun formatAreaRepresentation(): String {
+        return if (totalSqm > 0) {
+            // Format with 2 decimal places if using actual measurement
+            String.format("%.2f m²", totalSqm)
+        } else {
+            "250x569" // Fallback to original format
+        }
+    }
+
+    // Function to get plant spacing from Firebase
+    private fun getPlantSpacingFromFirebase(cropName: String, callback: (Double) -> Unit) {
+        // In a real implementation, you would fetch this from Firebase
+        // For now, using hardcoded value
+        val spacing = 0.25 // 0.25 sq meters per plant (example)
+        callback(spacing)
+
+        // Actual Firebase implementation would look like:
+        /*
+        db.collection("crops").document(cropName)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val spacing = document.getDouble("spacing") ?: 0.25
+                    callback(spacing)
+                } else {
+                    Log.d("FIREBASE", "No spacing data for $cropName")
+                    callback(0.25) // Default spacing
+                }
+            }
+            .addOnFailureListener { exception ->
+                Log.e("FIREBASE", "Error getting spacing data: ${exception.message}")
+                callback(0.25) // Default spacing on error
+            }
+        */
+    }
+
 
     // Function to copy assets to internal storage
     private fun copyAssetToInternalStorage(assetFileName: String, context: Context): String? {
@@ -202,7 +278,7 @@ class Report : AppCompatActivity() {
             .post(requestBody)
             .header(
                 "apy-token",
-                "APY0teeUq8CAtaq9CVw6P98KFjL8i392G0AUt9XI8RjLkpscbE3Neerdd3N1emmCj1rI"
+                "APY0HErz5rADpPGWknWyEFBjT3aB7QAcUF5mhYyCiA95fJY3d97CojeNaW5gpuPjGiiV3e"
             )  // Replace with your API key
             .header("content-type", "multipart/form-data")
             .build()
