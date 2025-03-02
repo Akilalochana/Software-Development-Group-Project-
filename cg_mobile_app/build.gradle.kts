@@ -5,6 +5,10 @@ plugins {
     id("com.google.gms.google-services") version "4.4.2" apply false
 }
 buildscript {
+    repositories {
+        google()
+        mavenCentral()  // Add this to ensure mavenCentral is included for classpath dependencies
+    }
     dependencies {
         classpath ("com.google.ar.sceneform:plugin:1.15.0")
     }

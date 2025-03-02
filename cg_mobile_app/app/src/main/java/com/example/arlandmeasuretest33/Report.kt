@@ -20,11 +20,12 @@ import java.io.*
 import okhttp3.*
 import okhttp3.RequestBody.Companion.asRequestBody
 import com.google.firebase.firestore.FirebaseFirestore
+import com.airbnb.lottie.LottieAnimationView
 
 val db = FirebaseFirestore.getInstance()
 
 class Report : AppCompatActivity() {
-    private lateinit var progressBar: ProgressBar
+    private lateinit var lottieView: LottieAnimationView
     private lateinit var pdfImageView: ImageView
     private lateinit var downloadButton: Button
     private var pdfFilePath: String = ""
@@ -49,7 +50,7 @@ class Report : AppCompatActivity() {
             }
 
         // UI Elements
-        progressBar = findViewById(R.id.progressBar)
+        lottieView = findViewById(R.id.lottie_view)
         pdfImageView = findViewById(R.id.pdfImageView)
         downloadButton = findViewById(R.id.downloadButton)
 
@@ -65,7 +66,7 @@ class Report : AppCompatActivity() {
         }
 
         // Show loading screen
-        progressBar.visibility = View.VISIBLE
+        lottieView.visibility = View.VISIBLE
         pdfImageView.visibility = View.GONE
         downloadButton.visibility = View.GONE
 
@@ -96,7 +97,7 @@ class Report : AppCompatActivity() {
             convertWordToPdf(outputDocxPath, pdfFilePath)
 
             runOnUiThread {
-                progressBar.visibility = View.GONE
+                lottieView.visibility = View.GONE
                 pdfImageView.visibility = View.VISIBLE
                 downloadButton.visibility = View.VISIBLE
 
@@ -298,7 +299,7 @@ class Report : AppCompatActivity() {
 
                     // Update UI
                     runOnUiThread {
-                        progressBar.visibility = View.GONE
+                        lottieView.visibility = View.GONE
                         pdfImageView.visibility = View.VISIBLE
                         downloadButton.visibility = View.VISIBLE
                         renderPdfToImage(pdfFile.absolutePath)
