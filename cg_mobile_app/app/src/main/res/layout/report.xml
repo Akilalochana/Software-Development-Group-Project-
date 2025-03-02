@@ -17,24 +17,15 @@
         app:lottie_autoPlay="true"
         app:lottie_loop="true"/>
 
-    <!-- ScrollView for the PDF Preview -->
-    <ScrollView
-        android:id="@+id/pdf_scroll"
+    <!-- RecyclerView for the PDF Preview -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/pdfRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/downloadButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:fillViewport="true">
-
-        <ImageView
-            android:id="@+id/pdfImageView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:scaleType="fitCenter"
-            android:adjustViewBounds="true"/>
-    </ScrollView>
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- Fixed Download Button at bottom -->
     <Button

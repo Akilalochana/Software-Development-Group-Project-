@@ -12,9 +12,10 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import org.apache.poi.xwpf.usermodel.XWPFDocument
 import java.io.*
 import okhttp3.*
@@ -51,7 +52,7 @@ class Report : AppCompatActivity() {
 
         // UI Elements
         lottieView = findViewById(R.id.lottie_view)
-        pdfImageView = findViewById(R.id.pdfImageView)
+        val recyclerView = findViewById<RecyclerView>(R.id.pdfRecyclerView)
         downloadButton = findViewById(R.id.downloadButton)
 
         // Paths
@@ -67,7 +68,7 @@ class Report : AppCompatActivity() {
 
         // Show loading screen
         lottieView.visibility = View.VISIBLE
-        pdfImageView.visibility = View.GONE
+        recyclerView.visibility = View.GONE
         downloadButton.visibility = View.GONE
 
         // Get AR measurements from intent and calculate number of plants
@@ -75,7 +76,6 @@ class Report : AppCompatActivity() {
 
         // Format sqm representation: width×height or area value
         val sqmRepresentation = formatAreaRepresentation()
-
 
         // Generate data map
         val replacements = mapOf(
@@ -95,15 +95,7 @@ class Report : AppCompatActivity() {
         Thread {
             modifyWordDocument(templatePath, outputDocxPath, imagePath, replacements)
             convertWordToPdf(outputDocxPath, pdfFilePath)
-
-            runOnUiThread {
-                lottieView.visibility = View.GONE
-                pdfImageView.visibility = View.VISIBLE
-                downloadButton.visibility = View.VISIBLE
-
-                // Load the first page of PDF into ImageView
-                renderPdfToImage(pdfFilePath)
-            }
+            // UI update happens inside convertWordToPdf after successful conversion
         }.start()
 
         //Set Download Button Click Event
@@ -145,6 +137,7 @@ class Report : AppCompatActivity() {
             numberOfPlants = 43 // Fallback to hardcoded value
         }
     }
+
     // Format area for display in the document
     private fun formatAreaRepresentation(): String {
         return if (totalSqm > 0) {
@@ -181,7 +174,6 @@ class Report : AppCompatActivity() {
             }
         */
     }
-
 
     // Function to copy assets to internal storage
     private fun copyAssetToInternalStorage(assetFileName: String, context: Context): String? {
@@ -266,6 +258,10 @@ class Report : AppCompatActivity() {
 
         if (!file.exists()) {
             Log.e("ERROR", "DOCX file not found at $inputDocx")
+            runOnUiThread {
+                lottieView.visibility = View.GONE
+                Toast.makeText(this, "Error: Word document not found", Toast.LENGTH_LONG).show()
+            }
             return
         }
 
@@ -279,64 +275,82 @@ class Report : AppCompatActivity() {
             .post(requestBody)
             .header(
                 "apy-token",
-                "APY0HErz5rADpPGWknWyEFBjT3aB7QAcUF5mhYyCiA95fJY3d97CojeNaW5gpuPjGiiV3e"
+                "APY03qWaC91oOu2oyrvtwpfQOWujBs6T4tuBddE2l9VsTvak52Guf31JuxGMQ1HArpRH1XHp4K"
             )  // Replace with your API key
             .header("content-type", "multipart/form-data")
             .build()
 
-        Thread {
-            try {
-                client.newCall(request).execute().use { response ->
+        try {
+            client.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
                     if (!response.isSuccessful) {
                         throw IOException("Unexpected code $response")
                     }
+                }
 
-                    // Save the converted PDF
-                    val pdfFile = File(outputPdf)
-                    pdfFile.writeBytes(response.body!!.bytes())
+                // Save the converted PDF
+                val pdfFile = File(outputPdf)
+                pdfFile.writeBytes(response.body!!.bytes())
 
-                    Log.d("SUCCESS", "✅ PDF Created Successfully: ${pdfFile.absolutePath}")
+                Log.d("SUCCESS", "✅ PDF Created Successfully: ${pdfFile.absolutePath}")
 
-                    // Update UI
+                // Verify file exists and has content before updating UI
+                if (pdfFile.exists() && pdfFile.length() > 0) {
+                    // Update UI only after PDF is successfully created
                     runOnUiThread {
                         lottieView.visibility = View.GONE
-                        pdfImageView.visibility = View.VISIBLE
+                        renderPdfToRecyclerView(pdfFile.absolutePath)
                         downloadButton.visibility = View.VISIBLE
-                        renderPdfToImage(pdfFile.absolutePath)
+                    }
+                } else {
+                    Log.e("ERROR", "PDF file created but appears to be empty or missing")
+                    runOnUiThread {
+                        lottieView.visibility = View.GONE
+                        Toast.makeText(this, "Error creating PDF. Please try again.", Toast.LENGTH_LONG).show()
                     }
                 }
-            } catch (e: IOException) {
-                Log.e("ERROR", "Failed to convert Word to PDF: ${e.message}")
             }
-        }.start()
+        } catch (e: IOException) {
+            Log.e("ERROR", "Failed to convert Word to PDF: ${e.message}")
+            runOnUiThread {
+                lottieView.visibility = View.GONE
+                Toast.makeText(this, "Failed to convert document to PDF", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
-
-    // Function to render PDF first page to an ImageView
-    private fun renderPdfToImage(pdfPath: String) {
+    // Function to render PDF first page to a RecyclerView
+    private fun renderPdfToRecyclerView(pdfPath: String) {
         val file = File(pdfPath)
-
         if (!file.exists()) {
             Log.e("ERROR", "PDF file does not exist: $pdfPath")
-            runOnUiThread {
-                Toast.makeText(this, "PDF file not found. Please try again.", Toast.LENGTH_LONG)
-                    .show()
-            }
             return
         }
 
         try {
-            val fileDescriptor =
-                ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+            val fileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
             val pdfRenderer = PdfRenderer(fileDescriptor)
-            val page = pdfRenderer.openPage(0)
+            val pageCount = pdfRenderer.pageCount
 
-            val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
-            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-            pdfImageView.setImageBitmap(bitmap)
-
-            page.close()
+            val bitmaps = ArrayList<Bitmap>()
+            for (i in 0 until pageCount) {
+                val page = pdfRenderer.openPage(i)
+                val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                bitmaps.add(bitmap)
+                page.close()
+            }
             pdfRenderer.close()
+
+            val recyclerView = findViewById<RecyclerView>(R.id.pdfRecyclerView)
+            recyclerView.layoutManager = LinearLayoutManager(this)
+            recyclerView.adapter = PdfPageAdapter(bitmaps)
+
+            runOnUiThread {
+                lottieView.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
+                downloadButton.visibility = View.VISIBLE
+            }
         } catch (e: IOException) {
             Log.e("ERROR", "Failed to render PDF: ${e.message}")
         }
@@ -346,8 +360,15 @@ class Report : AppCompatActivity() {
     private fun downloadPdfToDownloads(pdfPath: String, fileName: String) {
         try {
             val sourceFile = File(pdfPath)
-            val downloadsDir =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+
+            if (!sourceFile.exists()) {
+                runOnUiThread {
+                    Toast.makeText(this, "PDF file not ready yet. Please wait.", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
+
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val destinationFile = File(downloadsDir, fileName)
 
             if (!downloadsDir.exists()) {
