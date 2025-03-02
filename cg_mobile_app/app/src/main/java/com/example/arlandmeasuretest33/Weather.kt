@@ -18,6 +18,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.*
+import android.widget.ImageView
 
 class WeatherActivity : AppCompatActivity() {
     private lateinit var forecastAdapter: ForecastAdapter
@@ -180,12 +181,11 @@ class WeatherActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.highLowText).text =
             "H:${currentWeather.main.temp_max.toInt()}° L:${currentWeather.main.temp_min.toInt()}°"
 
-        // Load current weather icon
-        Glide.with(this)
-            .load("https://openweathermap.org/img/w/${currentWeather.weather[0].icon}.png")
-            .into(findViewById(R.id.weatherIcon))
+        // Update to use custom icon
+        val iconResource = WeatherIcons.getIconResource(currentWeather.weather[0].icon)
+        findViewById<ImageView>(R.id.weatherIcon).setImageResource(iconResource)
 
-        // Process forecasts to get exactly 7 days
+        // Process forecasts to get exactly 6 days
         val dailyForecasts = weather.list
             .groupBy {
                 val date = Date(it.dt * 1000)
@@ -194,7 +194,7 @@ class WeatherActivity : AppCompatActivity() {
             }
             .values
             .map { it.maxBy { forecast -> forecast.main.temp_max } } // Take the forecast with highest temp for each day
-            .take(7) // Ensure we take exactly 7 days
+            .take(6) // Ensure we take exactly 6 days
 
         println("WeatherActivity: Processed ${dailyForecasts.size} daily forecasts")
         forecastAdapter.updateForecasts(dailyForecasts)

@@ -55,9 +55,9 @@ class HomeActivity : AppCompatActivity() {
         }
 
         weatherButton.setOnClickListener {
-            // TODO: Navigate to the weather information activity
-            // val intent = Intent(this, WeatherActivity::class.java)
-            // startActivity(intent)
+            // Navigate to the weather activity
+            val intent = Intent(this, WeatherActivity::class.java)
+            startActivity(intent)
         }
 
         arPlotButton.setOnClickListener {

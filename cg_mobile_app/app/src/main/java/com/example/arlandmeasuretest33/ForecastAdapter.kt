@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,11 +41,12 @@ class ForecastAdapter : RecyclerView.Adapter<ForecastAdapter.ForecastViewHolder>
         // Set temperature range
         holder.forecastTemp.text = "${forecast.main.temp_min.toInt()}° — ${forecast.main.temp_max.toInt()}°"
 
-        // Set weather icon
-        val iconUrl = "https://openweathermap.org/img/w/${forecast.weather[0].icon}.png"
-        Glide.with(holder.itemView.context)
-            .load(iconUrl)
-            .into(holder.forecastIcon)
+        // Get the icon code from the forecast
+        val iconCode = forecast.weather[0].icon
+
+        // Use local drawable instead of loading from URL
+        val iconResource = WeatherIcons.getIconResource(iconCode)
+        holder.forecastIcon.setImageResource(iconResource)
 
         // Set rain chance if available
         holder.rainChanceText.text = ""  // Remove placeholder text

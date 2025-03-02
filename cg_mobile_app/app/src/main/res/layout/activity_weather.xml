@@ -75,7 +75,7 @@
         android:id="@+id/forecastLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="7-DAY FORECAST"
+        android:text="6-DAY FORECAST"
         android:textColor="#80FFFFFF"
         android:textSize="12sp"
         android:layout_marginTop="32dp"

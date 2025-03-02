@@ -3,10 +3,8 @@ package com.example.arlandmeasuretest33
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.ar.core.Anchor
 import com.google.ar.core.HitResult
@@ -55,21 +53,27 @@ class MainActivity : AppCompatActivity() {
             clearMeasurement()
         }
 
-        findViewById<Button>(R.id.switchModeButton)?.apply {
-            text = "Next"
-            setOnClickListener {
-                if (points.size == 4) {
-                    val area = calculateQuadrilateralArea(points)
-                    val intent = Intent(this@MainActivity, PlantVisualizationActivity::class.java)
-                    intent.putExtra("AREA", area)
-                    intent.putExtra("PLANT_TYPE", getIntent().getStringExtra("PLANT_TYPE") ?: "carrot")
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(this@MainActivity, "Please complete the measurement first", Toast.LENGTH_SHORT).show()
-                }
-            }
+        findViewById<Button>(R.id.switchModeButton)?.setOnClickListener {
+            navigateToReport()
         }
     }
+
+    private fun navigateToReport() {
+        val intent = Intent(this, Report::class.java)
+
+        // Get the area and perimeter from AR measurements
+        val area = calculateQuadrilateralArea(points)
+        val perimeter = calculatePerimeter(points)
+
+        // Pass AR measurements to Report activity
+        intent.putExtra("AR_AREA", area)
+        intent.putExtra("AR_PERIMETER", perimeter)
+        intent.putExtra("PLANT_TYPE", "Carrot")
+        intent.putExtra("SELECTED_DISTRICT", "Mannar")
+
+        startActivity(intent)
+    }
+
 
     private fun initializeARScene() {
         arFragment?.setOnTapArPlaneListener { hitResult, _, _ ->
