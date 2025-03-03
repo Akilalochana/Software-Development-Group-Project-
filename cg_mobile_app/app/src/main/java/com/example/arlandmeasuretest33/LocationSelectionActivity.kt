@@ -57,8 +57,11 @@ class LocationSelectionActivity : AppCompatActivity() {
 
     private fun setupDistrictSpinner() {
         val districts = arrayOf(
-            "Colombo", "Anuradhapura", "Kandy", "Nuwara Eliya", "Galle",
-            "Jaffna", "Batticaloa", "Trincomalee", "Matara", "Badulla"
+            "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo",
+            "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara",
+            "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar",
+            "Matale", "Matara", "Monaragala", "Mullaitivu", "Nuwara Eliya",
+            "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
         )
 
         val adapter = ArrayAdapter<String>(
