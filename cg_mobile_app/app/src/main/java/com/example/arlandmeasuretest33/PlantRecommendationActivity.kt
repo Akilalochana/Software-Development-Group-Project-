@@ -23,6 +23,12 @@ class PlantRecommendationActivity : AppCompatActivity() {
             val capsicumCard = findViewById<CardView>(R.id.capsicumCard)
             val brinjalCard = findViewById<CardView>(R.id.brinjalCard)
             val okraCard = findViewById<CardView>(R.id.okraCard)
+            // New plants
+            val leeksCard = findViewById<CardView>(R.id.leeksCard)
+            val potatoCard = findViewById<CardView>(R.id.potatoCard)
+            val onionCard = findViewById<CardView>(R.id.onionCard)
+            val taroCard = findViewById<CardView>(R.id.taroCard)
+            val maniocCard = findViewById<CardView>(R.id.maniocCard)
 
             // Set click listeners for each plant card
             cabbageCard.setOnClickListener { startARFeature("cabbage") }
@@ -32,6 +38,12 @@ class PlantRecommendationActivity : AppCompatActivity() {
             capsicumCard.setOnClickListener { startARFeature("capsicum") }
             brinjalCard.setOnClickListener { startARFeature("brinjal") }
             okraCard.setOnClickListener { startARFeature("okra") }
+            // New plants click listeners
+            leeksCard.setOnClickListener { startARFeature("leeks") }
+            potatoCard.setOnClickListener { startARFeature("potato") }
+            onionCard.setOnClickListener { startARFeature("onion") }
+            taroCard.setOnClickListener { startARFeature("taro") }
+            maniocCard.setOnClickListener { startARFeature("manioc") }
 
         } catch (e: Exception) {
             e.printStackTrace()
