@@ -28,7 +28,7 @@ val db = FirebaseFirestore.getInstance()
 class Report : AppCompatActivity() {
     private lateinit var lottieView: LottieAnimationView
     private lateinit var pdfImageView: ImageView
-    private lateinit var downloadButton: Button
+    private lateinit var downloadButton: ImageView  // Change to ImageView
     private var pdfFilePath: String = ""
     private var plantSpacing: Double = 0.0 // Space needed per plant in sq meters
     private var totalSqm: Double = 0.0 // Total area in sq meters
@@ -53,7 +53,7 @@ class Report : AppCompatActivity() {
         // UI Elements
         lottieView = findViewById(R.id.lottie_view)
         val recyclerView = findViewById<RecyclerView>(R.id.pdfRecyclerView)
-        downloadButton = findViewById(R.id.downloadButton)
+        downloadButton = findViewById(R.id.downloadButton)  // Change to ImageView
 
         // Paths
         val templatePath = copyAssetToInternalStorage("template.docx", this)
@@ -99,6 +99,7 @@ class Report : AppCompatActivity() {
         }.start()
 
         //Set Download Button Click Event
+        downloadButton = findViewById(R.id.downloadButton)
         downloadButton.setOnClickListener {
             downloadPdfToDownloads(pdfFilePath, "GeneratedPDF.pdf")
         }
@@ -275,7 +276,7 @@ class Report : AppCompatActivity() {
             .post(requestBody)
             .header(
                 "apy-token",
-                "APY03qWaC91oOu2oyrvtwpfQOWujBs6T4tuBddE2l9VsTvak52Guf31JuxGMQ1HArpRH1XHp4K"
+                "APY0HErz5rADpPGWknWyEFBjT3aB7QAcUF5mhYyCiA95fJY3d97CojeNaW5gpuPjGiiV3e"
             )  // Replace with your API key
             .header("content-type", "multipart/form-data")
             .build()

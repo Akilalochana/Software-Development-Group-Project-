@@ -27,19 +27,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Fixed Download Button at bottom -->
-    <Button
+    <!-- PDF Download Icon -->
+    <ImageView
         android:id="@+id/downloadButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/download_pdf"
         android:padding="16dp"
-        android:backgroundTint="@color/purple_500"
-        android:text="Download PDF"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_download_pdf" /> <!-- Update this line -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>
