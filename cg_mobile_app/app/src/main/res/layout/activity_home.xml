@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".HomeActivity"
     android:padding="16dp"
-    android:background="#1A1A1F">
+    android:background="#D0E8D0">
 
     <TextView
         android:id="@+id/greetingText"
@@ -15,7 +15,7 @@
         android:text="Hi, User!"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/black"
         android:layout_marginTop="24dp"
         android:layout_marginStart="8dp"
         app:layout_constraintTop_toTopOf="parent"
@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:text="Tue, 25 Feb"
         android:textSize="14sp"
-        android:textColor="#8A8A8A"
+        android:textColor="#2A2A30"
         android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
         app:layout_constraintTop_toBottomOf="@id/greetingText"
