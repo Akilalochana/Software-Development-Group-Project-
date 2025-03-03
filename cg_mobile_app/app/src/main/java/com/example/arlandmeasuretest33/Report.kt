@@ -101,7 +101,7 @@ class Report : AppCompatActivity() {
         //Set Download Button Click Event
         downloadButton = findViewById(R.id.downloadButton)
         downloadButton.setOnClickListener {
-            downloadPdfToDownloads(pdfFilePath, "GeneratedPDF.pdf")
+            downloadPdfToDownloads(pdfFilePath, "Ceilão Grid Report.pdf")
         }
     }
 
@@ -276,7 +276,7 @@ class Report : AppCompatActivity() {
             .post(requestBody)
             .header(
                 "apy-token",
-                "APY0HErz5rADpPGWknWyEFBjT3aB7QAcUF5mhYyCiA95fJY3d97CojeNaW5gpuPjGiiV3e"
+                "APY0UhpQytsOaiOaZAgzJcb239OxBv61JNNPrFinbllH2egUJftc9Tez1Zb3dXFkPGRzDy82twSK"
             )  // Replace with your API key
             .header("content-type", "multipart/form-data")
             .build()
@@ -357,6 +357,46 @@ class Report : AppCompatActivity() {
         }
     }
 
+    // Function to clear cache
+    private fun clearCache() {
+        try {
+            // Delete the temporary Word document
+            val outputDocxPath = getExternalFilesDir(null)?.absolutePath + "/output.docx"
+            val docxFile = File(outputDocxPath)
+            if (docxFile.exists()) {
+                docxFile.delete()
+                Log.d("CACHE", "Deleted temporary Word document: $outputDocxPath")
+            }
+
+            // Delete the temporary PDF file
+            val pdfFilePath = getExternalFilesDir(null)?.absolutePath + "/output.pdf"
+            val pdfFile = File(pdfFilePath)
+            if (pdfFile.exists()) {
+                pdfFile.delete()
+                Log.d("CACHE", "Deleted temporary PDF file: $pdfFilePath")
+            }
+
+            // Optionally, delete the entire cache directory
+            val cacheDir = getExternalFilesDir(null)
+            if (cacheDir != null && cacheDir.exists()) {
+                cacheDir.listFiles()?.forEach { file ->
+                    file.delete()
+                }
+                Log.d("CACHE", "Cleared entire cache directory: ${cacheDir.absolutePath}")
+            }
+
+            // Show success message
+            runOnUiThread {
+                Toast.makeText(this, "Cache cleared successfully", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e("CACHE", "Failed to clear cache: ${e.message}")
+            runOnUiThread {
+                Toast.makeText(this, "Failed to clear cache", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     // Function to save the PDF to the Downloads folder
     private fun downloadPdfToDownloads(pdfPath: String, fileName: String) {
         try {
@@ -393,6 +433,9 @@ class Report : AppCompatActivity() {
             runOnUiThread {
                 Toast.makeText(this, "PDF saved to Downloads folder", Toast.LENGTH_LONG).show()
             }
+
+            // Clear cache after download
+            clearCache()
 
         } catch (e: IOException) {
             Log.e("ERROR", "Failed to copy PDF to Downloads: ${e.message}")
