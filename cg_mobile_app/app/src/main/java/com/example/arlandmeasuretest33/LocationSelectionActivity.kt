@@ -2,57 +2,100 @@ package com.example.arlandmeasuretest33
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.view.animation.AlphaAnimation
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import com.google.android.material.textfield.TextInputEditText
 import android.widget.Toast
+
+class TipItem(val icon: Int, val title: String, val description: String)
+
+class TipsAdapter(private val tips: List<TipItem>) : RecyclerView.Adapter<TipsAdapter.TipViewHolder>() {
+    class TipViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val icon: ImageView = view.findViewById(R.id.tipIcon)
+        val title: TextView = view.findViewById(R.id.tipTitle)
+        val description: TextView = view.findViewById(R.id.tipDescription)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TipViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_tip, parent, false)
+        return TipViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: TipViewHolder, position: Int) {
+        val tip = tips[position]
+        holder.icon.setImageResource(tip.icon)
+        holder.title.text = tip.title
+        holder.description.text = tip.description
+    }
+
+    override fun getItemCount() = tips.size
+}
 
 class LocationSelectionActivity : AppCompatActivity() {
     private lateinit var gardenNameInput: TextInputEditText
     private lateinit var districtSpinner: AutoCompleteTextView
     private lateinit var continueButton: MaterialButton
-    private lateinit var tipsContent: TextView  // Reference to the tips content TextView
+    private lateinit var viewPager: ViewPager2
+    private lateinit var dotsIndicator: TabLayout
 
-    private val tips = arrayOf(
-        "Colombo is known for its diverse climate. Ensure your garden gets enough sunlight.",
-        "Anuradhapura has a hot climate. Regular watering is key to keeping plants healthy.",
-        "Kandy's cooler temperatures are great for certain plants. Keep them in a shaded area.",
-        "Nuwara Eliya has a cooler climate, ideal for a variety of flowers. Consider adding some roses!",
-        "Galle's coastal climate requires salt-tolerant plants. Be mindful of the soil's salinity.",
-        "Jaffna is known for its dry weather. Make sure your garden has good drainage.",
-        "Batticaloa's high humidity helps tropical plants thrive. Keep them well-watered.",
-        "Trincomalee's dry conditions make it perfect for desert plants like cacti.",
-        "Matara has a tropical climate, perfect for growing fruits like papaya and bananas.",
-        "Badulla's cooler, high-altitude climate is great for strawberries and other berries."
+    private val tips = listOf(
+        TipItem(R.drawable.ic_tips, "Colombo Climate", "Colombo is known for its diverse climate. Ensure your garden gets enough sunlight."),
+        TipItem(R.drawable.ic_tips, "Anuradhapura Tips", "Anuradhapura has a hot climate. Regular watering is key to keeping plants healthy."),
+        TipItem(R.drawable.ic_tips, "Kandy Gardens", "Kandy's cooler temperatures are great for certain plants. Keep them in a shaded area."),
+        TipItem(R.drawable.ic_tips, "Nuwara Eliya Plants", "Nuwara Eliya has a cooler climate, ideal for a variety of flowers. Consider adding some roses!"),
+        TipItem(R.drawable.ic_tips, "Coastal Gardening", "Galle's coastal climate requires salt-tolerant plants. Be mindful of the soil's salinity.")
     )
-
-    private val handler = Handler()  // Handler to post updates to UI
-    private var currentTipIndex = 0  // To track the current tip being displayed
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_location_selection)
 
-        // Initialize views
         initializeViews()
         setupDistrictSpinner()
-        setupListeners()  // Call the setupListeners method to activate the button
-        startTipsRotation()  // Start the tips rotation process immediately
+        setupTipsViewPager()
+        setupListeners()
     }
 
     private fun initializeViews() {
         gardenNameInput = findViewById(R.id.gardenNameInput)
         districtSpinner = findViewById(R.id.districtSpinner)
         continueButton = findViewById(R.id.continueButton)
-        tipsContent = findViewById(R.id.tipsContent)  // Initialize the tips content TextView
+        viewPager = findViewById(R.id.tipsViewPager)
+        dotsIndicator = findViewById(R.id.dotsIndicator)
+    }
 
-        // Set initial tip text so it's visible immediately
-        tipsContent.text = tips[currentTipIndex]
+    private fun setupTipsViewPager() {
+        viewPager.adapter = TipsAdapter(tips)
+        
+        // Connect the dots indicator with the ViewPager2
+        TabLayoutMediator(dotsIndicator, viewPager) { _, _ -> }.attach()
+        
+        // Auto-scroll every 5 seconds
+        viewPager.setCurrentItem(0, false)
+        startAutoScroll()
+    }
+
+    private fun startAutoScroll() {
+        val handler = android.os.Handler()
+        val runnable = object : Runnable {
+            override fun run() {
+                val nextItem = (viewPager.currentItem + 1) % tips.size
+                viewPager.setCurrentItem(nextItem, true)
+                handler.postDelayed(this, 5000)
+            }
+        }
+        handler.postDelayed(runnable, 5000)
     }
 
     private fun setupDistrictSpinner() {
@@ -64,51 +107,13 @@ class LocationSelectionActivity : AppCompatActivity() {
             "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
         )
 
-        val adapter = ArrayAdapter<String>(
+        val adapter = ArrayAdapter(
             this,
             R.layout.item_location_dropdown,
             districts
         )
 
         districtSpinner.setAdapter(adapter)
-    }
-
-    private fun startTipsRotation() {
-        // Use a Runnable to change the tips every 5 seconds (5000 ms)
-        val runnable = object : Runnable {
-            override fun run() {
-                // Apply fade-out animation before changing the text
-                val fadeOut = AlphaAnimation(1.0f, 0.0f)
-                fadeOut.duration = 1500 // Slow down the fade-out to 1.5 seconds
-                fadeOut.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
-                    override fun onAnimationStart(animation: android.view.animation.Animation?) {}
-
-                    override fun onAnimationEnd(animation: android.view.animation.Animation?) {
-                        // Change the text after the fade-out completes
-                        tipsContent.text = tips[currentTipIndex]
-
-                        // Apply fade-in animation after changing the text
-                        val fadeIn = AlphaAnimation(0.0f, 1.0f)
-                        fadeIn.duration = 1500 // Slow down the fade-in to 1.5 seconds
-                        tipsContent.startAnimation(fadeIn)
-                    }
-
-                    override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
-                })
-
-                // Start fade-out animation
-                tipsContent.startAnimation(fadeOut)
-
-                // Update the index, cycling back to 0 when the end of the array is reached
-                currentTipIndex = (currentTipIndex + 1) % tips.size
-
-                // Post the next update after 5 seconds (5000 ms)
-                handler.postDelayed(this, 5000)
-            }
-        }
-
-        // Start the rotation immediately when the activity is created
-        handler.post(runnable)
     }
 
     private fun setupListeners() {
@@ -124,7 +129,7 @@ class LocationSelectionActivity : AppCompatActivity() {
                     apply()
                 }
 
-                // Continue to plant recommendations as before
+                // Continue to plant recommendations
                 val intent = Intent(this, PlantRecommendationActivity::class.java).apply {
                     putExtra("SELECTED_DISTRICT", selectedDistrict)
                     putExtra("GARDEN_NAME", gardenName)
@@ -135,11 +140,5 @@ class LocationSelectionActivity : AppCompatActivity() {
                 Toast.makeText(this, "Error navigating to recommendations", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // Remove any pending callbacks to prevent memory leaks
-        handler.removeCallbacksAndMessages(null)
     }
 }
