@@ -252,6 +252,20 @@ class Report : AppCompatActivity() {
         }
     }
 
+    // List of API keys
+    val apiKeys = listOf(
+        "APY03qWaC91oOu2oyrvtwpfQOWujBs6T4tuBddE2l9VsTvak52Guf31JuxGMQ1HArpRH1XHp4K",
+        "APY0teeUq8CAtaq9CVw6P98KFjL8i392G0AUt9XI8RjLkpscbE3Neerdd3N1emmCj1rI",
+        "APY0HErz5rADpPGWknWyEFBjT3aB7QAcUF5mhYyCiA95fJY3d97CojeNaW5gpuPjGiiV3e",
+        "APY0AA3CbDcwlUs51HvIvRU1sG7xDYiUVS3FJvYyZeppxNLr2SvBZHvHc2agNaXbJN7xCqFtzR",
+        "APY0UMEnBOTLPaABk5UHhmXkq1o40E3H3daKK8L0PG3XH50PZmSr8PDMDHVbPOGC77Kno",
+        "APY0CIqWAo29H5qlPnXMgJHuziTDBNh4c0vVbxkdJ4A4pxbX8UQkJIjzXGc4dJuaWc3IritDQC",
+        "APY04NmgEqQehQXgnh2xO1VyywB4SZdkTD7S0yQPbEiyJsp4lB3TYcQFXbcRPvSgIa8WUuqu6lq82R"
+    )
+
+    // Counter to keep track of the current API key index
+    var currentApiKeyIndex = 0
+
     // Function to convert Word to PDF
     private fun convertWordToPdf(inputDocx: String, outputPdf: String) {
         val client = OkHttpClient()
@@ -274,19 +288,14 @@ class Report : AppCompatActivity() {
         val request = Request.Builder()
             .url("https://api.apyhub.com/convert/word-file/pdf-file?output=test-sample.pdf&landscape=false")
             .post(requestBody)
-            .header(
-                "apy-token",
-                "APY0UhpQytsOaiOaZAgzJcb239OxBv61JNNPrFinbllH2egUJftc9Tez1Zb3dXFkPGRzDy82twSK"
-            )  // Replace with your API key
+            .header("apy-token", apiKeys[currentApiKeyIndex])  // Use the current API key
             .header("content-type", "multipart/form-data")
             .build()
 
         try {
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    if (!response.isSuccessful) {
-                        throw IOException("Unexpected code $response")
-                    }
+                    throw IOException("Unexpected code $response")
                 }
 
                 // Save the converted PDF
@@ -313,10 +322,16 @@ class Report : AppCompatActivity() {
             }
         } catch (e: IOException) {
             Log.e("ERROR", "Failed to convert Word to PDF: ${e.message}")
+
+            // If the current API key failed, try the next one
+            currentApiKeyIndex = (currentApiKeyIndex + 1) % apiKeys.size
             runOnUiThread {
                 lottieView.visibility = View.GONE
-                Toast.makeText(this, "Failed to convert document to PDF", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Failed to convert document to PDF. Trying next API key.", Toast.LENGTH_LONG).show()
             }
+
+            // Recursively call the function to try the next API key
+            convertWordToPdf(inputDocx, outputPdf)
         }
     }
 
