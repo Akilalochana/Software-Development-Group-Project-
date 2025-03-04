@@ -10,19 +10,8 @@ Our system not only assists users in planning their gardens efficiently but also
 - AR
 - Report Generate Feature
 - AI Chat bot
+- Plant Recommendation 
 - Weather Condition feature
-
-
-## 👥 team members
-
-| Name             | Contribution                           |
-| :--------        |  :-------------------------            |
-|    Pramodi       | Report Generate Feature                |
-|    Navinya       | Weather Condition feature              |
-|    Yuneth        | Suggest nearest markets for a good sale|
-|    Pujana        | Suggest plants and suggest seeds       |
-|    Ravindu       |         AI Chat bot                    |
-|    Akila         |  AR, Structure design, Create Profile  |
 
 
 ## 🚀 Technologies Used
