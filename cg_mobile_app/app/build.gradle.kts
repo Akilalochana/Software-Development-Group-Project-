@@ -42,6 +42,11 @@ repositories {
 
 dependencies {
 
+    implementation("com.google.ar:core:1.41.0")
+    implementation("com.google.ar.sceneform:core:1.17.1")
+    implementation("com.google.ar.sceneform:assets:1.17.1")
+    implementation("com.google.ar.sceneform.ux:sceneform-ux:1.17.1")
+
     // ... existing code ...
 
 
@@ -169,4 +174,10 @@ dependencies {
     implementation ("com.google.firebase:firebase-auth:21.0.1")
 
     //add again correct project to main to fix others errors
+
+    // Sceneform dependencies
+    implementation("com.google.ar:core:1.41.0")
+    implementation("com.google.ar.sceneform:core:1.17.1")
+    implementation("com.google.ar.sceneform:assets:1.17.1")
+    implementation("com.google.ar.sceneform.ux:sceneform-ux:1.17.1")
 }
