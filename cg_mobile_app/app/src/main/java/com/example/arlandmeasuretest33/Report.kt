@@ -10,9 +10,9 @@ import android.os.Environment
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -99,10 +99,24 @@ class Report : AppCompatActivity() {
         }.start()
 
         //Set Download Button Click Event
-        downloadButton = findViewById(R.id.downloadButton)
         downloadButton.setOnClickListener {
             downloadPdfToDownloads(pdfFilePath, "Ceilão Grid Report.pdf")
         }
+    }
+
+    // Add the onBackPressed method here
+    override fun onBackPressed() {
+        AlertDialog.Builder(this)
+            .setTitle("Clear Cache")
+            .setMessage("Do you want to clear the cache?")
+            .setPositiveButton("Yes") { _, _ ->
+                clearCache()
+                super.onBackPressed()
+            }
+            .setNegativeButton("No") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
     // Function to get AR measurements from intent and calculate plants
@@ -260,7 +274,10 @@ class Report : AppCompatActivity() {
         "APY0AA3CbDcwlUs51HvIvRU1sG7xDYiUVS3FJvYyZeppxNLr2SvBZHvHc2agNaXbJN7xCqFtzR",
         "APY0UMEnBOTLPaABk5UHhmXkq1o40E3H3daKK8L0PG3XH50PZmSr8PDMDHVbPOGC77Kno",
         "APY0CIqWAo29H5qlPnXMgJHuziTDBNh4c0vVbxkdJ4A4pxbX8UQkJIjzXGc4dJuaWc3IritDQC",
-        "APY04NmgEqQehQXgnh2xO1VyywB4SZdkTD7S0yQPbEiyJsp4lB3TYcQFXbcRPvSgIa8WUuqu6lq82R"
+        "APY04NmgEqQehQXgnh2xO1VyywB4SZdkTD7S0yQPbEiyJsp4lB3TYcQFXbcRPvSgIa8WUuqu6lq82R",
+        "APY0JiNrSBEGDQMES90z7UKAAOS3ckq2liRpnoO9jMvnuDfC7bOEdvpNMJjyvwC8oGK4C",
+        "APY0HvIjCvomf9ZmDpCTr3CGBUgaIeQ5TpNSjRJXf5qVvGCvtd1MnwDnNLdSitVcx4QQh8jpfeY2U",
+        "APY0ttOrvL5Bf3I6PKVx6I3c0aQcdpMyJsQLGhROeb1DEgA5Dm1FxizCtjPpgt5JQjqMa"
     )
 
     // Counter to keep track of the current API key index
@@ -327,7 +344,6 @@ class Report : AppCompatActivity() {
             currentApiKeyIndex = (currentApiKeyIndex + 1) % apiKeys.size
             runOnUiThread {
                 lottieView.visibility = View.GONE
-                Toast.makeText(this, "Failed to convert document to PDF. Trying next API key.", Toast.LENGTH_LONG).show()
             }
 
             // Recursively call the function to try the next API key
@@ -369,6 +385,10 @@ class Report : AppCompatActivity() {
             }
         } catch (e: IOException) {
             Log.e("ERROR", "Failed to render PDF: ${e.message}")
+            runOnUiThread {
+                lottieView.visibility = View.GONE
+                Toast.makeText(this, "Failed to render PDF", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -454,6 +474,7 @@ class Report : AppCompatActivity() {
 
         } catch (e: IOException) {
             Log.e("ERROR", "Failed to copy PDF to Downloads: ${e.message}")
+
 
             runOnUiThread {
                 Toast.makeText(this, "Failed to save PDF", Toast.LENGTH_LONG).show()
