@@ -2,6 +2,7 @@ package com.example.arlandmeasuretest33
 
 import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
@@ -13,9 +14,11 @@ import com.google.ar.sceneform.Node
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.Vector3
 import com.google.ar.sceneform.rendering.MaterialFactory
+import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.ShapeFactory
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import com.google.ar.sceneform.rendering.ModelRenderable
 
 class
 MainActivity : AppCompatActivity() {
@@ -26,6 +29,12 @@ MainActivity : AppCompatActivity() {
     private val points = ArrayList<Vector3>()
     private var measurementText: TextView? = null
     private var isDrawing = false
+    
+    // New properties for plant grid
+    private var plantSpacing = 0.25f // Default spacing in meters
+    private var plantType: String? = null
+    private val plantNodes = ArrayList<Node>()
+    private var isShowingPlants = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +65,13 @@ MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.switchModeButton)?.setOnClickListener {
             navigateToReport()
+        }
+
+        findViewById<Button>(R.id.showPlantsButton)?.setOnClickListener {
+            if (points.size == 4) {
+                val area = calculateQuadrilateralArea(points)
+                showPlantGrid(area)
+            }
         }
     }
 
@@ -158,6 +174,11 @@ MainActivity : AppCompatActivity() {
                 val area = calculateQuadrilateralArea(points)
                 val perimeter = calculatePerimeter(points)
                 measurementText?.text = String.format("Area: %.2f m², Perimeter: %.2f m", area, perimeter)
+                
+                // After measuring, show the plant grid
+                if (!isShowingPlants) {
+                    showPlantGrid(area)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 measurementText?.text = "Error calculating measurements"
@@ -183,6 +204,119 @@ MainActivity : AppCompatActivity() {
         return perimeter
     }
 
+    private fun showPlantGrid(area: Float) {
+        try {
+            // Clear existing plants first
+            clearPlants()
+            
+            // Get plant type from intent
+            plantType = intent.getStringExtra("PLANT_TYPE") ?: "carrot"
+            
+            // Calculate number of plants that can fit
+            val numPlants = (area / plantSpacing).toInt().coerceAtLeast(1) // Ensure at least 1 plant
+            
+            // Calculate grid dimensions to cover the entire area
+            val boundingWidth = points.maxOf { it.x } - points.minOf { it.x }
+            val boundingHeight = points.maxOf { it.z } - points.minOf { it.z }
+            
+            val cols = (boundingWidth / plantSpacing).toInt().coerceAtLeast(1)
+            val rows = (boundingHeight / plantSpacing).toInt().coerceAtLeast(1)
+            
+            // Calculate starting point (use minimum x,z as starting point)
+            val startX = points.minOf { it.x }
+            val startZ = points.minOf { it.z }
+            val groundY = points.map { it.y }.average().toFloat()
+            
+            // Create a simple cylinder for immediate feedback
+            MaterialFactory.makeOpaqueWithColor(this, com.google.ar.sceneform.rendering.Color(0f, 0.8f, 0f))
+                .thenAccept { material ->
+                    ShapeFactory.makeCylinder(
+                        0.05f, // radius
+                        0.2f,  // height
+                        Vector3.zero(), // center position
+                        material
+                    ).also { renderable ->
+                        val plantsPlaced = createPlantGrid(renderable, startX, startZ, groundY, rows, cols, plantSpacing)
+                        isShowingPlants = true
+                        // Update measurement text to include plant count
+                        measurementText?.text = "${measurementText?.text}\nPlants placed: $plantsPlaced"
+                    }
+                }
+                .exceptionally { throwable ->
+                    println("Error creating plant renderable: ${throwable.message}")
+                    throwable.printStackTrace()
+                    null
+                }
+            
+        } catch (e: Exception) {
+            println("Error in showPlantGrid: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    // Function to check if a point is inside the measured quadrilateral
+    private fun isPointInside(x: Float, z: Float): Boolean {
+        // Implementation of ray casting algorithm
+        var inside = false
+        var j = points.size - 1
+        for (i in points.indices) {
+            if ((points[i].z > z) != (points[j].z > z) &&
+                x < (points[j].x - points[i].x) * (z - points[i].z) / 
+                (points[j].z - points[i].z) + points[i].x) {
+                inside = !inside
+            }
+            j = i
+        }
+        return inside
+    }
+
+    private fun createPlantGrid(renderable: Renderable, startX: Float, startZ: Float, groundY: Float, 
+                              rows: Int, cols: Int, spacing: Float): Int {
+        var plantsPlaced = 0
+        try {
+            println("Creating plant grid: $rows rows × $cols cols starting at ($startX, $groundY, $startZ)")
+            
+            for (row in 0 until rows) {
+                for (col in 0 until cols) {
+                    // Calculate position for this plant
+                    val x = startX + (col * spacing)
+                    val z = startZ + (row * spacing)
+                    
+                    // Only place plant if position is inside the boundary
+                    if (isPointInside(x, z)) {
+                        // Create plant node
+                        Node().apply {
+                            setParent(arFragment?.arSceneView?.scene)
+                            this.renderable = renderable
+                            localPosition = Vector3(x, groundY, z)
+                            // Add random rotation for variety
+                            localRotation = Quaternion.axisAngle(Vector3(0f, 1f, 0f), (Math.random() * 360).toFloat())
+                            // Add slight random scale variation
+                            val scale = 0.8f + (Math.random() * 0.4f).toFloat()
+                            localScale = Vector3(scale, scale, scale)
+                            plantNodes.add(this)
+                            plantsPlaced++
+                            
+                            println("Added plant at ($x, $groundY, $z) with scale $scale")
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            println("Error in createPlantGrid: ${e.message}")
+            e.printStackTrace()
+        }
+        return plantsPlaced
+    }
+
+    private fun clearPlants() {
+        plantNodes.forEach { node ->
+            node.setParent(null)
+        }
+        plantNodes.clear()
+        isShowingPlants = false
+    }
+
     private fun clearMeasurement() {
         try {
             placedAnchors.forEach { it.detach() }
@@ -198,6 +332,9 @@ MainActivity : AppCompatActivity() {
                 node.setParent(null)
             }
             measurementNodes.clear()
+            
+            // Clear plants
+            clearPlants()
 
             points.clear()
             measurementText?.text = ""
