@@ -79,6 +79,11 @@
         <activity
             android:name=".Report"
             android:exported="false" />
+
+        <activity
+            android:name=".PricePredictionActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>
