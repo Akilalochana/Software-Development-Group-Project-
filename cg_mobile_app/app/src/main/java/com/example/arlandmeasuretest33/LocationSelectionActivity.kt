@@ -77,10 +77,10 @@ class LocationSelectionActivity : AppCompatActivity() {
 
     private fun setupTipsViewPager() {
         viewPager.adapter = TipsAdapter(tips)
-        
+
         // Connect the dots indicator with the ViewPager2
         TabLayoutMediator(dotsIndicator, viewPager) { _, _ -> }.attach()
-        
+
         // Auto-scroll every 5 seconds
         viewPager.setCurrentItem(0, false)
         startAutoScroll()
@@ -121,11 +121,22 @@ class LocationSelectionActivity : AppCompatActivity() {
             val gardenName = gardenNameInput.text.toString()
             val selectedDistrict = districtSpinner.text.toString()
 
+            if (gardenName.isBlank()) {
+                Toast.makeText(this, "Please enter a garden name", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (selectedDistrict.isBlank()) {
+                Toast.makeText(this, "Please select a district", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             try {
                 // Store the selected location for weather feature
                 val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
                 sharedPreferences.edit().apply {
                     putString("SELECTED_LOCATION", selectedDistrict)
+                    putString("GARDEN_NAME", gardenName)
                     apply()
                 }
 

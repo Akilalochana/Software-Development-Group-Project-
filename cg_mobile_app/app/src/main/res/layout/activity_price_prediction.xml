@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#cefad0"
+    android:background="@color/white"
     tools:context=".PricePredictionActivity">
 
     <androidx.cardview.widget.CardView
@@ -359,7 +359,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintWidth_percent="0.7"
-                android:text="View in AR"
+                android:text="Continue"
                 android:textColor="@color/white"
                 android:backgroundTint="#4CAF50" />
 

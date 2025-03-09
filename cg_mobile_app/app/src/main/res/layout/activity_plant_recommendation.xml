@@ -6,7 +6,35 @@
     android:layout_height="match_parent"
     android:background="#EAF7ED">
 
-    <!-- Header for Recommended Plants - Now Centered -->
+    <!-- Header for garden and district info -->
+    <TextView
+        android:id="@+id/gardenNameText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Garden Name"
+        android:textColor="#333333"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <TextView
+        android:id="@+id/districtNameText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="District Name"
+        android:textColor="#555555"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
+        app:layout_constraintTop_toBottomOf="@id/gardenNameText"/>
+
+    <!-- Header for Recommended Plants -->
     <TextView
         android:id="@+id/recommendedHeader"
         android:layout_width="match_parent"
@@ -18,9 +46,23 @@
         android:gravity="center"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:paddingTop="16dp"
+        android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/districtNameText"/>
+
+    <!-- No recommendations text -->
+    <TextView
+        android:id="@+id/noRecommendationsText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No recommended plants available for this district"
+        android:textColor="#777777"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:padding="16dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/recommendedHeader"
+        app:layout_constraintBottom_toBottomOf="parent"/>
 
     <!-- Scrollable Content -->
     <ScrollView
