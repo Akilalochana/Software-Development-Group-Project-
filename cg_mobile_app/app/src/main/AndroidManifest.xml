@@ -84,6 +84,16 @@
             android:name=".PricePredictionActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".Getstart2"
+            android:exported="false" />
+
+        <activity
+            android:name=".Getstart3"
+            android:exported="false" />
+        <activity
+            android:name=".Getstart4"
+            android:exported="false" />
     </application>
 
 </manifest>

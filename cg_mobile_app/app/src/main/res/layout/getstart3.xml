@@ -35,7 +35,7 @@
             android:layout_width="match_parent"
             android:layout_height="532dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/veg_generate" />
+            android:src="@drawable/img_family_growplnts" />
 
         <ImageView
             android:id="@+id/pedestalImageView"
@@ -51,7 +51,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
-        android:layout_marginTop="56dp"
+        android:layout_marginTop="40dp"
         android:layout_marginEnd="24dp"
         android:text="Buy Premium\nQuality Fruits"
         android:textAlignment="center"
@@ -59,7 +59,7 @@
         android:textSize="32sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageContainer" />
 
@@ -70,7 +70,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
-        android:text="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy"
+        android:text="Lorem ipsum dolor sit amet, codddddddddd ddddddddddddddddd dddddddddddddddddv vvvvvvvvvvvvvv  fvfvvvvvvvvvvvvvvv  fddddddddddddddd fd                 frrdfnsetetur sadipscing elitr, sed diam nonumy"
         android:textAlignment="center"
         android:textColor="#7A7A7A"
         android:textSize="16sp"
@@ -126,10 +126,16 @@
             android:layout_width="8dp"
             android:layout_height="8dp"
             android:layout_margin="4dp"
-            android:background="@drawable/dot_selected" />
+            android:background="@drawable/dot_unselected" />
 
         <View
             android:id="@+id/dot3"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_margin="4dp"
+            android:background="@drawable/dot_selected" />
+        <View
+            android:id="@+id/dot4"
             android:layout_width="8dp"
             android:layout_height="8dp"
             android:layout_margin="4dp"

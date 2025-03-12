@@ -11,7 +11,7 @@ class getstartedpage : AppCompatActivity() {
         setContentView(R.layout.get_start1)
 
         findViewById<Button>(R.id.getStartedButton).setOnClickListener {
-            val intent = Intent(this, SignUp::class.java)
+            val intent = Intent(this, Getstart2::class.java)
             startActivity(intent)
         }
     }
