@@ -8,9 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 class getstartedpage : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_getstartedpage)
+        setContentView(R.layout.get_start1)
 
-        findViewById<Button>(R.id.get_started_button).setOnClickListener {
+        findViewById<Button>(R.id.getStartedButton).setOnClickListener {
             val intent = Intent(this, SignUp::class.java)
             startActivity(intent)
         }
