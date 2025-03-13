@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="#E0EBE0">
 
     <!-- Background for image section -->
     <View
@@ -35,14 +35,16 @@
             android:layout_width="match_parent"
             android:layout_height="532dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/veg_generate" />
+            android:src="@drawable/rain"
+            android:paddingBottom="100dp"
+            />
 
         <ImageView
             android:id="@+id/pedestalImageView"
             android:layout_width="680dp"
             android:layout_height="330dp"
             android:layout_gravity="center|bottom"
-            android:layout_marginBottom="-280dp"
+            android:layout_marginBottom="-260dp"
             android:src="@drawable/white_pedestal" />
     </FrameLayout>
 
@@ -53,7 +55,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="24dp"
-        android:text="Buy Premium\nQuality Fruits"
+        android:text="Get Weather-Based Gardening Tips"
         android:textAlignment="center"
         android:textColor="#000000"
         android:textSize="32sp"
@@ -70,7 +72,7 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="24dp"
-        android:text="Lorem ipsum dolor sit amet, codddddddddd ddddddddddddddddd dddddddddddddddddv vvvvvvvvvvvvvv  fvfvvvvvvvvvvvvvvv  fddddddddddddddd fd                 frrdfnsetetur sadipscing elitr, sed diam nonumy"
+        android:text="Real-time weather updates help you decide the best time to plant, water, and protect your crops"
         android:textAlignment="center"
         android:textColor="#7A7A7A"
         android:textSize="16sp"

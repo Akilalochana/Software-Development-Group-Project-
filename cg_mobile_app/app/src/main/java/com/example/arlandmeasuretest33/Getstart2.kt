@@ -18,7 +18,7 @@ class Getstart2 : AppCompatActivity() {
 
         // Handle Skip button click - go to signup page
         findViewById<TextView>(R.id.skipButton).setOnClickListener {
-            val intent = Intent(this, Create_account::class.java)
+            val intent = Intent(this, Welcome_screen::class.java)
             startActivity(intent)
         }
     }
