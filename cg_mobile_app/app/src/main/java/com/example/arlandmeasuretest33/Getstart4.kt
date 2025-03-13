@@ -12,13 +12,13 @@ class Getstart4 : AppCompatActivity() {
 
         // Handle Next button click - go to signup page
         findViewById<TextView>(R.id.nextButton).setOnClickListener {
-            val intent = Intent(this, SignUp::class.java)
+            val intent = Intent(this, Create_account::class.java)
             startActivity(intent)
         }
 
         // Handle Skip button click - go to signup page
         findViewById<TextView>(R.id.skipButton).setOnClickListener {
-            val intent = Intent(this, SignUp::class.java)
+            val intent = Intent(this, Create_account::class.java)
             startActivity(intent)
         }
     }
