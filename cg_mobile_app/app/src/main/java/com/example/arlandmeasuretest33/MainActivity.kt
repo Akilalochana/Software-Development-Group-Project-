@@ -256,7 +256,7 @@ class MainActivity : AppCompatActivity() {
         when (plantType) {
             "carrot" -> createCarrotRenderable(startX, startZ, groundY, rows, cols, spacing)
             "cabbage" -> createCabbageRenderable(startX, startZ, groundY, rows, cols, spacing)
-            "tomato" -> createTomatoRenderable(startX, startZ, groundY, rows, cols, spacing)
+             
             else -> createDefaultRenderable(startX, startZ, groundY, rows, cols, spacing)
         }
     }
@@ -841,93 +841,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    private fun createTomatoRenderable(
-        startX: Float,
-        startZ: Float,
-        groundY: Float,
-        rows: Int,
-        cols: Int,
-        spacing: Float
-    ) {
-        var plantsPlaced = 0
 
-        // Create green material for stem
-        MaterialFactory.makeOpaqueWithColor(
-            this,
-            com.google.ar.sceneform.rendering.Color(0.1f, 0.5f, 0.1f)
-        )
-            .thenAccept { stemMaterial ->
-                // Create red material for tomatoes
-                MaterialFactory.makeOpaqueWithColor(
-                    this,
-                    com.google.ar.sceneform.rendering.Color(0.9f, 0.1f, 0.1f)
-                )
-                    .thenAccept { tomatoMaterial ->
-                        // Create stem (cylinder)
-                        val stemRenderable = ShapeFactory.makeCylinder(
-                            0.01f, // radius
-                            0.25f, // height
-                            Vector3(0f, 0f, 0f), // center
-                            stemMaterial
-                        )
-
-                        // Place tomato plants in grid
-                        for (row in 0 until rows) {
-                            for (col in 0 until cols) {
-                                val x = startX + (col * spacing)
-                                val z = startZ + (row * spacing)
-
-                                if (isPointInside(x, z)) {
-                                    // Create parent node
-                                    val plantNode = Node()
-                                    plantNode.setParent(arFragment?.arSceneView?.scene)
-                                    plantNode.localPosition = Vector3(x, groundY, z)
-
-                                    // Add stem
-                                    val stemNode = Node()
-                                    stemNode.localPosition = Vector3(0f, 0.125f, 0f)
-                                    stemNode.renderable = stemRenderable
-                                    stemNode.setParent(plantNode)
-
-                                    // Add 2-5 tomatoes
-                                    val tomatoCount = 2 + (Math.random() * 4).toInt()
-                                    for (i in 0 until tomatoCount) {
-                                        // Create tomato (sphere)
-                                        val size = 0.02f + (Math.random() * 0.02f).toFloat()
-                                        val tomato = ShapeFactory.makeSphere(
-                                            size, // radius
-                                            Vector3(0f, 0f, 0f), // center
-                                            tomatoMaterial
-                                        )
-
-                                        // Calculate position
-                                        val angle =
-                                            (i * (360f / tomatoCount) + (Math.random() * 30).toInt()).toFloat()
-                                        val radius = 0.05f + (Math.random() * 0.02f).toFloat()
-                                        val height = 0.1f + (Math.random() * 0.15f).toFloat()
-
-                                        val tomatoNode = Node()
-                                        tomatoNode.setParent(plantNode)
-                                        tomatoNode.localPosition = Vector3(
-                                            radius * Math.sin(Math.toRadians(angle.toDouble()))
-                                                .toFloat(),
-                                            height,
-                                            radius * Math.cos(Math.toRadians(angle.toDouble()))
-                                                .toFloat()
-                                        )
-                                        tomatoNode.renderable = tomato
-                                    }
-
-                                    plantNodes.add(plantNode)
-                                    plantsPlaced++
-                                }
-                            }
-                        }
-                        measurementText?.text =
-                            "${measurementText?.text}\nTomato plants planted: $plantsPlaced"
-                    }
-            }
-    }
 
     private fun createDefaultRenderable(
         startX: Float,
