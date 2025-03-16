@@ -17,38 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/gradient_overlay" />
-
-    <!-- Skip Button with Arrow -->
-    <LinearLayout
-        android:id="@+id/skip_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_margin="16dp"
-        android:background="@drawable/skip_button_background"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="16dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SKIP"
-            android:textColor="#E0EBE0"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_marginStart="8dp"
-            android:src="@drawable/ic_arrow_forward_small" />
-    </LinearLayout>
-
+    
     <!-- Bottom Section with Text - Moved up to avoid overlap -->
     <LinearLayout
         android:layout_width="match_parent"
