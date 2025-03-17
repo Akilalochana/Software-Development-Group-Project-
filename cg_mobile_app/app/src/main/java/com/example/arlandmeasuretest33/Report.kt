@@ -39,21 +39,10 @@ class Report : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.report)
 
-        db.collection("districts").document("Mannar").collection("crops")
-            .get()
-            .addOnSuccessListener { documents ->
-                for (document in documents) {
-                    println("Crop: ${document.id}")
-                }
-            }
-            .addOnFailureListener { exception ->
-                println("Error getting documents: ${exception.message}")
-            }
-
         // UI Elements
         lottieView = findViewById(R.id.lottie_view)
         val recyclerView = findViewById<RecyclerView>(R.id.pdfRecyclerView)
-        downloadButton = findViewById(R.id.downloadButton)  // Change to ImageView
+        downloadButton = findViewById(R.id.downloadButton)
 
         // Paths
         val templatePath = copyAssetToInternalStorage("template.docx", this)
@@ -74,31 +63,22 @@ class Report : AppCompatActivity() {
         // Get AR measurements from intent and calculate number of plants
         getArMeasurementsAndCalculatePlants()
 
-        // Format sqm representation: width×height or area value
-        val sqmRepresentation = formatAreaRepresentation()
+        // Get district and crop name (could be from intent or user selection)
+        // For now, we'll use "Colombo" and "Carrots" as an example
+        val district = "Colombo"
+        val cropName = "Carrots"
 
-        // Generate data map
-        val replacements = mapOf(
-            "{{date}}" to "2025-02-17",
-            "{{plant_type}}" to "NuwaraEliya/Carrot",
-            "{{description}}" to "The carrot (Daucus carota) is a root vegetable often claimed to be the perfect health food. It is crunchy, tasty, and highly nutritious.",
-            "{{sqm}}" to sqmRepresentation,
-            "{{number_of_plants}}" to numberOfPlants.toString(),
-            "{{estimated_expenses_per_Month}}" to "36000",
-            "{{expected_income_per_month}}" to "82000",
-            "{{expected_yield_per_plant}}" to "3",
-            "{{market_price_per_unit}}" to "180",
-            "{{growth_cycle_duration}}" to "60",
-        )
+        // Fetch crop data from Firebase
+        fetchCropDataFromFirebase(district, cropName) { replacements ->
+            // Start Processing in Background
+            Thread {
+                modifyWordDocument(templatePath, outputDocxPath, imagePath, replacements)
+                convertWordToPdf(outputDocxPath, pdfFilePath)
+                // UI update happens inside convertWordToPdf after successful conversion
+            }.start()
+        }
 
-        // Start Processing in Background
-        Thread {
-            modifyWordDocument(templatePath, outputDocxPath, imagePath, replacements)
-            convertWordToPdf(outputDocxPath, pdfFilePath)
-            // UI update happens inside convertWordToPdf after successful conversion
-        }.start()
-
-        //Set Download Button Click Event
+        // Set Download Button Click Event
         downloadButton.setOnClickListener {
             downloadPdfToDownloads(pdfFilePath, "Ceilão Grid Report.pdf")
         }
@@ -119,6 +99,101 @@ class Report : AppCompatActivity() {
             .show()
     }
 
+    // Function to fetch crop data from Firestore
+    private fun fetchCropDataFromFirebase(district: String, cropName: String, callback: (Map<String, String>) -> Unit) {
+        val replacementsMap = mutableMapOf<String, String>()
+
+        // Set default values in case of error
+        val defaultValues = mapOf(
+            "description" to "Description not available",
+            "estimated_expenses_per_Month" to "0",
+            "expected_income_per_month" to "0",
+            "expected_yield_per_plant" to "0",
+            "market_price_per_unit" to "0",
+            "growth_cycle_duration" to "0",
+            "spacing" to "0.25"
+        )
+
+        // Reference to the crop document in Firestore
+        val cropRef = db.collection("districts").document(district).collection("crops").document(cropName)
+
+        cropRef.get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    // Format current date
+                    val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd").format(java.util.Date())
+
+                    // Add date to replacements
+                    replacementsMap["{{date}}"] to currentDate
+
+                    // Add plant type to replacements
+                    replacementsMap["{{plant_type}}"] = "$district/$cropName"
+
+                    // Map Firestore fields to replacements
+                    replacementsMap["{{description}}"] = document.getString("description") ?: defaultValues["description"]!!
+                    replacementsMap["{{estimated_expenses_per_Month}}"] = document.getString("estimated_expenses_per_Month") ?: defaultValues["estimated_expenses_per_Month"]!!
+                    replacementsMap["{{expected_income_per_month}}"] = document.getString("expected_income_per_month") ?: defaultValues["expected_income_per_month"]!!
+                    replacementsMap["{{expected_yield_per_plant}}"] = document.getString("expected_yield_per_plant") ?: defaultValues["expected_yield_per_plant"]!!
+                    replacementsMap["{{market_price_per_unit}}"] = document.getString("market_price_per_unit") ?: defaultValues["market_price_per_unit"]!!
+                    replacementsMap["{{growth_cycle_duration}}"] = document.getString("growth_cycle_duration") ?: defaultValues["growth_cycle_duration"]!!
+
+                    // Get plant spacing for calculation
+                    val spacing = document.getDouble("spacing") ?: defaultValues["spacing"]!!.toDouble()
+
+                    // Update the plant spacing value in the class
+                    plantSpacing = spacing
+
+                    // Recalculate number of plants based on the new spacing value
+                    if (totalSqm > 0) {
+                        numberOfPlants = (totalSqm / plantSpacing).toInt()
+                        if (numberOfPlants < 1 && totalSqm > 0) {
+                            numberOfPlants = 1
+                        }
+                    }
+
+                    // Add calculated values to replacements
+                    replacementsMap["{{sqm}}"] = String.format("%.2f m²", totalSqm)
+                    replacementsMap["{{number_of_plants}}"] = numberOfPlants.toString()
+
+                    Log.d("FIREBASE", "✅ Successfully fetched crop data for $district/$cropName")
+                } else {
+                    Log.e("FIREBASE", "No data found for $district/$cropName")
+                    // Use default values if no document exists
+                    setDefaultReplacements(replacementsMap, district, cropName, defaultValues)
+                }
+
+                // Call the callback with the final map
+                callback(replacementsMap)
+            }
+            .addOnFailureListener { exception ->
+                Log.e("FIREBASE", "Error fetching crop data: ${exception.message}")
+                // Use default values on error
+                setDefaultReplacements(replacementsMap, district, cropName, defaultValues)
+                callback(replacementsMap)
+            }
+    }
+
+    // Helper function to set default replacement values
+    private fun setDefaultReplacements(
+        replacementsMap: MutableMap<String, String>,
+        district: String,
+        cropName: String,
+        defaultValues: Map<String, String>
+    ) {
+        val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd").format(java.util.Date())
+
+        replacementsMap["{{date}}"] = currentDate
+        replacementsMap["{{plant_type}}"] = "$district/$cropName"
+        replacementsMap["{{description}}"] = defaultValues["description"]!!
+        replacementsMap["{{estimated_expenses_per_Month}}"] = defaultValues["estimated_expenses_per_Month"]!!
+        replacementsMap["{{expected_income_per_month}}"] = defaultValues["expected_income_per_month"]!!
+        replacementsMap["{{expected_yield_per_plant}}"] = defaultValues["expected_yield_per_plant"]!!
+        replacementsMap["{{market_price_per_unit}}"] = defaultValues["market_price_per_unit"]!!
+        replacementsMap["{{growth_cycle_duration}}"] = defaultValues["growth_cycle_duration"]!!
+        replacementsMap["{{sqm}}"] = String.format("%.2f m²", totalSqm)
+        replacementsMap["{{number_of_plants}}"] = numberOfPlants.toString()
+    }
+
     // Function to get AR measurements from intent and calculate plants
     private fun getArMeasurementsAndCalculatePlants() {
         try {
@@ -126,30 +201,20 @@ class Report : AppCompatActivity() {
             totalSqm = intent.getFloatExtra("AR_AREA", 0f).toDouble()
             perimeter = intent.getFloatExtra("AR_PERIMETER", 0f).toDouble()
 
-//            // If no AR data was passed, fallback to default values (for testing)
-//            if (totalSqm <= 0) {
-//                Log.d("REPORT", "No AR area data found, using default value")
-//                totalSqm = 0.41 // Default value from screenshot (0.41 m²)
-//                perimeter = 2.65 // Default value from screenshot (2.65 m)
-//            }
+            if (totalSqm <= 0) {
+                Log.d("REPORT", "No AR area data found, using default value")
+                totalSqm = 0.41 // Default value from screenshot (0.41 m²)
+                perimeter = 2.65 // Default value from screenshot (2.65 m)
+            }
 
             Log.d("REPORT", "Area from AR: $totalSqm sq m, Perimeter: $perimeter m")
 
-            // Get plant spacing from Firebase and calculate number of plants
-            getPlantSpacingFromFirebase("Carrot") { spacing ->
-                plantSpacing = spacing
-                numberOfPlants = (totalSqm / plantSpacing).toInt()
-
-                // Ensure at least 1 plant if area is positive but very small
-                if (totalSqm > 0 && numberOfPlants < 1) {
-                    numberOfPlants = 1
-                }
-
-                Log.d("PLANTS", "Area: $totalSqm sq m, Plants per sq m: $plantSpacing, Total plants: $numberOfPlants")
-            }
+            // Note: We'll calculate the number of plants after fetching the spacing from Firebase
+            // This happens in fetchCropDataFromFirebase now
         } catch (e: Exception) {
-            Log.e("ERROR", "Failed to calculate number of plants: ${e.message}")
-            numberOfPlants = 43 // Fallback to hardcoded value
+            Log.e("ERROR", "Failed to get AR measurements: ${e.message}")
+            totalSqm = 0.41 // Default value
+            perimeter = 2.65 // Default value
         }
     }
 
@@ -163,23 +228,17 @@ class Report : AppCompatActivity() {
         }
     }
 
-    // Function to get plant spacing from Firebase
-    private fun getPlantSpacingFromFirebase(cropName: String, callback: (Double) -> Unit) {
-        // In a real implementation, you would fetch this from Firebase
-        // For now, using hardcoded value
-        val spacing = 0.25 // 0.25 sq meters per plant (example)
-        callback(spacing)
-
-        // Actual Firebase implementation would look like:
-        /*
-        db.collection("crops").document(cropName)
+    // Updated function to get plant spacing from Firebase
+    private fun getPlantSpacingFromFirebase(district: String, cropName: String, callback: (Double) -> Unit) {
+        db.collection("districts").document(district).collection("crops").document(cropName)
             .get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
                     val spacing = document.getDouble("spacing") ?: 0.25
                     callback(spacing)
+                    Log.d("FIREBASE", "Retrieved plant spacing for $cropName: $spacing sq meters per plant")
                 } else {
-                    Log.d("FIREBASE", "No spacing data for $cropName")
+                    Log.d("FIREBASE", "No spacing data for $cropName, using default")
                     callback(0.25) // Default spacing
                 }
             }
@@ -187,7 +246,6 @@ class Report : AppCompatActivity() {
                 Log.e("FIREBASE", "Error getting spacing data: ${exception.message}")
                 callback(0.25) // Default spacing on error
             }
-        */
     }
 
     // Function to copy assets to internal storage
