@@ -842,96 +842,518 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+     private fun createDefaultRenderable(
+         startX: Float,
+         startZ: Float,
+         groundY: Float,
+         rows: Int,
+         cols: Int,
+         spacing: Float
+     ) {
+         var plantsPlaced = 0
 
-    private fun createDefaultRenderable(
-        startX: Float,
-        startZ: Float,
-        groundY: Float,
-        rows: Int,
-        cols: Int,
-        spacing: Float
-    ) {
-        var plantsPlaced = 0
+         // Enhanced natural color palette
+         val darkGreen = com.google.ar.sceneform.rendering.Color(0.0f, 0.35f, 0.0f)
+         val mediumGreen = com.google.ar.sceneform.rendering.Color(0.1f, 0.55f, 0.1f)
+         val lightGreen = com.google.ar.sceneform.rendering.Color(0.2f, 0.65f, 0.2f)
+         val stemBrown = com.google.ar.sceneform.rendering.Color(0.35f, 0.25f, 0.1f)
 
-        // Create green material for generic plant
-        MaterialFactory.makeOpaqueWithColor(
-            this,
-            com.google.ar.sceneform.rendering.Color(0.0f, 0.6f, 0.0f)
+         MaterialFactory.makeOpaqueWithColor(this, darkGreen)
+             .thenAccept { darkMaterial ->
+                 MaterialFactory.makeOpaqueWithColor(this, mediumGreen)
+                     .thenAccept { mediumMaterial ->
+                         MaterialFactory.makeOpaqueWithColor(this, lightGreen)
+                             .thenAccept { lightMaterial ->
+                                 MaterialFactory.makeOpaqueWithColor(this, stemBrown)
+                                     .thenAccept { stemMaterial ->
+                                         // Place plants in a grid pattern
+                                         for (row in 0 until rows) {
+                                             for (col in 0 until cols) {
+                                                 val x = startX + col * spacing
+                                                 val z = startZ + row * spacing
+
+                                                 // Only place plants if inside the polygon
+                                                 if (isPointInside(x, z)) {
+                                                     // Create plant anchor
+                                                     val plantAnchor = arFragment?.arSceneView?.session?.createAnchor(
+                                                         com.google.ar.core.Pose.makeTranslation(
+                                                             x, groundY, z
+                                                         )
+                                                     )
+
+                                                     val anchorNode = AnchorNode(plantAnchor).apply {
+                                                         setParent(arFragment?.arSceneView?.scene)
+                                                     }
+
+                                                     val plantNode = Node().apply {
+                                                         setParent(anchorNode)
+                                                     }
+
+                                                     // Create stem first
+                                                     createDetailedStem(plantNode, stemMaterial)
+
+                                                     // Add foliage to the plant
+                                                     createLayeredFoliage(
+                                                         plantNode,
+                                                         6, // Consistent leaf count
+                                                         darkMaterial,
+                                                         mediumMaterial,
+                                                         lightMaterial
+                                                     )
+
+                                                     plantNodes.add(plantNode)
+                                                     plantsPlaced++
+                                                 }
+                                             }
+                                         }
+
+                                         // Update UI to show number of plants placed
+                                         runOnUiThread {
+                                             measurementText?.text = String.format(
+                                                 "Plants placed: %d", plantsPlaced
+                                             )
+                                         }
+                                     }
+                             }
+                     }
+             }
+     }
+
+
+
+ private fun createDetailedStem(
+     parentNode: Node,
+     stemMaterial: com.google.ar.sceneform.rendering.Material
+ ) {
+     // Fixed dimensions for consistent appearance
+     val stemHeight = 0.17f
+     val stemRadius = 0.006f
+
+     // Create main stem with consistent dimensions
+     val mainStem = ShapeFactory.makeCylinder(
+         stemRadius,
+         stemHeight,
+         Vector3(0f, stemHeight/2, 0f),
+         stemMaterial
+     )
+
+     val stemNode = Node()
+     stemNode.setParent(parentNode)
+
+     // Minimal tilt for uniform upright appearance
+     val tiltX = (Math.random() * 4 - 2).toFloat()
+     val tiltZ = (Math.random() * 4 - 2).toFloat()
+     stemNode.localRotation = Quaternion.multiply(
+         Quaternion.axisAngle(Vector3(1f, 0f, 0f), tiltX),
+         Quaternion.axisAngle(Vector3(0f, 0f, 1f), tiltZ)
+     )
+
+     stemNode.renderable = mainStem
+
+     // Add exactly 2 side branches for uniformity
+     for (i in 0 until 2) {
+         val branchNode = Node()
+         branchNode.setParent(stemNode)
+
+         // Consistent branch positions
+         val heightPosition = 0.5f + (i * 0.2f)
+         branchNode.localPosition = Vector3(0f, stemHeight * heightPosition, 0f)
+
+         // Consistent branch angles - opposite sides
+         val branchAngle = i * 180f
+         val branchTilt = 35f
+         branchNode.localRotation = Quaternion.multiply(
+             Quaternion.axisAngle(Vector3(0f, 1f, 0f), branchAngle),
+             Quaternion.axisAngle(Vector3(1f, 0f, 0f), branchTilt)
+         )
+
+         // Fixed branch dimensions
+         val branchLength = stemHeight * 0.35f
+         val branchRadius = stemRadius * 0.7f
+
+         val branch = ShapeFactory.makeCylinder(
+             branchRadius,
+             branchLength,
+             Vector3(0f, branchLength/2, 0f),
+             stemMaterial
+         )
+
+         branchNode.renderable = branch
+     }
+ }
+
+    private fun createCurvedLeafShape(
+        length: Float,
+        width: Float,
+        thickness: Float,
+        material: com.google.ar.sceneform.rendering.Material
+    ): Renderable {
+        // Basic leaf shape with slight curvature
+        val curveFactor = length * 0.15f
+
+        return ShapeFactory.makeCube(
+            Vector3(width, thickness, length),
+            Vector3(0f, curveFactor, length * 0.3f),
+            material
         )
-            .thenAccept { plantMaterial ->
-                // Place generic plants in grid
-                for (row in 0 until rows) {
-                    for (col in 0 until cols) {
-                        val x = startX + (col * spacing)
-                        val z = startZ + (row * spacing)
-
-                        if (isPointInside(x, z)) {
-                            // Create parent node
-                            val plantNode = Node()
-                            plantNode.setParent(arFragment?.arSceneView?.scene)
-                            plantNode.localPosition = Vector3(x, groundY, z)
-
-                            // Create stem
-                            val stem = ShapeFactory.makeCylinder(
-                                0.01f, // radius
-                                0.2f,  // height
-                                Vector3(0f, 0.1f, 0f), // center
-                                plantMaterial
-                            )
-
-                            val stemNode = Node()
-                            stemNode.renderable = stem
-                            stemNode.setParent(plantNode)
-
-                            // Create leaves (cubes)
-                            for (i in 0 until 2) {
-                                val leafNode = Node()
-                                leafNode.setParent(plantNode)
-
-                                // Position leaf
-                                leafNode.localPosition = Vector3(0f, 0.15f, 0f)
-                                leafNode.localRotation = Quaternion.axisAngle(
-                                    Vector3(0f, 1f, 0f),
-                                    i * 180f
-                                )
-
-                                // Create leaf
-                                val leaf = ShapeFactory.makeCube(
-                                    Vector3(0.08f, 0.01f, 0.04f),
-                                    Vector3(0.04f, 0f, 0f),
-                                    plantMaterial
-                                )
-
-                                leafNode.renderable = leaf
-                            }
-
-                            plantNodes.add(plantNode)
-                            plantsPlaced++
-                        }
-                    }
-                }
-                measurementText?.text = "${measurementText?.text}\nPlants planted: $plantsPlaced"
-            }
     }
 
 
-    // Function to check if a point is inside the measured quadrilateral
+
+ private fun createLayeredFoliage(
+     parentNode: Node,
+     leafCount: Int,
+     darkMaterial: com.google.ar.sceneform.rendering.Material,
+     mediumMaterial: com.google.ar.sceneform.rendering.Material,
+     lightMaterial: com.google.ar.sceneform.rendering.Material
+ ) {
+     // Create main foliage cluster at top of stem with fixed position
+     val foliageNode = Node()
+     foliageNode.setParent(parentNode)
+     foliageNode.localPosition = Vector3(0f, 0.14f, 0f)
+
+     // Fixed number of clusters for uniformity
+     val clusterCount = 3
+     val clusterSpacing = 0.018f
+
+     // Organized leaf distribution with even angles
+     for (c in 0 until clusterCount) {
+         val clusterHeight = clusterSpacing * c
+         val clusterNode = Node()
+         clusterNode.setParent(foliageNode)
+         clusterNode.localPosition = Vector3(0f, clusterHeight, 0f)
+
+         // Evenly distribute clusters rotationally
+         clusterNode.localRotation = Quaternion.axisAngle(
+             Vector3(0f, 1f, 0f),
+             c * (120f)
+         )
+
+         // Fixed leaf count per cluster
+         val leavesPerCluster = 4
+         for (i in 0 until leavesPerCluster) {
+             // Alternate materials in a predictable pattern
+             val material = when (i % 3) {
+                 0 -> lightMaterial
+                 1 -> mediumMaterial
+                 else -> darkMaterial
+             }
+
+             createSmallerAestheticLeaf(
+                 clusterNode,
+                 i,
+                 leavesPerCluster,
+                 material
+             )
+         }
+     }
+
+     // Add exactly 3 evenly distributed lower leaves along stem
+     for (i in 0 until 3) {
+         val leafNode = Node()
+         leafNode.setParent(parentNode)
+
+         // Even spacing along stem
+         val heightRatio = 0.3f + (i * 0.16f)
+         leafNode.localPosition = Vector3(0f, 0.15f * heightRatio, 0f)
+
+         // Evenly distributed orientation
+         leafNode.localRotation = Quaternion.axisAngle(
+             Vector3(0f, 1f, 0f),
+             i * 120f
+         )
+
+         // Create smaller compound leaf
+         createSmallerCompoundLeaf(leafNode, darkMaterial, mediumMaterial)
+     }
+ }
+
+ private fun createSmallerAestheticLeaf(
+     parentNode: Node,
+     index: Int,
+     totalLeaves: Int,
+     material: com.google.ar.sceneform.rendering.Material
+ ) {
+     val leafNode = Node()
+     leafNode.setParent(parentNode)
+
+     // Position leaves in a precise semi-circle pattern
+     val angleStep = 360f / totalLeaves
+     val finalAngle = index * angleStep
+
+     // Fixed tilt angles for uniformity
+     val upwardTilt = 25f
+     val outwardTilt = 15f
+
+     // Precise rotation for uniform arrangement
+     leafNode.localRotation = Quaternion.multiply(
+         Quaternion.axisAngle(Vector3(0f, 1f, 0f), finalAngle),
+         Quaternion.multiply(
+             Quaternion.axisAngle(Vector3(1f, 0f, 0f), upwardTilt),
+             Quaternion.axisAngle(Vector3(0f, 0f, 1f), outwardTilt)
+         )
+     )
+
+     // Smaller, uniform leaf dimensions
+     val leafLength = 0.05f
+     val leafWidth = 0.02f
+     val leafThickness = 0.002f
+
+     // Create smaller leaf with consistent shape
+     val leafShape = createCurvedLeafShape(leafLength, leafWidth, leafThickness, material)
+     leafNode.renderable = leafShape
+
+     // Add simplified vein detail
+     addSimpleLeafDetails(leafNode, leafLength, leafWidth, material)
+ }
+
+ private fun addSimpleLeafDetails(
+     leafNode: Node,
+     leafLength: Float,
+     leafWidth: Float,
+     material: com.google.ar.sceneform.rendering.Material
+ ) {
+     // Add a single central vein
+     val veinNode = Node()
+     veinNode.setParent(leafNode)
+     veinNode.localPosition = Vector3(0f, 0.001f, 0f)
+
+     // Create a thin line as the central vein
+     val vein = ShapeFactory.makeCube(
+         Vector3(0.001f, 0.0005f, leafLength * 0.9f),
+         Vector3(0f, 0f, leafLength * 0.3f),
+         material
+     )
+     veinNode.renderable = vein
+
+     // Add exactly 2 lateral veins on each side
+     for (i in 0 until 2) {
+         for (side in arrayOf(-1, 1)) {
+             val lateralVeinNode = Node()
+             lateralVeinNode.setParent(leafNode)
+
+             // Fixed positions for consistent appearance
+             val positionRatio = 0.3f + (i * 0.3f)
+             lateralVeinNode.localPosition = Vector3(
+                 0f,
+                 0.001f,
+                 leafLength * (positionRatio - 0.15f)
+             )
+
+             // Fixed angle for uniform appearance
+             val angle = 30f
+             lateralVeinNode.localRotation = Quaternion.axisAngle(
+                 Vector3(0f, 1f, 0f),
+                 angle * side
+             )
+
+             // Smaller, consistent vein size
+             val lateralVeinLength = leafWidth * 0.6f
+             val lateralVein = ShapeFactory.makeCube(
+                 Vector3(0.001f, 0.0003f, lateralVeinLength),
+                 Vector3(0f, 0f, lateralVeinLength * 0.5f),
+                 material
+             )
+             lateralVeinNode.renderable = lateralVein
+         }
+     }
+ }
+
+ private fun createSmallerCompoundLeaf(
+     parentNode: Node,
+     darkMaterial: com.google.ar.sceneform.rendering.Material,
+     mediumMaterial: com.google.ar.sceneform.rendering.Material
+ ) {
+     // Create thinner central stem for compound leaf
+     val stemLength = 0.05f
+     val stem = ShapeFactory.makeCube(
+         Vector3(0.002f, 0.002f, stemLength),
+         Vector3(0f, 0f, stemLength * 0.5f),
+         darkMaterial
+     )
+
+     val stemNode = Node()
+     stemNode.setParent(parentNode)
+     stemNode.renderable = stem
+
+     // Create exactly 3 pairs of leaflets along the stem
+     for (i in 0 until 3) {
+         val positionRatio = 0.3f + (i * 0.3f)
+
+         // Left leaflet
+         createSmallLeaflet(
+             stemNode,
+             positionRatio,
+             -1,  // left side
+             stemLength,
+             mediumMaterial
+         )
+
+         // Right leaflet
+         createSmallLeaflet(
+             stemNode,
+             positionRatio,
+             1,   // right side
+             stemLength,
+             mediumMaterial
+         )
+     }
+
+     // Terminal leaflet at end
+     createSmallLeaflet(
+         stemNode,
+         1.0f,    // end position
+         0,       // center
+         stemLength,
+         darkMaterial
+     )
+ }
+
+ private fun createSmallLeaflet(
+     parentNode: Node,
+     positionRatio: Float,
+     side: Int,  // -1 for left, 0 for center, 1 for right
+     stemLength: Float,
+     material: com.google.ar.sceneform.rendering.Material
+ ) {
+     val leafletNode = Node()
+     leafletNode.setParent(parentNode)
+
+     // Position along stem
+     leafletNode.localPosition = Vector3(
+         0f,
+         0.001f,
+         stemLength * positionRatio
+     )
+
+     // Fixed angles based on side
+     val baseAngle = when(side) {
+         -1 -> -40f    // left side
+         1 -> 40f      // right side
+         else -> 0f    // terminal leaflet
+     }
+
+     // Fixed upward tilt
+     val upTilt = 25f
+
+     leafletNode.localRotation = Quaternion.multiply(
+         Quaternion.axisAngle(Vector3(0f, 1f, 0f), baseAngle),
+         Quaternion.axisAngle(Vector3(1f, 0f, 0f), -upTilt)
+     )
+
+     // Create smaller uniform leaflets
+     val leafletLength = 0.02f
+     val leafletWidth = 0.01f
+
+     val leaflet = ShapeFactory.makeCube(
+         Vector3(leafletWidth, 0.001f, leafletLength),
+         Vector3(0f, 0f, leafletLength * 0.4f),
+         material
+     )
+
+     leafletNode.renderable = leaflet
+ }
+
+
+    
+    private fun createLeaflet(
+        parentNode: Node,
+        positionRatio: Float,
+        side: Int,  // -1 for left, 0 for center, 1 for right
+        stemLength: Float,
+        material: com.google.ar.sceneform.rendering.Material
+    ) {
+        val leafletNode = Node()
+        leafletNode.setParent(parentNode)
+
+        // Position along stem
+        leafletNode.localPosition = Vector3(
+            0f,
+            0.001f,
+            stemLength * positionRatio
+        )
+
+        // Angle based on side
+        var baseAngle = when(side) {
+            -1 -> -45f    // left side
+            1 -> 45f      // right side
+            else -> 0f    // terminal leaflet
+        }
+
+        // Add variation
+        baseAngle += (Math.random() * 20 - 10).toFloat()
+
+        // Tilt leaflet upward
+        val upTilt = 20f + (Math.random() * 20)
+
+        leafletNode.localRotation = Quaternion.multiply(
+            Quaternion.axisAngle(Vector3(0f, 1f, 0f), baseAngle),
+            Quaternion.axisAngle(Vector3(1f, 0f, 0f), -upTilt.toFloat())
+        )
+
+        // Create leaflet shape - smaller than main leaves
+        val leafletLength = 0.03f + (Math.random() * 0.02f).toFloat()
+        val leafletWidth = 0.015f + (Math.random() * 0.01f).toFloat()
+
+        val leaflet = ShapeFactory.makeCube(
+            Vector3(leafletWidth, 0.002f, leafletLength),
+            Vector3(0f, 0f, leafletLength * 0.4f),
+            material
+        )
+
+        leafletNode.renderable = leaflet
+    }
+
     private fun isPointInside(x: Float, z: Float): Boolean {
-        // Implementation of ray casting algorithm
+        if (points.size < 3) return false
+
+        // Ray casting algorithm to determine if point is inside polygon
         var inside = false
-        var j = points.size - 1
+        val p = Vector3(x, points[0].y, z)  // Use consistent y-value
+
         for (i in points.indices) {
-            if ((points[i].z > z) != (points[j].z > z) &&
-                x < (points[j].x - points[i].x) * (z - points[i].z) /
-                (points[j].z - points[i].z) + points[i].x
-            ) {
+            val j = (i + 1) % points.size
+
+            val pi = points[i]
+            val pj = points[j]
+
+            // Check if point is on an edge
+            if (distanceToLineSegment(pi, pj, p) < 0.01f) {
+                return true
+            }
+
+            // Check if ray from point crosses this edge
+            if (((pi.z > p.z) != (pj.z > p.z)) &&
+                (p.x < (pj.x - pi.x) * (p.z - pi.z) / (pj.z - pi.z) + pi.x)) {
                 inside = !inside
             }
-            j = i
         }
+
         return inside
     }
 
+    private fun distanceToLineSegment(a: Vector3, b: Vector3, p: Vector3): Float {
+        val abx = b.x - a.x
+        val abz = b.z - a.z
+        val lengthSquared = abx * abx + abz * abz
+
+        // If line segment is a point, return distance to that point
+        if (lengthSquared == 0f) {
+            return Vector3.subtract(p, a).length()
+        }
+
+        // Calculate projection of p onto line segment
+        var t = ((p.x - a.x) * abx + (p.z - a.z) * abz) / lengthSquared
+        t = t.coerceIn(0f, 1f)
+
+        val projection = Vector3(
+            a.x + t * abx,
+            p.y,  // Keep the same y-value
+            a.z + t * abz
+        )
+
+        return Vector3.subtract(p, projection).length()
+    }
 
     private fun clearPlants() {
         plantNodes.forEach { node ->
