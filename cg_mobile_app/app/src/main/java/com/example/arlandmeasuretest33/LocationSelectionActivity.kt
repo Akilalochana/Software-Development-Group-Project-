@@ -12,11 +12,23 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 
 class LocationSelectionActivity : AppCompatActivity() {
     private lateinit var gardenNameInput: EditText
     private lateinit var locationSpinner: Spinner
     private lateinit var createButton: MaterialButton
+    private lateinit var db: FirebaseFirestore
+    private lateinit var auth: FirebaseAuth
+
+    // TextViews for location features
+    private lateinit var climateValueTextView: TextView
+    private lateinit var rainfallValueTextView: TextView
+    private lateinit var soilTypeValueTextView: TextView
+    private lateinit var elevationValueTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
@@ -24,11 +36,15 @@ class LocationSelectionActivity : AppCompatActivity() {
             Log.d("LocationActivity", "Setting content view")
             setContentView(R.layout.activity_location_selection)
 
+            // Initialize Firebase Auth and Firestore
+            auth = Firebase.auth
+            db = FirebaseFirestore.getInstance()
+
             Log.d("LocationActivity", "Initializing views")
             initializeViews()
 
-            Log.d("LocationActivity", "Setting up spinner")
-            setupLocationSpinner()
+            // Authenticate first, then load data
+            authenticateAndLoadData()
 
             Log.d("LocationActivity", "Setting up click listeners")
             setupClickListeners()
@@ -38,58 +54,188 @@ class LocationSelectionActivity : AppCompatActivity() {
         }
     }
 
+    private fun authenticateAndLoadData() {
+        // Only sign in if not already authenticated
+        if (auth.currentUser == null) {
+            // Show loading indicator
+            Toast.makeText(this, "Connecting to database...", Toast.LENGTH_SHORT).show()
+
+            auth.signInAnonymously()
+                .addOnSuccessListener {
+                    Log.d("LocationActivity", "Anonymous authentication successful")
+                    // After authentication succeeds, load data
+                    setupLocationSpinner()
+                }
+                .addOnFailureListener { e ->
+                    Log.e("LocationActivity", "Authentication failed", e)
+                    Toast.makeText(this, "Database authentication failed: ${e.message}. Please restart the app.", Toast.LENGTH_LONG).show()
+                }
+        } else {
+            // Already authenticated, load data
+            setupLocationSpinner()
+        }
+    }
+
     private fun initializeViews() {
         gardenNameInput = findViewById(R.id.gardenNameInput)
         locationSpinner = findViewById(R.id.locationSpinner)
         createButton = findViewById(R.id.createButton)
+
+        // Initialize location feature TextViews
+        climateValueTextView = findViewById(R.id.climateValueTextView)
+        rainfallValueTextView = findViewById(R.id.rainfallValueTextView)
+        soilTypeValueTextView = findViewById(R.id.soilTypeValueTextView)
+        elevationValueTextView = findViewById(R.id.elevationValueTextView)
+
+        // Set initial state
+        setDataUnavailableState()
+    }
+
+    private fun setDataUnavailableState() {
+        climateValueTextView.text = "Select a district"
+        rainfallValueTextView.text = "Select a district"
+        soilTypeValueTextView.text = "Select a district"
+        elevationValueTextView.text = "Select a district"
     }
 
     private fun setupLocationSpinner() {
-        val districts = arrayOf(
-            "Ampara", "Anuradhapura", "Badulla", "Batticaloa", "Colombo",
-            "Galle", "Gampaha", "Hambantota", "Jaffna", "Kalutara",
-            "Kandy", "Kegalle", "Kilinochchi", "Kurunegala", "Mannar",
-            "Matale", "Matara", "Monaragala", "Mullaitivu", "Nuwara Eliya",
-            "Polonnaruwa", "Puttalam", "Ratnapura", "Trincomalee", "Vavuniya"
-        )
+        // Load districts from Firebase
+        db.collection("districts").get()
+            .addOnSuccessListener { documents ->
+                val districts = documents.map { it.id }.sorted()
 
-        val adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,  // Changed from simple_spinner_dropdown_item
-            districts
-        )
+                if (districts.isEmpty()) {
+                    Log.w("LocationActivity", "No districts found in Firebase")
+                    Toast.makeText(this, "No districts found in database", Toast.LENGTH_SHORT).show()
+                    return@addOnSuccessListener
+                }
 
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        locationSpinner.adapter = adapter
+                val adapter = ArrayAdapter(
+                    this,
+                    android.R.layout.simple_spinner_item,
+                    districts
+                )
 
-        // Add listener to update location features when an item is selected
-        locationSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-                val selectedDistrict = parent.getItemAtPosition(position).toString()
-                updateLocationFeatures(selectedDistrict)
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                locationSpinner.adapter = adapter
+
+                // Add listener to update location features when an item is selected
+                locationSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                        val selectedDistrict = parent.getItemAtPosition(position).toString()
+                        fetchLocationFeaturesFromFirebase(selectedDistrict)
+                    }
+
+                    override fun onNothingSelected(parent: AdapterView<*>) {
+                        // Do nothing
+                    }
+                }
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>) {
-                // Do nothing
+            .addOnFailureListener { e ->
+                Log.e("LocationActivity", "Error loading districts from Firebase", e)
+                Toast.makeText(this, "Error loading districts: ${e.message}", Toast.LENGTH_LONG).show()
             }
-        }
     }
 
-    // Add this new method to update the UI with location features
-    private fun updateLocationFeatures(district: String) {
-        val locationFeatures = getLocationFeatures(district)
+    private fun fetchLocationFeaturesFromFirebase(district: String) {
+        // Show loading state
+        showLoadingState()
 
-        // Find the TextViews
-        val climateValueTextView = findViewById<TextView>(R.id.climateValueTextView)
-        val rainfallValueTextView = findViewById<TextView>(R.id.rainfallValueTextView)
-        val soilTypeValueTextView = findViewById<TextView>(R.id.soilTypeValueTextView)
-        val elevationValueTextView = findViewById<TextView>(R.id.elevationValueTextView)
+        // Try to get the LocationFeatures subcollection for the district
+        db.collection("districts").document(district)
+            .collection("LocationFeatures").limit(1).get()
+            .addOnSuccessListener { querySnapshot ->
+                if (!querySnapshot.isEmpty) {
+                    // Get first document from the LocationFeatures collection
+                    val document = querySnapshot.documents[0]
 
+                    // Get the fields
+                    val climate = document.getString("climate") ?: "Not available"
+                    val rainfall = document.getString("rainfall") ?: "Not available"
+                    val soilType = document.getString("soiltype") ?: "Not available"
+                    val elevation = document.getString("elevation") ?: "Not available"
+
+                    // Update UI with retrieved data
+                    updateLocationFeaturesUI(
+                        LocationFeatures(climate, rainfall, soilType, elevation)
+                    )
+
+                    Log.d("LocationActivity", "Loaded features for $district: $climate, $rainfall, $soilType, $elevation")
+                } else {
+                    Log.d("LocationActivity", "No LocationFeatures found for district: $district")
+                    // Try to fetch data directly from district document as a fallback
+                    fetchFeaturesfromDistrictDocument(district)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("LocationActivity", "Error fetching location data for $district", e)
+                Toast.makeText(this, "Error loading location data: ${e.message}", Toast.LENGTH_SHORT).show()
+
+                // Try alternative approach - data might be directly in district document
+                fetchFeaturesfromDistrictDocument(district)
+            }
+    }
+
+    private fun fetchFeaturesfromDistrictDocument(district: String) {
+        db.collection("districts").document(district).get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    // Check if fields are directly in the document
+                    val climate = document.getString("climate")
+                    val rainfall = document.getString("rainfall")
+                    val soilType = document.getString("soiltype") ?: document.getString("soilType")
+                    val elevation = document.getString("elevation")
+
+                    if (climate != null || rainfall != null) {
+                        // At least some data found directly in document
+                        updateLocationFeaturesUI(
+                            LocationFeatures(
+                                climate ?: "Not available",
+                                rainfall ?: "Not available",
+                                soilType ?: "Not available",
+                                elevation ?: "Not available"
+                            )
+                        )
+                    } else {
+                        // No data found at all
+                        setNoDataAvailableState(district)
+                    }
+                } else {
+                    setNoDataAvailableState(district)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("LocationActivity", "Error fetching district document for $district", e)
+                Toast.makeText(this, "Could not retrieve location data: ${e.message}", Toast.LENGTH_SHORT).show()
+                setNoDataAvailableState(district)
+            }
+    }
+
+    private fun setNoDataAvailableState(district: String) {
+        updateLocationFeaturesUI(
+            LocationFeatures(
+                "No data available",
+                "No data available",
+                "No data available",
+                "No data available"
+            )
+        )
+        Toast.makeText(this, "No data available for $district in database", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showLoadingState() {
+        climateValueTextView.text = "Loading..."
+        rainfallValueTextView.text = "Loading..."
+        soilTypeValueTextView.text = "Loading..."
+        elevationValueTextView.text = "Loading..."
+    }
+
+    private fun updateLocationFeaturesUI(features: LocationFeatures) {
         // Update the TextViews with the location feature data
-        climateValueTextView.text = locationFeatures.climate
-        rainfallValueTextView.text = locationFeatures.rainfall
-        soilTypeValueTextView.text = locationFeatures.soilType
-        elevationValueTextView.text = locationFeatures.elevation
+        climateValueTextView.text = features.climate
+        rainfallValueTextView.text = features.rainfall
+        soilTypeValueTextView.text = features.soilType
+        elevationValueTextView.text = features.elevation
     }
 
     private fun setupClickListeners() {
@@ -107,6 +253,13 @@ class LocationSelectionActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Check if we have actual data (not loading or error states)
+            val climate = climateValueTextView.text.toString()
+            if (climate == "Loading..." || climate == "No data available") {
+                Toast.makeText(this, "Please wait for location data to load or select another district", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             try {
                 // Log the selected district for debugging
                 Log.d("LocationActivity", "Selected district: $selectedDistrict")
@@ -119,21 +272,23 @@ class LocationSelectionActivity : AppCompatActivity() {
                     apply()
                 }
 
-                // Get location features based on selected district
-                val locationFeatures = getLocationFeatures(selectedDistrict)
+                // Get current location features from TextViews
+                val rainfall = rainfallValueTextView.text.toString()
+                val soilType = soilTypeValueTextView.text.toString()
+                val elevation = elevationValueTextView.text.toString()
 
                 // Log the location features for debugging
-                Log.d("LocationActivity", "Climate: ${locationFeatures.climate}, Rainfall: ${locationFeatures.rainfall}")
-                Log.d("LocationActivity", "Soil: ${locationFeatures.soilType}, Elevation: ${locationFeatures.elevation}")
+                Log.d("LocationActivity", "Climate: $climate, Rainfall: $rainfall")
+                Log.d("LocationActivity", "Soil: $soilType, Elevation: $elevation")
 
                 // Continue to plant recommendations
                 val intent = Intent(this, PlantRecommendationActivity::class.java).apply {
                     putExtra("SELECTED_DISTRICT", selectedDistrict)
                     putExtra("GARDEN_NAME", gardenName)
-                    putExtra("CLIMATE", locationFeatures.climate)
-                    putExtra("RAINFALL", locationFeatures.rainfall)
-                    putExtra("SOIL_TYPE", locationFeatures.soilType)
-                    putExtra("ELEVATION", locationFeatures.elevation)
+                    putExtra("CLIMATE", climate)
+                    putExtra("RAINFALL", rainfall)
+                    putExtra("SOIL_TYPE", soilType)
+                    putExtra("ELEVATION", elevation)
                 }
                 startActivity(intent)
             } catch (e: Exception) {
@@ -151,77 +306,4 @@ class LocationSelectionActivity : AppCompatActivity() {
         val soilType: String,
         val elevation: String
     )
-
-    // Get location features based on district
-    private fun getLocationFeatures(district: String): LocationFeatures {
-        return when (district) {
-            "Colombo" -> LocationFeatures(
-                "Tropical Monsoon",
-                "1500-2500mm/year",
-                "Red-Yellow Podzolic",
-                "0-100m"
-            )
-            "Kandy" -> LocationFeatures(
-                "Tropical Highlands",
-                "1800-2500mm/year",
-                "Red-Yellow Podzolic",
-                "500-600m"
-            )
-            "Nuwara Eliya" -> LocationFeatures(
-                "Cool Temperate",
-                "2000-2500mm/year",
-                "Mountain Regosols",
-                "1800-2000m"
-            )
-            "Anuradhapura" -> LocationFeatures(
-                "Tropical Dry",
-                "1000-1500mm/year",
-                "Reddish Brown Earth",
-                "80-100m"
-            )
-            "Galle" -> LocationFeatures(
-                "Tropical Wet",
-                "2000-3000mm/year",
-                "Red-Yellow Podzolic",
-                "0-50m"
-            )
-            "Jaffna" -> LocationFeatures(
-                "Arid",
-                "800-1000mm/year",
-                "Calcic Red-Yellow Latasols",
-                "0-10m"
-            )
-            "Batticaloa" -> LocationFeatures(
-                "Tropical Dry",
-                "1500-2000mm/year",
-                "Non-Calcic Brown",
-                "0-30m"
-            )
-            "Trincomalee" -> LocationFeatures(
-                "Tropical Dry",
-                "1000-1700mm/year",
-                "Red-Yellow Latasols",
-                "0-50m"
-            )
-            "Matara" -> LocationFeatures(
-                "Tropical Wet",
-                "2000-2500mm/year",
-                "Red-Yellow Podzolic",
-                "0-100m"
-            )
-            "Badulla" -> LocationFeatures(
-                "Tropical Highlands",
-                "1700-2500mm/year",
-                "Red-Yellow Podzolic",
-                "600-900m"
-            )
-            // Default case - can be updated with more accurate data for other districts
-            else -> LocationFeatures(
-                "Tropical Monsoon",
-                "1500-2000mm/year",
-                "Red-Yellow Podzolic",
-                "0-500m"
-            )
-        }
-    }
 }
