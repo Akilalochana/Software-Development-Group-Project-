@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="320dp"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="@android:color/white"
+    android:layout_gravity="center">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/plantAnimation"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/plant_growing" />
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="Garden Details"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:textColor="#2E7D32"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/plantAnimation" />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="#E0E0E0"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/titleText" />
+
+        <ImageView
+            android:id="@+id/plantIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_plant"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider"
+            app:tint="#4CAF50" />
+
+        <TextView
+            android:id="@+id/plantTypeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Plant Type:"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:textColor="#757575"
+            app:layout_constraintStart_toEndOf="@id/plantIcon"
+            app:layout_constraintTop_toTopOf="@id/plantIcon" />
+
+        <TextView
+            android:id="@+id/plantTypeValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Carrot"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+            android:textColor="#212121"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/plantTypeLabel"
+            app:layout_constraintTop_toTopOf="@id/plantTypeLabel" />
+
+        <ImageView
+            android:id="@+id/countIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_count"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/plantTypeLabel"
+            app:tint="#4CAF50" />
+
+        <TextView
+            android:id="@+id/plantCountLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Plants:"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:textColor="#757575"
+            app:layout_constraintStart_toEndOf="@id/countIcon"
+            app:layout_constraintTop_toTopOf="@id/countIcon" />
+
+        <TextView
+            android:id="@+id/plantCountValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="120"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+            android:textColor="#212121"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/plantCountLabel"
+            app:layout_constraintTop_toTopOf="@id/plantCountLabel" />
+
+        <ImageView
+            android:id="@+id/areaIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_area"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/countIcon"
+            app:tint="#4CAF50" />
+
+        <TextView
+            android:id="@+id/areaLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Area:"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:textColor="#757575"
+            app:layout_constraintStart_toEndOf="@id/areaIcon"
+            app:layout_constraintTop_toTopOf="@id/areaIcon" />
+
+        <TextView
+            android:id="@+id/areaValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="8.75 m²"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+            android:textColor="#212121"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/areaLabel"
+            app:layout_constraintTop_toTopOf="@id/areaLabel" />
+
+        <ImageView
+            android:id="@+id/locationIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_location"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/areaIcon"
+            app:tint="#4CAF50" />
+
+        <TextView
+            android:id="@+id/locationLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="Location:"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:textColor="#757575"
+            app:layout_constraintStart_toEndOf="@id/locationIcon"
+            app:layout_constraintTop_toTopOf="@id/locationIcon" />
+
+        <TextView
+            android:id="@+id/locationValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Mannar"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+            android:textColor="#212121"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/locationLabel"
+            app:layout_constraintTop_toTopOf="@id/locationLabel" />
+
+        <Button
+            android:id="@+id/closeButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/rounded_button"
+            android:text="Close"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/locationIcon"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="8dp" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

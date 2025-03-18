@@ -18,6 +18,12 @@ import com.google.ar.sceneform.rendering.Renderable
 import com.google.ar.sceneform.rendering.ShapeFactory
 import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
+import android.app.Dialog
+import android.graphics.drawable.ColorDrawable
+import android.view.Window
+import android.view.WindowManager
+import android.widget.Toast
+import com.airbnb.lottie.LottieAnimationView
 
 class MainActivity : AppCompatActivity() {
     private var arFragment: ArFragment? = null
@@ -87,6 +93,56 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("SELECTED_DISTRICT", "Mannar")
 
         startActivity(intent)
+    }
+    private fun showPlantInfoPopup() {
+        try {
+            // Calculate measurements from current state
+            val area = if (points.size == 4) calculateQuadrilateralArea(points) else 0f
+            val plantCount = plantNodes.size
+            val plantTypeName = when (plantType?.lowercase()) {
+                "carrot" -> "Carrot"
+                "cabbage" -> "Cabbage"
+                else -> "Generic Plant"
+            }
+            val district = intent.getStringExtra("SELECTED_DISTRICT") ?: "Unknown Location"
+
+            // Create dialog
+            val dialog = Dialog(this)
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+            dialog.setContentView(R.layout.plant_info_popup)
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            dialog.window?.setLayout(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT
+            )
+
+            // Set animation
+            dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
+
+            // Set values
+            dialog.findViewById<TextView>(R.id.plantTypeValue).text = plantTypeName
+            dialog.findViewById<TextView>(R.id.plantCountValue).text = plantCount.toString()
+            dialog.findViewById<TextView>(R.id.areaValue).text = String.format("%.2f m²", area)
+            dialog.findViewById<TextView>(R.id.locationValue).text = district
+
+            // Set plant-specific animation if available
+            val animationView = dialog.findViewById<LottieAnimationView>(R.id.plantAnimation)
+            when (plantType?.lowercase()) {
+                "carrot" -> animationView.setAnimation(R.raw.carrot_growing)
+                "cabbage" -> animationView.setAnimation(R.raw.cabbage_growing)
+                else -> animationView.setAnimation(R.raw.plant_growing)
+            }
+
+            // Handle button click
+            dialog.findViewById<Button>(R.id.closeButton).setOnClickListener {
+                dialog.dismiss()
+            }
+
+            dialog.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Error showing plant information", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun initializeARScene() {
@@ -212,42 +268,45 @@ class MainActivity : AppCompatActivity() {
         return perimeter
     }
 
-    private fun showPlantGrid(area: Float) {
-        try {
-            // Clear existing plants first
-            clearPlants()
+     private fun showPlantGrid(area: Float) {
+         try {
+             // Clear existing plants first
+             clearPlants()
 
-            // Get plant type from intent
-            plantType = intent.getStringExtra("PLANT_TYPE")?.lowercase() ?: "carrot"
+             // Get plant type from intent
+             plantType = intent.getStringExtra("PLANT_TYPE")?.lowercase() ?: "carrot"
 
-            // Calculate grid dimensions
-            val boundingWidth = points.maxOf { it.x } - points.minOf { it.x }
-            val boundingHeight = points.maxOf { it.z } - points.minOf { it.z }
+             // Calculate grid dimensions
+             val boundingWidth = points.maxOf { it.x } - points.minOf { it.x }
+             val boundingHeight = points.maxOf { it.z } - points.minOf { it.z }
 
-            val cols = (boundingWidth / plantSpacing).toInt().coerceAtLeast(1)
-            val rows = (boundingHeight / plantSpacing).toInt().coerceAtLeast(1)
+             val cols = (boundingWidth / plantSpacing).toInt().coerceAtLeast(1)
+             val rows = (boundingHeight / plantSpacing).toInt().coerceAtLeast(1)
 
-            val startX = points.minOf { it.x }
-            val startZ = points.minOf { it.z }
-            val groundY = points.map { it.y }.average().toFloat()
+             val startX = points.minOf { it.x }
+             val startZ = points.minOf { it.z }
+             val groundY = points.map { it.y }.average().toFloat()
 
-            // Create plant renderable based on plant type
-            createPlantRenderable(
-                plantType ?: "default",
-                startX,
-                startZ,
-                groundY,
-                rows,
-                cols,
-                plantSpacing
-            )
+             // Create plant renderable based on plant type
+             createPlantRenderable(
+                 plantType ?: "default",
+                 startX,
+                 startZ,
+                 groundY,
+                 rows,
+                 cols,
+                 plantSpacing
+             )
 
-            isShowingPlants = true
-        } catch (e: Exception) {
-            println("Error in showPlantGrid: ${e.message}")
-            e.printStackTrace()
-        }
-    }
+             isShowingPlants = true
+
+             // Show popup with plant information
+             showPlantInfoPopup()
+         } catch (e: Exception) {
+             println("Error in showPlantGrid: ${e.message}")
+             e.printStackTrace()
+         }
+     }
 
     private fun createPlantRenderable(
         plantType: String, startX: Float, startZ: Float, groundY: Float,
