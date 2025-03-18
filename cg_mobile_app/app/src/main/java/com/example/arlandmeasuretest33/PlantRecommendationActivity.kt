@@ -69,37 +69,68 @@ class PlantRecommendationActivity : AppCompatActivity() {
     private fun getRecommendedPlantsFromFirestore(district: String) {
         Log.d(TAG, "Getting recommended crops from Firestore for district: '$district'")
 
-        // Corrected path: districts/{district}/crops instead of districts/{district}/plants
-        db.collection("districts").document(district).collection("crops")
+        if (district.isEmpty()) {
+            Log.e(TAG, "District name is empty")
+            showNoRecommendationsMessage()
+            return
+        }
+
+        // Check if document exists first
+        db.collection("districts").document(district)
             .get()
-            .addOnSuccessListener { documents ->
-                if (!documents.isEmpty) {
-                    // Process plants from Firestore
-                    val plantsList = mutableListOf<PlantInfo>()
-
-                    for (document in documents) {
-                        val plantName = document.id  // The document ID is the plant name
-                        val costPerUnit = document.getDouble("cost_per_unit")?.toInt() ?: 0
-                        val growthPeriod = document.getLong("growth_cycle_duration")?.toInt() ?: 0
-                        val imageRef = document.getString("image") ?: ""
-
-                        plantsList.add(PlantInfo(
-                            name = plantName,
-                            costPerUnit = costPerUnit,
-                            growthPeriod = growthPeriod,
-                            imageRef = imageRef
-                        ))
-                    }
-
-                    Log.d(TAG, "Firestore success: Found ${plantsList.size} plants")
-                    createPlantCards(plantsList)
-                } else {
-                    Log.d(TAG, "No plants found in Firestore for district: $district")
+            .addOnSuccessListener { documentSnapshot ->
+                if (!documentSnapshot.exists()) {
+                    Log.e(TAG, "District document '$district' doesn't exist in Firestore")
                     showNoRecommendationsMessage()
+                    return@addOnSuccessListener
                 }
+
+                // Now query the crops collection
+                db.collection("districts").document(district).collection("crops")
+                    .get()
+                    .addOnSuccessListener { documents ->
+                        if (!documents.isEmpty) {
+                            // Process plants from Firestore
+                            val plantsList = mutableListOf<PlantInfo>()
+
+                            for (document in documents) {
+                                try {
+                                    val plantName = document.id  // The document ID is the plant name
+                                    val costPerUnit = document.getDouble("cost_per_unit")?.toInt() ?: 0
+                                    val growthPeriod = document.getLong("growth_cycle_duration")?.toInt() ?: 0
+                                    val imageRef = document.getString("image") ?: ""
+
+                                    plantsList.add(PlantInfo(
+                                        name = plantName,
+                                        costPerUnit = costPerUnit,
+                                        growthPeriod = growthPeriod,
+                                        imageRef = imageRef
+                                    ))
+                                    Log.d(TAG, "Added plant: $plantName")
+                                } catch (e: Exception) {
+                                    Log.e(TAG, "Error processing document ${document.id}: ${e.message}")
+                                }
+                            }
+
+                            Log.d(TAG, "Firestore success: Found ${plantsList.size} plants")
+                            if (plantsList.isNotEmpty()) {
+                                createPlantCards(plantsList)
+                            } else {
+                                showNoRecommendationsMessage()
+                            }
+                        } else {
+                            Log.d(TAG, "No plants found in Firestore for district: $district")
+                            showNoRecommendationsMessage()
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Firestore error querying crops: ${e.message}")
+                        e.printStackTrace()
+                        showNoRecommendationsMessage()
+                    }
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "Firestore error: ${e.message}")
+                Log.e(TAG, "Firestore error checking district: ${e.message}")
                 e.printStackTrace()
                 showNoRecommendationsMessage()
             }
