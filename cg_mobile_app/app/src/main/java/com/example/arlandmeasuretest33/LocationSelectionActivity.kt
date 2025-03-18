@@ -28,7 +28,7 @@ class LocationSelectionActivity : AppCompatActivity() {
     private lateinit var climateValueTextView: TextView
     private lateinit var rainfallValueTextView: TextView
     private lateinit var soilTypeValueTextView: TextView
-    private lateinit var elevationValueTextView: TextView
+    private lateinit var sunlightValueTextView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         try {
@@ -85,8 +85,7 @@ class LocationSelectionActivity : AppCompatActivity() {
         climateValueTextView = findViewById(R.id.climateValueTextView)
         rainfallValueTextView = findViewById(R.id.rainfallValueTextView)
         soilTypeValueTextView = findViewById(R.id.soilTypeValueTextView)
-        elevationValueTextView = findViewById(R.id.elevationValueTextView)
-
+        sunlightValueTextView = findViewById(R.id.sunlightValueTextView)
         // Set initial state
         setDataUnavailableState()
     }
@@ -95,7 +94,7 @@ class LocationSelectionActivity : AppCompatActivity() {
         climateValueTextView.text = "Select a district"
         rainfallValueTextView.text = "Select a district"
         soilTypeValueTextView.text = "Select a district"
-        elevationValueTextView.text = "Select a district"
+        sunlightValueTextView.text = "Select a district"
     }
 
     private fun setupLocationSpinner() {
@@ -153,14 +152,14 @@ class LocationSelectionActivity : AppCompatActivity() {
                     val climate = document.getString("climate") ?: "Not available"
                     val rainfall = document.getString("rainfall") ?: "Not available"
                     val soilType = document.getString("soiltype") ?: "Not available"
-                    val elevation = document.getString("elevation") ?: "Not available"
+                    val sunlight = document.getString("sunlight") ?: "Not available"
 
                     // Update UI with retrieved data
                     updateLocationFeaturesUI(
-                        LocationFeatures(climate, rainfall, soilType, elevation)
+                        LocationFeatures(climate, rainfall, soilType, sunlight)
                     )
 
-                    Log.d("LocationActivity", "Loaded features for $district: $climate, $rainfall, $soilType, $elevation")
+                    Log.d("LocationActivity", "Loaded features for $district: $climate, $rainfall, $soilType, $sunlight")
                 } else {
                     Log.d("LocationActivity", "No LocationFeatures found for district: $district")
                     // Try to fetch data directly from district document as a fallback
@@ -184,7 +183,7 @@ class LocationSelectionActivity : AppCompatActivity() {
                     val climate = document.getString("climate")
                     val rainfall = document.getString("rainfall")
                     val soilType = document.getString("soiltype") ?: document.getString("soilType")
-                    val elevation = document.getString("elevation")
+                    val sunlight = document.getString("sunlight") // Changed from elevation
 
                     if (climate != null || rainfall != null) {
                         // At least some data found directly in document
@@ -193,7 +192,7 @@ class LocationSelectionActivity : AppCompatActivity() {
                                 climate ?: "Not available",
                                 rainfall ?: "Not available",
                                 soilType ?: "Not available",
-                                elevation ?: "Not available"
+                                sunlight ?: "Not available"
                             )
                         )
                     } else {
@@ -227,7 +226,7 @@ class LocationSelectionActivity : AppCompatActivity() {
         climateValueTextView.text = "Loading..."
         rainfallValueTextView.text = "Loading..."
         soilTypeValueTextView.text = "Loading..."
-        elevationValueTextView.text = "Loading..."
+        sunlightValueTextView.text = "Loading..." // Changed from elevationValueTextView
     }
 
     private fun updateLocationFeaturesUI(features: LocationFeatures) {
@@ -235,7 +234,7 @@ class LocationSelectionActivity : AppCompatActivity() {
         climateValueTextView.text = features.climate
         rainfallValueTextView.text = features.rainfall
         soilTypeValueTextView.text = features.soilType
-        elevationValueTextView.text = features.elevation
+        sunlightValueTextView.text = features.sunlight // Changed from elevation
     }
 
     private fun setupClickListeners() {
@@ -275,11 +274,11 @@ class LocationSelectionActivity : AppCompatActivity() {
                 // Get current location features from TextViews
                 val rainfall = rainfallValueTextView.text.toString()
                 val soilType = soilTypeValueTextView.text.toString()
-                val elevation = elevationValueTextView.text.toString()
+                val sunlight = sunlightValueTextView.text.toString() // Changed from elevation
 
                 // Log the location features for debugging
                 Log.d("LocationActivity", "Climate: $climate, Rainfall: $rainfall")
-                Log.d("LocationActivity", "Soil: $soilType, Elevation: $elevation")
+                Log.d("LocationActivity", "Soil: $soilType, Sunlight: $sunlight") // Changed from Elevation
 
                 // Continue to plant recommendations
                 val intent = Intent(this, PlantRecommendationActivity::class.java).apply {
@@ -288,7 +287,7 @@ class LocationSelectionActivity : AppCompatActivity() {
                     putExtra("CLIMATE", climate)
                     putExtra("RAINFALL", rainfall)
                     putExtra("SOIL_TYPE", soilType)
-                    putExtra("ELEVATION", elevation)
+                    putExtra("SUNLIGHT", sunlight) // Changed from ELEVATION
                 }
                 startActivity(intent)
             } catch (e: Exception) {
@@ -304,6 +303,6 @@ class LocationSelectionActivity : AppCompatActivity() {
         val climate: String,
         val rainfall: String,
         val soilType: String,
-        val elevation: String
+        val sunlight: String
     )
 }

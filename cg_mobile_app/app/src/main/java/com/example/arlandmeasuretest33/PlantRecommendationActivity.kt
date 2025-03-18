@@ -14,6 +14,9 @@ import android.view.LayoutInflater
 import android.widget.GridLayout
 import android.widget.ImageView
 import androidx.cardview.widget.CardView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
 
 class PlantRecommendationActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
@@ -95,10 +98,37 @@ class PlantRecommendationActivity : AppCompatActivity() {
 
                             for (document in documents) {
                                 try {
+                                    // Log the raw document data for debugging
+                                    Log.d(TAG, "Document ${document.id} data: ${document.data}")
+
                                     val plantName = document.id  // The document ID is the plant name
-                                    val costPerUnit = document.getDouble("cost_per_unit")?.toInt() ?: 0
-                                    val growthPeriod = document.getLong("growth_cycle_duration")?.toInt() ?: 0
+
+                                    // Handle cost_per_unit field with proper type conversion
+                                    val costPerUnit = try {
+                                        when (val costValue = document.get("cost_per_unit")) {
+                                            is Number -> costValue.toInt()
+                                            is String -> costValue.toString().toIntOrNull() ?: 0
+                                            else -> 0
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error parsing cost for ${document.id}: ${e.message}")
+                                        0
+                                    }
+
+                                    // Handle growth_cycle_duration field with proper type conversion
+                                    val growthPeriod = try {
+                                        when (val periodValue = document.get("growth_cycle_duration")) {
+                                            is Number -> periodValue.toInt()
+                                            is String -> periodValue.toString().toIntOrNull() ?: 0
+                                            else -> 0
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error parsing growth period for ${document.id}: ${e.message}")
+                                        0
+                                    }
+
                                     val imageRef = document.getString("image") ?: ""
+                                    Log.d(TAG, "Image URL for $plantName: $imageRef")
 
                                     plantsList.add(PlantInfo(
                                         name = plantName,
@@ -106,9 +136,10 @@ class PlantRecommendationActivity : AppCompatActivity() {
                                         growthPeriod = growthPeriod,
                                         imageRef = imageRef
                                     ))
-                                    Log.d(TAG, "Added plant: $plantName")
+                                    Log.d(TAG, "Added plant: $plantName with cost: $costPerUnit and growth period: $growthPeriod")
                                 } catch (e: Exception) {
                                     Log.e(TAG, "Error processing document ${document.id}: ${e.message}")
+                                    e.printStackTrace()
                                 }
                             }
 
@@ -161,16 +192,41 @@ class PlantRecommendationActivity : AppCompatActivity() {
         val nameText = cardView.findViewById<TextView>(R.id.nameText)
         val growthPeriodText = cardView.findViewById<TextView>(R.id.growthPeriodText)
         val selectButton = cardView.findViewById<Button>(R.id.selectButton)
-
-        // Set image resource based on plant name or use a default image
-        // In a real app, you'd load images from a URL using Glide or Picasso
-        val imageResId = getImageResourceForPlant(plant.name)
-        plantImage.setImageResource(imageResId)
+        val noImageText = cardView.findViewById<TextView>(R.id.noImageText)
 
         // Set text values
         costText.text = "Cost per unit : Rs.${plant.costPerUnit}"
         nameText.text = plant.name
         growthPeriodText.text = "Growth Period : ${plant.growthPeriod} days"
+
+        // Load image from Firebase URL
+        if (plant.imageRef.isNotEmpty()) {
+            noImageText.visibility = View.GONE  // Hide "No image available" text
+            plantImage.visibility = View.VISIBLE  // Show image view
+
+            // Load image using Glide
+            try {
+                val requestOptions = RequestOptions()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(R.drawable.img_carrot)  // Default placeholder while loading
+                    .error(R.drawable.img_carrot)  // Error placeholder if loading fails
+
+                Glide.with(this)
+                    .load(plant.imageRef)
+                    .apply(requestOptions)
+                    .into(plantImage)
+
+                Log.d(TAG, "Loading image from URL: ${plant.imageRef}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading image for ${plant.name}: ${e.message}")
+                plantImage.setImageResource(R.drawable.img_carrot)  // Fallback to default image
+            }
+        } else {
+            // No image URL available, show the "No image available" text
+            plantImage.visibility = View.GONE
+            noImageText.visibility = View.VISIBLE
+            Log.d(TAG, "No image URL available for ${plant.name}")
+        }
 
         // Set button click listener
         selectButton.setOnClickListener {
@@ -186,29 +242,6 @@ class PlantRecommendationActivity : AppCompatActivity() {
         cardView.layoutParams = layoutParams
 
         return cardView
-    }
-
-    private fun getImageResourceForPlant(plantName: String): Int {
-        // Map plant names to drawable resources
-        return when (plantName.lowercase()) {
-            "cabbage" -> R.drawable.img_cabbage
-            "beetroot" -> R.drawable.img_beetroot
-            "carrot" -> R.drawable.img_carrot
-            "bitter melon" -> R.drawable.img_bitter_melon
-            "winged bean" -> R.drawable.img_winged_bean
-            "brinjal" -> R.drawable.img_brinjal
-            "red spinach" -> R.drawable.img_red_spinach
-            "leeks" -> R.drawable.img_leeks
-            "potato" -> R.drawable.img_potato
-            "onion" -> R.drawable.img_onion
-            "manioc" -> R.drawable.img_manioc
-            "taro" -> R.drawable.img_taro
-//            "eggplant" -> R.drawable.img_eggplant
-            "pumpkin" -> R.drawable.img_pumpkin
-//            "knolkhol" -> R.drawable.img_knolkhol
-//            "drumstick" -> R.drawable.img_drumstick
-            else -> R.drawable.img_carrot // Default image
-        }
     }
 
     private fun showNoRecommendationsMessage() {
