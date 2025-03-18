@@ -4,19 +4,24 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
 import com.google.firebase.firestore.FirebaseFirestore
+import android.view.LayoutInflater
+import android.widget.GridLayout
+import android.widget.ImageView
+import androidx.cardview.widget.CardView
 
 class PlantRecommendationActivity : AppCompatActivity() {
-    private lateinit var gardenNameText: TextView
-    private lateinit var districtNameText: TextView
-    private lateinit var noRecommendationsText: TextView
-    private val plantCardIds = mutableMapOf<String, Int>()
     private lateinit var db: FirebaseFirestore
     private val TAG = "PlantDebug"
+    private lateinit var gridLayout: GridLayout
+    private lateinit var noRecommendationsText: TextView
+    private lateinit var headerTitleText: TextView
+    private lateinit var backButton: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,34 +37,24 @@ class PlantRecommendationActivity : AppCompatActivity() {
 
             // Debug log
             Log.d(TAG, "Selected district: '$selectedDistrict', Garden name: '$gardenName'")
-            Toast.makeText(this, "Selected district: $selectedDistrict", Toast.LENGTH_SHORT).show()
 
-            // Initialize header text views if they exist in your layout
-            try {
-                gardenNameText = findViewById(R.id.gardenNameText)
-                districtNameText = findViewById(R.id.districtNameText)
-                gardenNameText.text = gardenName
-                districtNameText.text = selectedDistrict
-                Log.d(TAG, "Successfully set header text views")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error setting header text views: ${e.message}")
-                // If these views don't exist, just continue
+            // Initialize UI elements
+            gridLayout = findViewById(R.id.gridLayout)
+            headerTitleText = findViewById(R.id.headerTitleText)
+            headerTitleText.text = "$gardenName - $selectedDistrict"
+            backButton = findViewById(R.id.backButton)
+
+            // Set back button click listener
+            backButton.setOnClickListener {
+                finish()
             }
 
             try {
                 noRecommendationsText = findViewById(R.id.noRecommendationsText)
                 noRecommendationsText.visibility = View.GONE
-                Log.d(TAG, "noRecommendationsText found and hidden")
             } catch (e: Exception) {
-                Log.e(TAG, "Error finding or hiding noRecommendationsText: ${e.message}")
-                // If this view doesn't exist, just continue
+                Log.e(TAG, "Error finding noRecommendationsText: ${e.message}")
             }
-
-            // Map plant names to card IDs
-            initializePlantCardMap()
-
-            // Hide all plant cards initially
-            hideAllPlantCards()
 
             // Get recommended plants from Firestore
             getRecommendedPlantsFromFirestore(selectedDistrict)
@@ -71,186 +66,130 @@ class PlantRecommendationActivity : AppCompatActivity() {
         }
     }
 
-    private fun initializePlantCardMap() {
-        // Map plant names to their corresponding card IDs
-        plantCardIds["cabbage"] = R.id.cabbageCard
-        plantCardIds["beetroot"] = R.id.beetrootCard
-        plantCardIds["carrot"] = R.id.carrotCard
-        plantCardIds["bitter melon"] = R.id.bittermelonCard
-        plantCardIds["winged bean"] = R.id.wingedbeanCard
-        plantCardIds["brinjal"] = R.id.brinjalCard
-        plantCardIds["red spinach"] = R.id.red_spinach
-        plantCardIds["leeks"] = R.id.leeksCard
-        plantCardIds["potato"] = R.id.potatoCard
-        plantCardIds["onion"] = R.id.onionCard
-        plantCardIds["manioc"] = R.id.maniocCard
-        plantCardIds["taro"] = R.id.taroCard
-        plantCardIds["eggplant"] = R.id.eggplantCard
-        plantCardIds["pumpkin"] = R.id.pumpkinCard
-        plantCardIds["knolkhol"] = R.id.knolkholCard
-        plantCardIds["drumstick"] = R.id.drumstickCard
-
-        // Log all mappings to check
-        for ((plant, cardId) in plantCardIds) {
-            Log.d(TAG, "Plant '$plant' mapped to card ID $cardId")
-        }
-    }
-
-    private fun hideAllPlantCards() {
-        // Log before hiding
-        Log.d(TAG, "Hiding all plant cards")
-
-        // Hide all plant cards initially
-        for ((plant, cardId) in plantCardIds) {
-            try {
-                val card = findViewById<CardView>(cardId)
-                val isNull = (card == null)
-                Log.d(TAG, "Card for '$plant' (ID: $cardId) exists: ${!isNull}")
-                if (!isNull) {
-                    card.visibility = View.GONE
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error finding or hiding card for '$plant': ${e.message}")
-                e.printStackTrace()
-            }
-        }
-    }
-
     private fun getRecommendedPlantsFromFirestore(district: String) {
-        // Show loading indicator if you have one
-        Log.d(TAG, "Getting recommended plants from Firestore for district: '$district'")
+        Log.d(TAG, "Getting recommended crops from Firestore for district: '$district'")
 
-        // First approach: Try to get from districts/{district}/crops collection
+        // Corrected path: districts/{district}/crops instead of districts/{district}/plants
         db.collection("districts").document(district).collection("crops")
             .get()
             .addOnSuccessListener { documents ->
                 if (!documents.isEmpty) {
-                    // Got crops from district-specific collection
-                    val recommendedPlants = documents.map { it.id.lowercase() }
-                    Log.d(TAG, "Firestore success: Found ${recommendedPlants.size} plants: ${recommendedPlants.joinToString()}")
-                    showRecommendedPlants(recommendedPlants)
+                    // Process plants from Firestore
+                    val plantsList = mutableListOf<PlantInfo>()
+
+                    for (document in documents) {
+                        val plantName = document.id  // The document ID is the plant name
+                        val costPerUnit = document.getDouble("cost_per_unit")?.toInt() ?: 0
+                        val growthPeriod = document.getLong("growth_cycle_duration")?.toInt() ?: 0
+                        val imageRef = document.getString("image") ?: ""
+
+                        plantsList.add(PlantInfo(
+                            name = plantName,
+                            costPerUnit = costPerUnit,
+                            growthPeriod = growthPeriod,
+                            imageRef = imageRef
+                        ))
+                    }
+
+                    Log.d(TAG, "Firestore success: Found ${plantsList.size} plants")
+                    createPlantCards(plantsList)
                 } else {
-                    // Try fallback approach with a "districts_plants" collection
-                    Log.d(TAG, "No plants found in Firestore, trying fallback approach")
-                    getRecommendedPlantsAlternative(district)
+                    Log.d(TAG, "No plants found in Firestore for district: $district")
+                    showNoRecommendationsMessage()
                 }
             }
             .addOnFailureListener { e ->
                 Log.e(TAG, "Firestore error: ${e.message}")
                 e.printStackTrace()
-                // Try fallback approach
-                getRecommendedPlantsAlternative(district)
+                showNoRecommendationsMessage()
             }
     }
-
-    private fun getRecommendedPlantsAlternative(district: String) {
-        // Log for debugging
-        Log.d(TAG, "Using fallback approach for district: '$district'")
-
-        // Fallback: Using a hardcoded map if Firestore fails or is empty
-        val districtPlantMap = mapOf(
-            "Ampara" to listOf("carrot", "brinjal", "onion", "potato"),
-            "Anuradhapura" to listOf("onion", "brinjal", "manioc", "drumstick"),
-            "Badulla" to listOf("cabbage", "carrot", "leeks", "beetroot"),
-            "Batticaloa" to listOf("brinjal", "bitter melon", "pumpkin"),
-            "Colombo" to listOf("cabbage", "carrot", "beetroot", "red spinach"),
-            "Galle" to listOf("red spinach", "winged bean", "brinjal"),
-            "Gampaha" to listOf("cabbage", "winged bean", "beetroot"),
-            "Hambantota" to listOf("onion", "brinjal", "pumpkin"),
-            "Jaffna" to listOf("onion", "drumstick", "brinjal"),
-            "Kalutara" to listOf("red spinach", "winged bean", "eggplant"),
-            "Kandy" to listOf("cabbage", "carrot", "leeks", "potato"),
-            "Kegalle" to listOf("red spinach", "winged bean", "taro"),
-            "Kilinochchi" to listOf("onion", "brinjal", "pumpkin"),
-            "Kurunegala" to listOf("manioc", "onion", "brinjal"),
-            "Mannar" to listOf("onion", "brinjal", "drumstick"),
-            "Matale" to listOf("carrot", "cabbage", "leeks"),
-            "Matara" to listOf("red spinach", "winged bean", "brinjal"),
-            "Monaragala" to listOf("brinjal", "pumpkin", "manioc"),
-            "Mullaitivu" to listOf("onion", "brinjal", "pumpkin"),
-            "Nuwara Eliya" to listOf("cabbage", "carrot", "leeks", "potato", "beetroot"),
-            "Polonnaruwa" to listOf("brinjal", "onion", "manioc"),
-            "Puttalam" to listOf("onion", "brinjal", "pumpkin"),
-            "Ratnapura" to listOf("red spinach", "winged bean", "taro"),
-            "Trincomalee" to listOf("brinjal", "bitter melon", "pumpkin"),
-            "Vavuniya" to listOf("onion", "brinjal", "pumpkin")
-        )
-
-        // Log all available districts for comparison
-        val availableDistricts = districtPlantMap.keys.joinToString(", ")
-        Log.d(TAG, "Available districts: $availableDistricts")
-
-        // Check if this district exists exactly in the map
-        val exactMatch = districtPlantMap.containsKey(district)
-        Log.d(TAG, "Exact district match found: $exactMatch")
-
-        // Get plants for the district (lowercase everything for consistency)
-        val recommendedPlants = districtPlantMap[district]?.map { it.lowercase() } ?: listOf()
-        Log.d(TAG, "Plants found for '$district': ${recommendedPlants.joinToString(", ")}")
-
-        // Show the plants
-        showRecommendedPlants(recommendedPlants)
-    }
-
-    private fun showRecommendedPlants(plants: List<String>) {
-        // Debug log
-        Log.d(TAG, "Showing ${plants.size} plants: ${plants.joinToString(", ")}")
-
-        // Hide loading indicator if you have one
+    private fun createPlantCards(plants: List<PlantInfo>) {
         if (plants.isEmpty()) {
-            try {
-                noRecommendationsText.visibility = View.VISIBLE
-                Log.d(TAG, "No plants to show, showing noRecommendationsText")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error showing noRecommendationsText: ${e.message}")
-                Toast.makeText(this, "No recommended plants for this district", Toast.LENGTH_SHORT).show()
-            }
+            showNoRecommendationsMessage()
             return
         }
 
-        var visibleCardCount = 0
+        // Clear existing views in the grid layout
+        gridLayout.removeAllViews()
 
-        // Show cards for recommended plants and set up click listeners
+        // Create and add plant cards dynamically
         for (plant in plants) {
-            Log.d(TAG, "Looking for card for plant: '$plant'")
-            val cardId = plantCardIds[plant]
-            if (cardId != null) {
-                try {
-                    val card = findViewById<CardView>(cardId)
-                    if (card != null) {
-                        card.visibility = View.VISIBLE
-                        card.setOnClickListener { startPricePrediction(plant) }
-                        visibleCardCount++
-                        Log.d(TAG, "Made visible: '$plant' with ID: $cardId")
-                    } else {
-                        Log.e(TAG, "Card not found for: '$plant' with ID: $cardId")
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error with card for '$plant': ${e.message}")
-                    e.printStackTrace()
-                }
-            } else {
-                Log.e(TAG, "No card ID mapping found for plant: '$plant'")
-            }
+            val cardView = createPlantCard(plant)
+            gridLayout.addView(cardView)
+        }
+    }
+
+    private fun createPlantCard(plant: PlantInfo): CardView {
+        val inflater = LayoutInflater.from(this)
+        val cardView = inflater.inflate(R.layout.plant_card_item, gridLayout, false) as CardView
+
+        // Set plant details
+        val plantImage = cardView.findViewById<ImageView>(R.id.plantImage)
+        val costText = cardView.findViewById<TextView>(R.id.costText)
+        val nameText = cardView.findViewById<TextView>(R.id.nameText)
+        val growthPeriodText = cardView.findViewById<TextView>(R.id.growthPeriodText)
+        val selectButton = cardView.findViewById<Button>(R.id.selectButton)
+
+        // Set image resource based on plant name or use a default image
+        // In a real app, you'd load images from a URL using Glide or Picasso
+        val imageResId = getImageResourceForPlant(plant.name)
+        plantImage.setImageResource(imageResId)
+
+        // Set text values
+        costText.text = "Cost per unit : Rs.${plant.costPerUnit}"
+        nameText.text = plant.name
+        growthPeriodText.text = "Growth Period : ${plant.growthPeriod} days"
+
+        // Set button click listener
+        selectButton.setOnClickListener {
+            startPricePrediction(plant.name)
         }
 
-        Log.d(TAG, "Total visible cards: $visibleCardCount")
+        // Set layout params for the card
+        val layoutParams = GridLayout.LayoutParams()
+        layoutParams.width = 0
+        layoutParams.height = GridLayout.LayoutParams.WRAP_CONTENT
+        layoutParams.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+        layoutParams.setMargins(8, 8, 8, 8)
+        cardView.layoutParams = layoutParams
 
-        if (visibleCardCount == 0) {
-            try {
+        return cardView
+    }
+
+    private fun getImageResourceForPlant(plantName: String): Int {
+        // Map plant names to drawable resources
+        return when (plantName.lowercase()) {
+            "cabbage" -> R.drawable.img_cabbage
+            "beetroot" -> R.drawable.img_beetroot
+            "carrot" -> R.drawable.img_carrot
+            "bitter melon" -> R.drawable.img_bitter_melon
+            "winged bean" -> R.drawable.img_winged_bean
+            "brinjal" -> R.drawable.img_brinjal
+            "red spinach" -> R.drawable.img_red_spinach
+            "leeks" -> R.drawable.img_leeks
+            "potato" -> R.drawable.img_potato
+            "onion" -> R.drawable.img_onion
+            "manioc" -> R.drawable.img_manioc
+            "taro" -> R.drawable.img_taro
+//            "eggplant" -> R.drawable.img_eggplant
+            "pumpkin" -> R.drawable.img_pumpkin
+//            "knolkhol" -> R.drawable.img_knolkhol
+//            "drumstick" -> R.drawable.img_drumstick
+            else -> R.drawable.img_carrot // Default image
+        }
+    }
+
+    private fun showNoRecommendationsMessage() {
+        try {
+            if (this::noRecommendationsText.isInitialized) {
                 noRecommendationsText.visibility = View.VISIBLE
-                Log.d(TAG, "No cards visible, showing noRecommendationsText")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error showing noRecommendationsText: ${e.message}")
+            } else {
                 Toast.makeText(this, "No recommended plants for this district", Toast.LENGTH_SHORT).show()
             }
-        } else {
-            try {
-                noRecommendationsText.visibility = View.GONE
-                Log.d(TAG, "Cards visible, hiding noRecommendationsText")
-            } catch (e: Exception) {
-                Log.e(TAG, "Error hiding noRecommendationsText: ${e.message}")
-            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error showing no recommendations message: ${e.message}")
+            Toast.makeText(this, "No recommended plants for this district", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -266,4 +205,12 @@ class PlantRecommendationActivity : AppCompatActivity() {
             Toast.makeText(this, "Error navigating to price prediction", Toast.LENGTH_SHORT).show()
         }
     }
+
+    // Data class to hold plant information
+    data class PlantInfo(
+        val name: String,
+        val costPerUnit: Int,
+        val growthPeriod: Int,
+        val imageRef: String
+    )
 }
