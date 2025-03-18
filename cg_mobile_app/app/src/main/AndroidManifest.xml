@@ -85,6 +85,9 @@
         <activity
             android:name=".Getstart4"
             android:exported="false" />
+
+        <activity android:name=".TipsActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

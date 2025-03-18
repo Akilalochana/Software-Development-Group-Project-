@@ -23,6 +23,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var arPlotButton: CardView
     private lateinit var reportButton: CardView
     private lateinit var profileButton: CardView
+    private lateinit var tipsButton: CardView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +43,7 @@ class HomeActivity : AppCompatActivity() {
         arPlotButton = findViewById(R.id.arPlotButton)
         reportButton = findViewById(R.id.reportButton)
         profileButton = findViewById(R.id.profileButton)
+        tipsButton = findViewById(R.id.tipsButton)
 
         // Set user information and date
         updateUserInfo()
@@ -76,6 +78,12 @@ class HomeActivity : AppCompatActivity() {
             // TODO: Navigate to the profile activity
             // val intent = Intent(this, ProfileActivity::class.java)
             // startActivity(intent)
+        }
+
+        tipsButton.setOnClickListener {
+            // Navigate to the tips activity
+            val intent = Intent(this, TipsActivity::class.java)
+            startActivity(intent)
         }
     }
 

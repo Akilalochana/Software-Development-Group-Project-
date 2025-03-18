@@ -56,10 +56,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Ceilao Grid"
-                android:textSize="18sp"
                 android:textColor="#FFFFFF"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:textSize="18sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/progressIndicator"
@@ -67,46 +67,46 @@
                 android:layout_height="wrap_content"
                 android:progress="36"
                 app:indicatorColor="#4CAF50"
-                app:trackColor="#3F4CAF50"
                 app:indicatorSize="70dp"
-                app:trackThickness="8dp"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:trackColor="#3F4CAF50"
+                app:trackThickness="8dp" />
 
             <TextView
                 android:id="@+id/progressText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="36%"
-                android:textSize="16sp"
                 android:textColor="#FFFFFF"
-                app:layout_constraintTop_toTopOf="@id/progressIndicator"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toBottomOf="@id/progressIndicator"
+                app:layout_constraintEnd_toEndOf="@id/progressIndicator"
                 app:layout_constraintStart_toStartOf="@id/progressIndicator"
-                app:layout_constraintEnd_toEndOf="@id/progressIndicator" />
+                app:layout_constraintTop_toTopOf="@id/progressIndicator" />
 
             <TextView
                 android:id="@+id/statusDetail1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Last update: Today"
-                android:textSize="14sp"
-                android:textColor="#8A8A8A"
                 android:layout_marginTop="8dp"
-                app:layout_constraintTop_toBottomOf="@id/statusTitle"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:text="Last update: Today"
+                android:textColor="#8A8A8A"
+                android:textSize="14sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/statusTitle" />
 
             <TextView
                 android:id="@+id/statusDetail2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Active plots: 3"
-                android:textSize="14sp"
-                android:textColor="#8A8A8A"
                 android:layout_marginTop="4dp"
-                app:layout_constraintTop_toBottomOf="@id/statusDetail1"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:text="Active plots: 3"
+                android:textColor="#8A8A8A"
+                android:textSize="14sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/statusDetail1" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 
@@ -323,7 +323,51 @@
                     app:layout_constraintStart_toStartOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
+
+
+
+        <!-- App Tips Button -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/tipsButton"
+            android:layout_width="0dp"
+            android:layout_height="110dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:layout_margin="8dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#2A2A30"
+            android:foreground="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="16dp">
+
+                <ImageView
+                    android:id="@+id/tipsIcon"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_tips"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:tint="#FFC107" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="App Tips"
+                    android:textSize="16sp"
+                    android:textColor="#FFFFFF"
+                    android:layout_marginTop="8dp"
+                    app:layout_constraintTop_toBottomOf="@id/tipsIcon"
+                    app:layout_constraintStart_toStartOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
     </GridLayout>
+
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/chatBotButton"
