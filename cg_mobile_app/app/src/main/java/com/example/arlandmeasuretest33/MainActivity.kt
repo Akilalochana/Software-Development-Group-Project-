@@ -20,10 +20,13 @@ import com.google.ar.sceneform.ux.ArFragment
 import com.google.ar.sceneform.ux.TransformableNode
 import android.app.Dialog
 import android.graphics.drawable.ColorDrawable
+import android.util.Log
 import android.view.Window
 import android.view.WindowManager
 import android.widget.Toast
 import com.airbnb.lottie.LottieAnimationView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
     private var arFragment: ArFragment? = null
@@ -80,11 +83,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun navigateToReport() {
-        val intent = Intent(this, Report::class.java)
-
         // Get the area and perimeter from AR measurements
         val area = calculateQuadrilateralArea(points)
         val perimeter = calculatePerimeter(points)
+
+        // Save measurements to Firestore
+        saveMeasurementsToFirestore(area, perimeter)
+
+        val intent = Intent(this, Report::class.java)
 
         // Pass AR measurements to Report activity
         intent.putExtra("AR_AREA", area)
@@ -1446,6 +1452,57 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+    private fun saveMeasurementsToFirestore(area: Float, perimeter: Float) {
+        // Get current user ID
+        val auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+
+        if (currentUser == null) {
+            Log.e("MainActivity", "User not authenticated")
+            Toast.makeText(this, "User not authenticated, measurements not saved", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val userId = currentUser.uid
+
+        // Get garden name from SharedPreferences instead of intent
+        val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        val gardenName = sharedPreferences.getString("GARDEN_NAME", "") ?: ""
+
+        if (gardenName.isBlank()) {
+            Log.e("MainActivity", "Garden name is blank, cannot save measurements")
+            Toast.makeText(this, "Garden name not found, measurements not saved", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        Log.d("MainActivity", "Using garden name from SharedPreferences: '$gardenName'")
+
+        // Get Firestore reference
+        val db = FirebaseFirestore.getInstance()
+
+        // Reference the garden document directly
+        val gardenDocRef = db.collection("user_data")
+            .document(userId)
+            .collection("user_gardens")
+            .document(gardenName)
+
+        // Update the garden document with measurements
+        val updates = hashMapOf<String, Any>(
+            "area" to area,
+            "perimeter" to perimeter,
+            "measuredAt" to System.currentTimeMillis()
+        )
+
+        gardenDocRef.update(updates)
+            .addOnSuccessListener {
+                Log.d("MainActivity", "Measurements saved to Firestore for garden: $gardenName")
+                Toast.makeText(this, "Garden measurements saved successfully", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Log.e("MainActivity", "Error saving measurements", e)
+                Toast.makeText(this, "Error saving measurements: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
     }
 
     fun onShowPlantsClicked(view: View) {

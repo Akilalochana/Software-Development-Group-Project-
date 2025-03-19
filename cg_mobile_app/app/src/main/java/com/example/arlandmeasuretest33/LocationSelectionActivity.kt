@@ -237,6 +237,72 @@ class LocationSelectionActivity : AppCompatActivity() {
         sunlightValueTextView.text = features.sunlight // Changed from elevation
     }
 
+    private fun saveGardenDataToFirestore(gardenName: String, selectedDistrict: String) {
+        // Get current user ID
+        val currentUser = auth.currentUser
+
+        if (currentUser == null) {
+            Log.e("LocationActivity", "User not authenticated, attempting to re-authenticate")
+            auth.signInAnonymously()
+                .addOnSuccessListener {
+                    Log.d("LocationActivity", "Re-authentication successful")
+                    // Try saving again after successful authentication
+                    saveGardenDataToFirestore(gardenName, selectedDistrict)
+                }
+                .addOnFailureListener { e ->
+                    Log.e("LocationActivity", "Authentication failed", e)
+                    Toast.makeText(this, "Authentication failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            return
+        }
+
+        // Log authentication state
+        Log.d("LocationActivity", "User authentication state: ${auth.currentUser?.uid ?: "Not authenticated"}")
+
+        val userId = currentUser.uid
+
+        // Get current timestamp
+        val timestamp = System.currentTimeMillis()
+
+        // Create garden data document
+        val gardenData = hashMapOf(
+            "gardenName" to gardenName,
+            "district" to selectedDistrict,
+            "createdAt" to timestamp,
+            "climate" to climateValueTextView.text.toString(),
+            "rainfall" to rainfallValueTextView.text.toString(),
+            "soilType" to soilTypeValueTextView.text.toString(),
+            "sunlight" to sunlightValueTextView.text.toString()
+        )
+
+        // Add to user_gardens subcollection under user document
+        // Use gardenName as the document ID instead of auto-generated ID
+        db.collection("user_data")
+            .document(userId)
+            .collection("user_gardens")
+            .document(gardenName) // Use gardenName as document ID
+            .set(gardenData) // Use set() instead of add()
+            .addOnSuccessListener {
+                Log.d("LocationActivity", "Garden saved to Firestore with ID: $gardenName")
+                Toast.makeText(this, "Garden saved successfully", Toast.LENGTH_SHORT).show()
+
+                // Continue to plant recommendations
+                val intent = Intent(this, PlantRecommendationActivity::class.java).apply {
+                    putExtra("SELECTED_DISTRICT", selectedDistrict)
+                    putExtra("GARDEN_NAME", gardenName)
+                    putExtra("CLIMATE", climateValueTextView.text.toString())
+                    putExtra("RAINFALL", rainfallValueTextView.text.toString())
+                    putExtra("SOIL_TYPE", soilTypeValueTextView.text.toString())
+                    putExtra("SUNLIGHT", sunlightValueTextView.text.toString())
+                }
+                startActivity(intent)
+            }
+            .addOnFailureListener { e ->
+                Log.e("LocationActivity", "Error saving garden data", e)
+                Toast.makeText(this, "Error saving garden data: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
     private fun setupClickListeners() {
         createButton.setOnClickListener {
             val gardenName = gardenNameInput.text.toString()
@@ -263,7 +329,7 @@ class LocationSelectionActivity : AppCompatActivity() {
                 // Log the selected district for debugging
                 Log.d("LocationActivity", "Selected district: $selectedDistrict")
 
-                // Store the selected location and garden name
+                // Store the selected location and garden name in SharedPreferences
                 val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
                 sharedPreferences.edit().apply {
                     putString("SELECTED_LOCATION", selectedDistrict)
@@ -271,29 +337,16 @@ class LocationSelectionActivity : AppCompatActivity() {
                     apply()
                 }
 
-                // Get current location features from TextViews
-                val rainfall = rainfallValueTextView.text.toString()
-                val soilType = soilTypeValueTextView.text.toString()
-                val sunlight = sunlightValueTextView.text.toString() // Changed from elevation
+                // Save garden data to Firestore
+                saveGardenDataToFirestore(gardenName, selectedDistrict)
 
-                // Log the location features for debugging
-                Log.d("LocationActivity", "Climate: $climate, Rainfall: $rainfall")
-                Log.d("LocationActivity", "Soil: $soilType, Sunlight: $sunlight") // Changed from Elevation
+                // Navigation to PlantRecommendationActivity now happens in saveGardenDataToFirestore
+                // on success to prevent navigation before data is saved
 
-                // Continue to plant recommendations
-                val intent = Intent(this, PlantRecommendationActivity::class.java).apply {
-                    putExtra("SELECTED_DISTRICT", selectedDistrict)
-                    putExtra("GARDEN_NAME", gardenName)
-                    putExtra("CLIMATE", climate)
-                    putExtra("RAINFALL", rainfall)
-                    putExtra("SOIL_TYPE", soilType)
-                    putExtra("SUNLIGHT", sunlight) // Changed from ELEVATION
-                }
-                startActivity(intent)
             } catch (e: Exception) {
-                Log.e("LocationActivity", "Error navigating to recommendations", e)
+                Log.e("LocationActivity", "Error processing garden data", e)
                 e.printStackTrace()
-                Toast.makeText(this, "Error navigating to recommendations: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error processing garden data: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }
