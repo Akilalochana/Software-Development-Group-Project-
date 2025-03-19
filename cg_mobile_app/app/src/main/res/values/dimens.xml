@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dot indicator dimensions -->
+    <dimen name="dot_size">8dp</dimen>
+    <dimen name="dot_margin">4dp</dimen>
+</resources>
