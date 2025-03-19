@@ -17,6 +17,7 @@ import androidx.cardview.widget.CardView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.google.firebase.auth.FirebaseAuth
 
 class PlantRecommendationActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
@@ -230,7 +231,25 @@ class PlantRecommendationActivity : AppCompatActivity() {
 
         // Set button click listener
         selectButton.setOnClickListener {
-            startPricePrediction(plant.name)
+            // Get the garden name from intent
+            val gardenName = intent.getStringExtra("GARDEN_NAME") ?: ""
+
+            // Get the current user ID - assuming you have Firebase Authentication
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+
+            if (userId != null && gardenName.isNotEmpty()) {
+                // First, save the selected plant to the garden's plants subcollection
+                savePlantToGarden(userId, gardenName, plant)
+
+                // Then navigate to the price prediction activity
+                startPricePrediction(plant.name)
+            } else {
+                Log.e(TAG, "Cannot save plant: User ID or garden name missing. User ID: $userId, Garden: $gardenName")
+                Toast.makeText(this, "Cannot save plant: User ID or garden name missing", Toast.LENGTH_SHORT).show()
+
+                // Still allow navigation to price prediction even if save fails
+                startPricePrediction(plant.name)
+            }
         }
 
         // Set layout params for the card
@@ -242,6 +261,44 @@ class PlantRecommendationActivity : AppCompatActivity() {
         cardView.layoutParams = layoutParams
 
         return cardView
+    }
+
+    private fun savePlantToGarden(userId: String, gardenName: String, plant: PlantInfo) {
+        try {
+            Log.d(TAG, "Saving plant ${plant.name} to garden $gardenName for user $userId")
+
+            // Reference to the specific garden document's plants subcollection
+            val gardenPlantsRef = db.collection("user_data")
+                .document(userId)
+                .collection("user_gardens")
+                .document(gardenName)
+                .collection("plants")
+                .document(plant.name)
+
+            // Create plant data map
+            val plantData = hashMapOf(
+                "name" to plant.name,
+                "costPerUnit" to plant.costPerUnit,
+                "growthPeriod" to plant.growthPeriod,
+                "imageRef" to plant.imageRef,
+                "dateAdded" to System.currentTimeMillis()
+            )
+
+            // Save to Firestore
+            gardenPlantsRef.set(plantData)
+                .addOnSuccessListener {
+                    Log.d(TAG, "Plant ${plant.name} saved to garden $gardenName successfully")
+                    Toast.makeText(this, "${plant.name} added to your garden!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Error saving plant to garden: ${e.message}")
+                    Toast.makeText(this, "Failed to add plant to garden", Toast.LENGTH_SHORT).show()
+                }
+        } catch (e: Exception) {
+            Log.e(TAG, "Exception saving plant to garden: ${e.message}")
+            e.printStackTrace()
+            Toast.makeText(this, "Error saving plant data", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun showNoRecommendationsMessage() {
