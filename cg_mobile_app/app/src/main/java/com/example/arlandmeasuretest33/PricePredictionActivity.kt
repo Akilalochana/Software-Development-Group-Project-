@@ -59,7 +59,7 @@ class PricePredictionActivity : AppCompatActivity() {
         currentDateTextView = findViewById(R.id.currentDateTextView)
         loadingProgressBar = findViewById(R.id.loadingProgressBar)
         errorTextView = findViewById(R.id.errorTextView)
-        goToArButton = findViewById(R.id.goToArButton)
+        goToArButton = findViewById(R.id.continueButton)
 
         // Get plant type from intent
         val plantType = intent.getStringExtra("PLANT_TYPE") ?: ""
