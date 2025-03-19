@@ -23,10 +23,10 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:icon="@drawable/g1"
+        android:label="Ceilão.Grid"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/g1"
         android:supportsRtl="true"
         android:theme="@style/Theme.ARlandMeasuretest33"
         tools:targetApi="31">
