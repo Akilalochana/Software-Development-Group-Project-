@@ -60,15 +60,13 @@ class Welcome_screen : AppCompatActivity() {
         findViewById<CardView>(R.id.createAccountButton).setOnClickListener {
             val intent = Intent(this, Create_account::class.java)
             startActivity(intent)
-            // Navigate to Create Account screen
-            // Intent to CreateAccountActivity
         }
 
-        // Set up click listener for Login text
         findViewById<android.widget.TextView>(R.id.loginButton).setOnClickListener {
-            // Navigate to Login screen
-            // Intent to LoginActivity
+            val intent = Intent(this, Login::class.java)
+            startActivity(intent)
         }
+
     }
 
     override fun onStart() {
@@ -84,7 +82,7 @@ class Welcome_screen : AppCompatActivity() {
         // Configure sign-in to request the user's ID, email address, and basic profile
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            // You need to add your web client ID from Google Cloud Console
+            // Using the web client ID from Google Cloud Console
             .requestIdToken("1067132376349-qmocdtigf1mgmtuhu0pjn84oje5dk4kq.apps.googleusercontent.com")
             .build()
 
@@ -102,16 +100,19 @@ class Welcome_screen : AppCompatActivity() {
             val account = completedTask.getResult(ApiException::class.java)
             Log.d(TAG, "firebaseAuthWithGoogle:" + account.id)
 
+            // Get Google account details
+            val googleAccount = completedTask.result
+
             // Got Google account, now authenticate with Firebase
-            firebaseAuthWithGoogle(account.idToken!!)
+            firebaseAuthWithGoogle(account.idToken!!, googleAccount)
         } catch (e: ApiException) {
             // Sign in failed
             Log.w(TAG, "Google sign in failed", e)
-            Toast.makeText(this, "Sign in failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Sign in failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun firebaseAuthWithGoogle(idToken: String) {
+    private fun firebaseAuthWithGoogle(idToken: String, googleAccount: GoogleSignInAccount) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         firebaseAuth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
@@ -119,8 +120,16 @@ class Welcome_screen : AppCompatActivity() {
                     // Sign in success
                     Log.d(TAG, "signInWithCredential:success")
                     val user = firebaseAuth.currentUser
-                    saveUserToFirestore(user)
-                    updateUI(user)
+
+                    if (user != null) {
+                        // Extract Google account details for Firestore
+                        saveUserToFirestore(user, googleAccount)
+                        updateUI(user)
+                    } else {
+                        Log.w(TAG, "User is null despite successful auth")
+                        Toast.makeText(this, "Authentication successful but failed to get user details",
+                            Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     // Sign in fails
                     Log.w(TAG, "signInWithCredential:failure", task.exception)
@@ -131,34 +140,40 @@ class Welcome_screen : AppCompatActivity() {
             }
     }
 
-    private fun saveUserToFirestore(user: FirebaseUser?) {
-        user?.let {
-            val userMap = hashMapOf(
-                "uid" to it.uid,
-                "email" to it.email,
-                "displayName" to it.displayName,
-                "photoUrl" to (it.photoUrl?.toString() ?: ""),
-                "lastLogin" to System.currentTimeMillis()
-            )
+    private fun saveUserToFirestore(user: FirebaseUser, googleAccount: GoogleSignInAccount) {
+        // Create a user document with Google Sign-In data
+        val userData = hashMapOf(
+            "email" to user.email,
+            "displayName" to googleAccount.displayName,
+            "givenName" to googleAccount.givenName,
+            "familyName" to googleAccount.familyName,
+            "photoUrl" to (googleAccount.photoUrl?.toString() ?: ""),
+            "accountType" to "google",
+            "lastLogin" to System.currentTimeMillis(),
+            "timestamp" to System.currentTimeMillis() // Adding timestamp consistent with Create_account
+        )
 
-            // Save to Firestore - if user exists, data will be merged
-            firestore.collection("users").document(it.uid)
-                .set(userMap)
-                .addOnSuccessListener {
-                    Log.d(TAG, "User data saved to Firestore")
-                }
-                .addOnFailureListener { e ->
-                    Log.w(TAG, "Error saving user data", e)
-                }
-        }
+        Log.d(TAG, "Saving Google user data to Firestore for user: ${user.uid}")
+
+        // Use the same collection as in Create_account.kt: "user_data"
+        firestore.collection("user_data").document(user.uid)
+            .set(userData)
+            .addOnSuccessListener {
+                Log.d(TAG, "Google user data successfully saved to Firestore!")
+                Toast.makeText(this, "Sign in successful", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error saving Google user data to Firestore", e)
+                Toast.makeText(this, "Sign in successful but failed to save profile data: ${e.message}",
+                    Toast.LENGTH_LONG).show()
+            }
     }
 
     private fun updateUI(user: FirebaseUser?) {
         if (user != null) {
             // User is signed in, navigate to main activity
             val intent = Intent(this, HomeActivity::class.java)
-            intent.putExtra("user_email", user.email)
-            intent.putExtra("user_name", user.displayName)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
             finish() // Close the welcome screen
         }
