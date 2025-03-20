@@ -84,9 +84,8 @@
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Tomatoes Card -->
             <androidx.cardview.widget.CardView
-                android:id="@+id/tomatoes_card"
+                android:id="@+id/plant_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
@@ -112,13 +111,12 @@
                             app:cardCornerRadius="8dp"
                             app:cardElevation="0dp">
 
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:gravity="center"
-                                android:orientation="vertical">
-
-                            </LinearLayout>
+                            <ImageView
+                                android:id="@+id/plant_icon"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/aloe_vera" />
                         </androidx.cardview.widget.CardView>
 
                         <LinearLayout
@@ -129,9 +127,10 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/plant_name"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Tomatoes"
+                                android:text="Plant Name"
                                 android:textColor="#000000"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
@@ -143,23 +142,25 @@
                                 android:orientation="horizontal">
 
                                 <TextView
+                                    android:id="@+id/area_size"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:background="@drawable/green_info_background"
                                     android:paddingHorizontal="8dp"
                                     android:paddingVertical="2dp"
-                                    android:text="120 sq.m"
+                                    android:text="0 sq.m"
                                     android:textColor="#4CAF50"
                                     android:textSize="12sp" />
 
                                 <TextView
+                                    android:id="@+id/growth_period"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:background="@drawable/light_pink_info_background"
                                     android:paddingHorizontal="8dp"
                                     android:paddingVertical="2dp"
-                                    android:text="75 days"
+                                    android:text="0 days"
                                     android:textColor="#FF7675"
                                     android:textSize="12sp" />
                             </LinearLayout>
@@ -191,10 +192,11 @@
                                 android:textSize="12sp" />
 
                             <TextView
+                                android:id="@+id/planting_date"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="15 March 2024"
+                                android:text="--"
                                 android:textColor="#000000"
                                 android:textSize="14sp" />
                         </LinearLayout>
@@ -213,10 +215,11 @@
                                 android:textSize="12sp" />
 
                             <TextView
+                                android:id="@+id/harvest_date"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
-                                android:text="29 May 2024"
+                                android:text="--"
                                 android:textColor="#000000"
                                 android:textSize="14sp" />
                         </LinearLayout>
@@ -450,10 +453,7 @@
                 app:backgroundTint="#4CAF50"
                 style="@style/Widget.MaterialComponents.Button" />
 
-            <!-- Extra content to ensure scrollability -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="50dp" />
+
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
