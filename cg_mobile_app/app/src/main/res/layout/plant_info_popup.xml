@@ -3,15 +3,15 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="320dp"
     android:layout_height="wrap_content"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="10dp"
     app:cardBackgroundColor="@android:color/white"
     android:layout_gravity="center">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="20dp">
 
         <TextView
             android:id="@+id/titleText"
@@ -21,17 +21,18 @@
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
             android:textColor="#2E7D32"
             android:textStyle="bold"
+            android:letterSpacing="0.05"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.cardview.widget.CardView
             android:id="@+id/imageCardView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
             android:layout_marginTop="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="2dp"
+            app:cardCornerRadius="75dp"
+            app:cardElevation="4dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/titleText">
@@ -39,184 +40,203 @@
             <ImageView
                 android:id="@+id/plantImageView"
                 android:layout_width="match_parent"
-                android:layout_height="180dp"
+                android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:contentDescription="Plant Image" />
         </androidx.cardview.widget.CardView>
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/plantAnimation"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginTop="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/imageCardView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="@id/imageCardView"
+            app:layout_constraintEnd_toEndOf="@id/imageCardView"
             app:lottie_autoPlay="true"
             app:lottie_loop="true"
             app:lottie_rawRes="@raw/plant_growing" />
 
-        <View
-            android:id="@+id/divider"
-            android:layout_width="0dp"
-            android:layout_height="1dp"
+        <androidx.cardview.widget.CardView
+            android:id="@+id/infoCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="#E0E0E0"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#F5F9F5"
+            app:layout_constraintTop_toBottomOf="@id/imageCardView"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/plantAnimation" />
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/plantIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginTop="16dp"
-            android:src="@drawable/ic_plant"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/divider"
-            app:tint="#4CAF50" />
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="16dp">
 
-        <TextView
-            android:id="@+id/plantTypeLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Plant Type:"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            android:textColor="#757575"
-            app:layout_constraintStart_toEndOf="@id/plantIcon"
-            app:layout_constraintTop_toTopOf="@id/plantIcon" />
+                <ImageView
+                    android:id="@+id/plantIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_plant"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="#4CAF50" />
 
-        <TextView
-            android:id="@+id/plantTypeValue"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Carrot"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            android:textColor="#212121"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/plantTypeLabel"
-            app:layout_constraintTop_toTopOf="@id/plantTypeLabel" />
+                <TextView
+                    android:id="@+id/plantTypeLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="Plant Type:"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:textColor="#757575"
+                    app:layout_constraintStart_toEndOf="@id/plantIcon"
+                    app:layout_constraintTop_toTopOf="@id/plantIcon"
+                    app:layout_constraintBottom_toBottomOf="@id/plantIcon" />
 
-        <ImageView
-            android:id="@+id/countIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginTop="16dp"
-            android:src="@drawable/ic_count"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/plantTypeLabel"
-            app:tint="#4CAF50" />
+                <TextView
+                    android:id="@+id/plantTypeValue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Carrot"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                    android:textColor="#212121"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/plantTypeLabel"
+                    app:layout_constraintTop_toTopOf="@id/plantTypeLabel"
+                    app:layout_constraintBottom_toBottomOf="@id/plantTypeLabel" />
 
-        <TextView
-            android:id="@+id/plantCountLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Plants:"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            android:textColor="#757575"
-            app:layout_constraintStart_toEndOf="@id/countIcon"
-            app:layout_constraintTop_toTopOf="@id/countIcon" />
+                <ImageView
+                    android:id="@+id/countIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginTop="16dp"
+                    android:src="@drawable/ic_count"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/plantIcon"
+                    app:tint="#4CAF50" />
 
-        <TextView
-            android:id="@+id/plantCountValue"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="120"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            android:textColor="#212121"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/plantCountLabel"
-            app:layout_constraintTop_toTopOf="@id/plantCountLabel" />
+                <TextView
+                    android:id="@+id/plantCountLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="Plants:"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:textColor="#757575"
+                    app:layout_constraintStart_toEndOf="@id/countIcon"
+                    app:layout_constraintTop_toTopOf="@id/countIcon"
+                    app:layout_constraintBottom_toBottomOf="@id/countIcon" />
 
-        <ImageView
-            android:id="@+id/areaIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginTop="16dp"
-            android:src="@drawable/ic_area"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/countIcon"
-            app:tint="#4CAF50" />
+                <TextView
+                    android:id="@+id/plantCountValue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="120"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                    android:textColor="#212121"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/plantCountLabel"
+                    app:layout_constraintTop_toTopOf="@id/plantCountLabel"
+                    app:layout_constraintBottom_toBottomOf="@id/plantCountLabel" />
 
-        <TextView
-            android:id="@+id/areaLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Area:"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            android:textColor="#757575"
-            app:layout_constraintStart_toEndOf="@id/areaIcon"
-            app:layout_constraintTop_toTopOf="@id/areaIcon" />
+                <ImageView
+                    android:id="@+id/areaIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginTop="16dp"
+                    android:src="@drawable/ic_area"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/countIcon"
+                    app:tint="#4CAF50" />
 
-        <TextView
-            android:id="@+id/areaValue"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="8.75 m²"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            android:textColor="#212121"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/areaLabel"
-            app:layout_constraintTop_toTopOf="@id/areaLabel" />
+                <TextView
+                    android:id="@+id/areaLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="Area:"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:textColor="#757575"
+                    app:layout_constraintStart_toEndOf="@id/areaIcon"
+                    app:layout_constraintTop_toTopOf="@id/areaIcon"
+                    app:layout_constraintBottom_toBottomOf="@id/areaIcon" />
 
-        <ImageView
-            android:id="@+id/locationIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginTop="16dp"
-            android:src="@drawable/ic_location"
-            android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/areaIcon"
-            app:tint="#4CAF50" />
+                <TextView
+                    android:id="@+id/areaValue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="8.75 m²"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                    android:textColor="#212121"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/areaLabel"
+                    app:layout_constraintTop_toTopOf="@id/areaLabel"
+                    app:layout_constraintBottom_toBottomOf="@id/areaLabel" />
 
-        <TextView
-            android:id="@+id/locationLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Location:"
-            android:visibility="gone"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            android:textColor="#757575"
-            app:layout_constraintStart_toEndOf="@id/locationIcon"
-            app:layout_constraintTop_toTopOf="@id/locationIcon" />
+                <ImageView
+                    android:id="@+id/locationIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginTop="16dp"
+                    android:src="@drawable/ic_location"
+                    android:visibility="gone"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/areaIcon"
+                    app:tint="#4CAF50" />
 
-        <TextView
-            android:id="@+id/locationValue"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="Mannar"
-            android:visibility="gone"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-            android:textColor="#212121"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/locationLabel"
-            app:layout_constraintTop_toTopOf="@id/locationLabel" />
+                <TextView
+                    android:id="@+id/locationLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="Location:"
+                    android:visibility="gone"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:textColor="#757575"
+                    app:layout_constraintStart_toEndOf="@id/locationIcon"
+                    app:layout_constraintTop_toTopOf="@id/locationIcon"
+                    app:layout_constraintBottom_toBottomOf="@id/locationIcon" />
 
-        <Button
+                <TextView
+                    android:id="@+id/locationValue"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Mannar"
+                    android:visibility="gone"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                    android:textColor="#212121"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/locationLabel"
+                    app:layout_constraintTop_toTopOf="@id/locationLabel"
+                    app:layout_constraintBottom_toBottomOf="@id/locationLabel" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.cardview.widget.CardView>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/closeButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:background="@drawable/rounded_button"
+            android:layout_marginTop="16dp"
             android:text="Close"
             android:textAllCaps="false"
+            app:cornerRadius="12dp"
+            android:backgroundTint="#4CAF50"
             android:textColor="@android:color/white"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/areaIcon"
+            app:layout_constraintTop_toBottomOf="@id/infoCard"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="8dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>
