@@ -27,6 +27,9 @@ import android.widget.Toast
 import com.airbnb.lottie.LottieAnimationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
+import android.widget.ImageView
 
 class MainActivity : AppCompatActivity() {
     private var arFragment: ArFragment? = null
@@ -49,6 +52,25 @@ class MainActivity : AppCompatActivity() {
         // Get garden information from intent
         val gardenName = intent.getStringExtra("GARDEN_NAME") ?: ""
         val selectedDistrict = intent.getStringExtra("SELECTED_DISTRICT") ?: ""
+        val plantType = intent.getStringExtra("PLANT_TYPE") ?: ""
+        val plantImageUrl = intent.getStringExtra("PLANT_IMAGE_URL") ?: ""
+
+        // Log all intent extras for debugging with more visibility
+        Log.d("MainActivity", "======= INTENT EXTRAS RECEIVED =======")
+        Log.d("MainActivity", "GARDEN_NAME = '$gardenName'")
+        Log.d("MainActivity", "SELECTED_DISTRICT = '$selectedDistrict'")
+        Log.d("MainActivity", "PLANT_TYPE = '$plantType'")
+        Log.d("MainActivity", "PLANT_IMAGE_URL = '$plantImageUrl'")
+        Log.d("MainActivity", "======================================")
+
+        // Log all other extras if any
+        for (key in intent.extras?.keySet() ?: emptySet()) {
+            if (key !in listOf("GARDEN_NAME", "SELECTED_DISTRICT", "PLANT_TYPE", "PLANT_IMAGE_URL")) {
+                Log.d("MainActivity", "   $key = ${intent.extras?.get(key)}")
+            }
+        }
+
+        Log.d("MainActivity", "Will use in AR: District=$selectedDistrict, Plant=$plantType, Image URL=$plantImageUrl")
 
         setContentView(R.layout.activity_main)
 
@@ -58,11 +80,31 @@ class MainActivity : AppCompatActivity() {
         setupUI()
         initializeARScene()
 
+        // Set plant type from intent
+        this.plantType = plantType
+
+        // If you want to test the popup directly for debugging, uncomment this:
+        // testPlantInfoPopup()
+
         if (intent.getBooleanExtra("START_AR", false)) {
-            val plantType = intent.getStringExtra("PLANT_TYPE")
             // Start your AR feature with the plantType
             // Add your AR initialization code here
         }
+    }
+    
+    private fun testPlantInfoPopup() {
+        // Set some test values
+        plantType = intent.getStringExtra("PLANT_TYPE") ?: "carrot"
+        
+        // Create a few points for area calculation
+        points.clear()
+        points.add(Vector3(0f, 0f, 0f))
+        points.add(Vector3(1f, 0f, 0f))
+        points.add(Vector3(1f, 0f, 1f))
+        points.add(Vector3(0f, 0f, 1f))
+        
+        // Show popup
+        showPlantInfoPopup()
     }
 
     private fun setupUI() {
@@ -78,6 +120,9 @@ class MainActivity : AppCompatActivity() {
             if (points.size == 4) {
                 val area = calculateQuadrilateralArea(points)
                 showPlantGrid(area)
+            } else {
+                // For testing - show popup even if no area is measured
+                testPlantInfoPopup()
             }
         }
     }
@@ -105,12 +150,19 @@ class MainActivity : AppCompatActivity() {
             // Calculate measurements from current state
             val area = if (points.size == 4) calculateQuadrilateralArea(points) else 0f
             val plantCount = plantNodes.size
-            val plantTypeName = when (plantType?.lowercase()) {
-                "carrot" -> "Carrot"
-                "cabbage" -> "Cabbage"
-                else -> "Generic Plant"
-            }
-            val district = intent.getStringExtra("SELECTED_DISTRICT") ?: "Unknown Location"
+            
+            // Get plant type directly from intent, with stronger fallbacks
+            val plantTypeName = intent.getStringExtra("PLANT_TYPE") ?: "Unknown"
+            val plantImageUrl = intent.getStringExtra("PLANT_IMAGE_URL")
+            
+            // Print all relevant information for debugging
+            Log.d("PlantInfoPopup", """
+                Data for popup:
+                Plant Type: $plantTypeName
+                Image URL: $plantImageUrl
+                Plant Count: $plantCount
+                Area: $area
+            """.trimIndent())
 
             // Create dialog
             val dialog = Dialog(this)
@@ -125,21 +177,123 @@ class MainActivity : AppCompatActivity() {
             // Set animation
             dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
 
-            // Set values
-            dialog.findViewById<TextView>(R.id.plantTypeValue).text = plantTypeName
-            dialog.findViewById<TextView>(R.id.plantCountValue).text = plantCount.toString()
-            dialog.findViewById<TextView>(R.id.areaValue).text = String.format("%.2f m²", area)
-            dialog.findViewById<TextView>(R.id.locationValue).text = district
-
-            // Set plant-specific animation if available
+            // Get references to views
+            val plantImageView = dialog.findViewById<ImageView>(R.id.plantImageView)
+            val plantTypeValue = dialog.findViewById<TextView>(R.id.plantTypeValue)
+            val plantCountValue = dialog.findViewById<TextView>(R.id.plantCountValue)
+            val areaValue = dialog.findViewById<TextView>(R.id.areaValue)
+            val locationValue = dialog.findViewById<TextView>(R.id.locationValue)
+            val locationIcon = dialog.findViewById<ImageView>(R.id.locationIcon)
+            val locationLabel = dialog.findViewById<TextView>(R.id.locationLabel)
             val animationView = dialog.findViewById<LottieAnimationView>(R.id.plantAnimation)
-            when (plantType?.lowercase()) {
+
+            // Hide location section
+            locationValue.visibility = View.GONE
+            locationIcon.visibility = View.GONE
+            locationLabel.visibility = View.GONE
+
+            // Set text values immediately
+            plantTypeValue.text = plantTypeName
+            plantCountValue.text = plantCount.toString()
+            areaValue.text = String.format("%.2f m²", area)
+            
+            // Load image directly from the intent URL
+            if (!plantImageUrl.isNullOrEmpty()) {
+                Log.d("PlantInfoPopup", "Loading image from URL: $plantImageUrl")
+                
+                try {
+                    // Use different placeholder based on plant type
+                    val placeholderId = R.drawable.img_carrot // Default placeholder
+                    
+                    Glide.with(this)
+                        .load(plantImageUrl)
+                        .apply(RequestOptions()
+                            .placeholder(placeholderId)
+                            .error(placeholderId))
+                        .into(plantImageView)
+                } catch (e: Exception) {
+                    Log.e("PlantInfoPopup", "Error loading image: ${e.message}")
+                    plantImageView.setImageResource(R.drawable.img_carrot)
+                }
+            } else {
+                // If no image URL in intent, try to get from Firestore
+                Log.d("PlantInfoPopup", "No image URL in intent, fetching from Firestore")
+                
+                val db = FirebaseFirestore.getInstance()
+                
+                // Show a loading indicator or placeholder
+                plantImageView.setImageResource(R.drawable.img_carrot)
+                
+                // First try 'Ampara' district which has more complete data
+                val districts = listOf("Ampara", "Colombo")
+                var imageLoaded = false
+                
+                // Try to find the plant image in each district
+                for (district in districts) {
+                    if (imageLoaded) break
+                    
+                    Log.d("PlantInfoPopup", "Searching for plant in $district district")
+                    
+                    // Use the plantTypeName for lookup but make it case insensitive
+                    db.collection("districts")
+                        .document(district)
+                        .collection("crops")
+                        .get()
+                        .addOnSuccessListener { documents ->
+                            if (imageLoaded) return@addOnSuccessListener // Skip if already loaded
+                            
+                            Log.d("PlantInfoPopup", "Found ${documents.size()} plants in $district district")
+                            
+                            for (document in documents) {
+                                Log.d("PlantInfoPopup", "Checking document: ${document.id}")
+                                
+                                // Case-insensitive comparison
+                                if (document.id.equals(plantTypeName, ignoreCase = true)) {
+                                    val imageUrl = document.getString("image")
+                                    Log.d("PlantInfoPopup", "Found matching plant '${document.id}', image URL: $imageUrl")
+                                    
+                                    if (!imageUrl.isNullOrEmpty()) {
+                                        imageLoaded = true // Mark as loaded to prevent duplicate loading
+                                        
+                                        Glide.with(this)
+                                            .load(imageUrl)
+                                            .apply(RequestOptions()
+                                                .placeholder(R.drawable.img_carrot)
+                                                .error(R.drawable.img_carrot))
+                                            .into(plantImageView)
+                                        
+                                        Log.d("PlantInfoPopup", "Successfully loaded image for ${document.id}")
+                                        return@addOnSuccessListener
+                                    }
+                                }
+                            }
+                            
+                            // Special case handling if still not found
+                            if (!imageLoaded) {
+                                handleSpecialCasePlants(plantTypeName, plantImageView)
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("PlantInfoPopup", "Error fetching plant data from $district: ${e.message}")
+                            
+                            // Try special case handling
+                            if (!imageLoaded) {
+                                handleSpecialCasePlants(plantTypeName, plantImageView)
+                            }
+                        }
+                }
+            }
+
+            // Set plant-specific animation
+            when (plantTypeName.lowercase()) {
                 "carrot" -> animationView.setAnimation(R.raw.carrot_growing)
                 "cabbage" -> animationView.setAnimation(R.raw.cabbage_growing)
+                "onion" -> animationView.setAnimation(R.raw.plant_growing)
+                "brinjal" -> animationView.setAnimation(R.raw.plant_growing)
                 else -> animationView.setAnimation(R.raw.plant_growing)
             }
 
-            // Handle button click
+            // Button click listener
             dialog.findViewById<Button>(R.id.closeButton).setOnClickListener {
                 dialog.dismiss()
             }
@@ -147,7 +301,37 @@ class MainActivity : AppCompatActivity() {
             dialog.show()
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.e("PlantInfoPopup", "Error showing popup: ${e.message}")
             Toast.makeText(this, "Error showing plant information", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun handleSpecialCasePlants(plantName: String, imageView: ImageView) {
+        // Hardcoded URLs for known plants that may have image loading issues
+        val specialPlantUrls = mapOf(
+            "onion" to "https://plantix.net/en/library/assets/custom/crop-images/onion.jpeg",
+            "brinjal" to "https://gourmetgarden.in/cdn/shop/products/Brinjal_Long_Purple_3_875d-466f-8625-3e8da2207e1d.jpg?v=1742037242",
+            "potato" to "https://cdn.mos.cms.futurecdn.net/iC7HBvohbJqExqvbKcV3pP.jpg",
+            "manioc" to "https://www.shutterstock.com/image-photo/cassava-root-vegetable-isolated-on-260nw-315185849.jpg"
+        )
+        
+        // Case-insensitive lookup
+        val url = specialPlantUrls.entries.firstOrNull { 
+            plantName.equals(it.key, ignoreCase = true) 
+        }?.value
+        
+        if (url != null) {
+            Log.d("PlantInfoPopup", "Using hardcoded URL for $plantName: $url")
+            
+            Glide.with(imageView.context)
+                .load(url)
+                .apply(RequestOptions()
+                    .placeholder(R.drawable.img_carrot)
+                    .error(R.drawable.img_carrot))
+                .into(imageView)
+        } else {
+            // If we don't have a special case for this plant, keep the carrot image
+            Log.d("PlantInfoPopup", "No special handling for $plantName, using default image")
         }
     }
 

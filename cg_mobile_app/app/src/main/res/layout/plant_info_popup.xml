@@ -13,40 +13,58 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <com.airbnb.lottie.LottieAnimationView
-            android:id="@+id/plantAnimation"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:lottie_autoPlay="true"
-            app:lottie_loop="true"
-            app:lottie_rawRes="@raw/plant_growing" />
-
         <TextView
             android:id="@+id/titleText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:text="Garden Details"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
             android:textColor="#2E7D32"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/plantAnimation" />
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/imageCardView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/titleText">
+            
+            <ImageView
+                android:id="@+id/plantImageView"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:scaleType="centerCrop"
+                android:contentDescription="Plant Image" />
+        </androidx.cardview.widget.CardView>
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/plantAnimation"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="16dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/imageCardView"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/plant_growing" />
 
         <View
             android:id="@+id/divider"
             android:layout_width="0dp"
             android:layout_height="1dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="16dp"
             android:background="#E0E0E0"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/titleText" />
+            app:layout_constraintTop_toBottomOf="@id/plantAnimation" />
 
         <ImageView
             android:id="@+id/plantIcon"
@@ -156,6 +174,7 @@
             android:layout_height="24dp"
             android:layout_marginTop="16dp"
             android:src="@drawable/ic_location"
+            android:visibility="gone"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/areaIcon"
             app:tint="#4CAF50" />
@@ -166,6 +185,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
             android:text="Location:"
+            android:visibility="gone"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
             android:textColor="#757575"
             app:layout_constraintStart_toEndOf="@id/locationIcon"
@@ -177,6 +197,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:text="Mannar"
+            android:visibility="gone"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
             android:textColor="#212121"
             android:textStyle="bold"
@@ -195,7 +216,7 @@
             android:textColor="@android:color/white"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/locationIcon"
+            app:layout_constraintTop_toBottomOf="@id/areaIcon"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginBottom="8dp" />
     </androidx.constraintlayout.widget.ConstraintLayout>

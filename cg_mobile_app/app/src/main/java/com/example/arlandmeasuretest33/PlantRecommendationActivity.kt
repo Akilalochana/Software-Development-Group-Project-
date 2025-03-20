@@ -130,6 +130,12 @@ class PlantRecommendationActivity : AppCompatActivity() {
 
                                     val imageRef = document.getString("image") ?: ""
                                     Log.d(TAG, "Image URL for $plantName: $imageRef")
+                                    
+                                    // Verify the image URL format
+                                    if (imageRef.isNotEmpty()) {
+                                        Log.d(TAG, "Image URL validation: Length=${imageRef.length}, " +
+                                               "Starts with http=${imageRef.startsWith("http")}")
+                                    }
 
                                     plantsList.add(PlantInfo(
                                         name = plantName,
@@ -233,23 +239,50 @@ class PlantRecommendationActivity : AppCompatActivity() {
         selectButton.setOnClickListener {
             // Get the garden name from intent
             val gardenName = intent.getStringExtra("GARDEN_NAME") ?: ""
-
+            
             // Get the current user ID - assuming you have Firebase Authentication
             val userId = FirebaseAuth.getInstance().currentUser?.uid
 
+            // Save plant to user's garden first
             if (userId != null && gardenName.isNotEmpty()) {
-                // First, save the selected plant to the garden's plants subcollection
+                // Save the selected plant to the garden's plants subcollection
                 savePlantToGarden(userId, gardenName, plant)
-
-                // Then navigate to the price prediction activity
-                startPricePrediction(plant.name)
-            } else {
-                Log.e(TAG, "Cannot save plant: User ID or garden name missing. User ID: $userId, Garden: $gardenName")
-                Toast.makeText(this, "Cannot save plant: User ID or garden name missing", Toast.LENGTH_SHORT).show()
-
-                // Still allow navigation to price prediction even if save fails
-                startPricePrediction(plant.name)
             }
+
+            // Launch AR visualization or Main Activity
+            try {
+                // Option to show AR visualization
+                val arIntent = Intent(this, MainActivity::class.java)
+                
+                // Pass all necessary data
+                arIntent.putExtra("GARDEN_NAME", gardenName)
+                
+                // Preserve original plant name capitalization exactly as it appears in database
+                Log.d(TAG, "Passing plant type to AR: ${plant.name}")
+                arIntent.putExtra("PLANT_TYPE", plant.name)
+                
+                // Clean and validate the image URL
+                if (plant.imageRef.isNotEmpty()) {
+                    val trimmedUrl = plant.imageRef.trim()
+                    Log.d(TAG, "Passing validated image URL to AR: $trimmedUrl")
+                    arIntent.putExtra("PLANT_IMAGE_URL", trimmedUrl)
+                } else {
+                    Log.d(TAG, "No image URL to pass to MainActivity")
+                }
+                
+                arIntent.putExtra("PLANT_COST", plant.costPerUnit)
+                arIntent.putExtra("PLANT_GROWTH_PERIOD", plant.growthPeriod)
+                
+                Log.d(TAG, "Starting AR with plant: ${plant.name}")
+                
+                startActivity(arIntent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error launching AR: ${e.message}")
+                Toast.makeText(this, "Error launching AR visualization", Toast.LENGTH_SHORT).show()
+            }
+
+            // Also navigate to price prediction
+            startPricePrediction(plant.name)
         }
 
         // Set layout params for the card
