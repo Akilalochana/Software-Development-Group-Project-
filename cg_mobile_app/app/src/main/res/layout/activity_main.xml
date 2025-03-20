@@ -11,57 +11,123 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- App logo -->
+    <ImageView
+        android:id="@+id/appLogo"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:src="@drawable/logo1"
+        android:padding="2dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/appTitle" />
 
+    <!-- App title logo -->
+    <ImageView
+        android:id="@+id/appTitle"
+        android:layout_width="120dp"
+        android:layout_height="36dp"
+        android:src="@drawable/logo2"
+        android:layout_marginStart="12dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
+        app:layout_constraintStart_toEndOf="@id/appLogo"
+        app:layout_constraintTop_toTopOf="@id/appLogo"
+        app:layout_constraintBottom_toBottomOf="@id/appLogo" />
+
+    <!-- Measurement text with shadow for readability - initially hidden -->
     <TextView
         android:id="@+id/measurementText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="Ceilo.grid"
-        android:textStyle="bold"
-        android:textSize="28sp"
-        android:textColor="#00FF00"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        android:layout_marginTop="16dp"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:background="#33000000"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/appLogo"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <Button
-        android:id="@+id/switchModeButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:text="Next"
-        android:backgroundTint="@android:color/holo_green_dark"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-     <Button
-         android:id="@+id/btn_show_plants"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:layout_margin="16dp"
-         android:onClick="onShowPlantsClicked"
-         android:text="Show Plants"
-         android:padding="12dp"
-         android:background="@drawable/rounded_button"
-         android:textColor="#FFFFFF"
-         app:layout_constraintBottom_toBottomOf="parent"
-         app:layout_constraintStart_toStartOf="parent"
-         app:layout_constraintEnd_toEndOf="parent" />
-
-    <Button
-        android:id="@+id/clearButton"
+    <!-- Instructions text -->
+    <TextView
+        android:id="@+id/instructionsText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:layout_marginEnd="304dp"
-        android:layout_marginBottom="148dp"
+        android:text="Tap on the screen to place points"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:background="#33000000"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:layout_marginTop="16dp"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        app:layout_constraintTop_toBottomOf="@id/measurementText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Buttons with consistent style and sizing -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/clearButton"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
         android:text="Clear"
-        android:backgroundTint="@android:color/holo_green_dark"
+        android:textAllCaps="false"
+        app:cornerRadius="28dp"
+        android:backgroundTint="#76B947"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btn_show_plants"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintHorizontal_chainStyle="spread_inside" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_show_plants"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="Show Plants"
+        android:textAllCaps="false"
+        app:cornerRadius="28dp"
+        android:onClick="onShowPlantsClicked"
+        android:backgroundTint="#76B947"
+        app:layout_constraintBottom_toBottomOf="@id/clearButton"
+        app:layout_constraintTop_toTopOf="@id/clearButton"
+        app:layout_constraintStart_toEndOf="@id/clearButton"
+        app:layout_constraintEnd_toStartOf="@id/switchModeButton"
+        app:layout_constraintHorizontal_weight="1" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/switchModeButton"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginEnd="16dp"
+        android:text="Next"
+        android:textAllCaps="false"
+        app:cornerRadius="28dp"
+        android:backgroundTint="#76B947"
+        app:layout_constraintBottom_toBottomOf="@id/clearButton"
+        app:layout_constraintTop_toTopOf="@id/clearButton"
+        app:layout_constraintStart_toEndOf="@id/btn_show_plants"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

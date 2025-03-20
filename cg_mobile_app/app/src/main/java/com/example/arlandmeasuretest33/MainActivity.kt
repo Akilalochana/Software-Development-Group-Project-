@@ -428,12 +428,16 @@ class MainActivity : AppCompatActivity() {
                 val perimeter = calculatePerimeter(points)
                 measurementText?.text =
                     String.format("Area: %.2f m², Perimeter: %.2f m", area, perimeter)
+                
+                // Make measurement text visible when area is calculated
+                measurementText?.visibility = View.VISIBLE
 
                 // Remove automatic plant grid display
                 // Plants will only be shown when the Show Plants button is clicked
             } catch (e: Exception) {
                 e.printStackTrace()
                 measurementText?.text = "Error calculating measurements"
+                measurementText?.visibility = View.VISIBLE
             }
         }
     }
@@ -487,6 +491,9 @@ class MainActivity : AppCompatActivity() {
             )
 
             isShowingPlants = true
+
+            // Make measurement text visible when plants are shown
+            measurementText?.visibility = View.VISIBLE
 
             // Show popup with plant information
             showPlantInfoPopup()
@@ -1631,6 +1638,9 @@ class MainActivity : AppCompatActivity() {
 
             points.clear()
             measurementText?.text = ""
+            
+            // Hide measurement text when clearing
+            measurementText?.visibility = View.GONE
         } catch (e: Exception) {
             e.printStackTrace()
         }
