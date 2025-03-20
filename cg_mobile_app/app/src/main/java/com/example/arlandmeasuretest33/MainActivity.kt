@@ -429,10 +429,8 @@ class MainActivity : AppCompatActivity() {
                 measurementText?.text =
                     String.format("Area: %.2f m², Perimeter: %.2f m", area, perimeter)
 
-                // After measuring, show the plant grid
-                if (!isShowingPlants) {
-                    showPlantGrid(area)
-                }
+                // Remove automatic plant grid display
+                // Plants will only be shown when the Show Plants button is clicked
             } catch (e: Exception) {
                 e.printStackTrace()
                 measurementText?.text = "Error calculating measurements"
