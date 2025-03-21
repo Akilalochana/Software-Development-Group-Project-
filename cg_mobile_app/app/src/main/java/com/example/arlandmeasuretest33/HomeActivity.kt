@@ -132,15 +132,41 @@ class HomeActivity : AppCompatActivity() {
             db.collection("user_data").document(user.uid).get()
                 .addOnSuccessListener { document ->
                     if (document != null && document.exists()) {
-                        val userName = document.getString("name") ?: user.displayName ?: "Gardener"
-                        greetingText.text = "Hello, $userName!"
+                        // Try to get name, if not available use email, then fallback to default
+                        val userName = document.getString("name")
+                            ?: document.getString("email")
+                            ?: user.email
+                            ?: user.displayName
+                            ?: "Gardener"
+
+                        // Extract the part before @ if it's an email
+                        val displayName = if (userName.contains("@")) {
+                            userName.split("@")[0]
+                        } else {
+                            userName
+                        }
+
+                        greetingText.text = "Hello, $displayName!"
                     } else {
-                        greetingText.text = "Hello, ${user.displayName ?: "Gardener"}!"
+                        // If document doesn't exist, use email from Firebase Auth
+                        val displayName = if (user.email != null && user.email!!.contains("@")) {
+                            user.email!!.split("@")[0]
+                        } else {
+                            user.email ?: user.displayName ?: "Gardener"
+                        }
+
+                        greetingText.text = "Hello, $displayName!"
                     }
                 }
                 .addOnFailureListener {
-                    // Fallback to display name from auth
-                    greetingText.text = "Hello, ${user.displayName ?: "Gardener"}!"
+                    // Fallback to email from auth
+                    val displayName = if (user.email != null && user.email!!.contains("@")) {
+                        user.email!!.split("@")[0]
+                    } else {
+                        user.email ?: user.displayName ?: "Gardener"
+                    }
+
+                    greetingText.text = "Hello, $displayName!"
                 }
         } ?: run {
             greetingText.text = "Hello, Gardener!"
