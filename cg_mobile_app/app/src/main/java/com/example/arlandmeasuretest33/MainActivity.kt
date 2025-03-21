@@ -45,6 +45,10 @@ class MainActivity : AppCompatActivity() {
     private var plantType: String? = null
     private val plantNodes = ArrayList<Node>()
     private var isShowingPlants = false
+    private var isShowingGrid = false
+    private val gridNodes = ArrayList<Node>()
+    private var gridPositions = ArrayList<Vector3>()
+    private var instructionsText: TextView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +80,7 @@ class MainActivity : AppCompatActivity() {
 
         arFragment = supportFragmentManager.findFragmentById(R.id.arFragment) as ArFragment
         measurementText = findViewById(R.id.measurementText)
+        instructionsText = findViewById(R.id.instructionsText)
 
         setupUI()
         initializeARScene()
@@ -116,14 +121,18 @@ class MainActivity : AppCompatActivity() {
             navigateToReport()
         }
 
-        findViewById<Button>(R.id.btn_show_plants)?.setOnClickListener {
-            if (points.size == 4) {
-                val area = calculateQuadrilateralArea(points)
-                showPlantGrid(area)
-            } else {
-                // For testing - show popup even if no area is measured
-                testPlantInfoPopup()
-            }
+        updateGridButton()
+    }
+
+    private fun updateGridButton() {
+        val gridButton = findViewById<Button>(R.id.btn_show_plants)
+        
+        if (isShowingGrid) {
+            gridButton?.text = "Show Plants"
+        } else if (isShowingPlants) {
+            gridButton?.text = "Clear Plants"
+        } else {
+            gridButton?.text = "Green Grid"
         }
     }
 
@@ -202,27 +211,19 @@ class MainActivity : AppCompatActivity() {
                 Log.d("PlantInfoPopup", "Loading image from URL: $plantImageUrl")
                 
                 try {
-                    // Use different placeholder based on plant type
-                    val placeholderId = R.drawable.img_carrot // Default placeholder
-                    
+                    // Leave ImageView empty while loading
                     Glide.with(this)
                         .load(plantImageUrl)
-                        .apply(RequestOptions()
-                            .placeholder(placeholderId)
-                            .error(placeholderId))
                         .into(plantImageView)
                 } catch (e: Exception) {
                     Log.e("PlantInfoPopup", "Error loading image: ${e.message}")
-                    plantImageView.setImageResource(R.drawable.img_carrot)
+                    // Keep ImageView empty on error
                 }
             } else {
                 // If no image URL in intent, try to get from Firestore
                 Log.d("PlantInfoPopup", "No image URL in intent, fetching from Firestore")
                 
                 val db = FirebaseFirestore.getInstance()
-                
-                // Show a loading indicator or placeholder
-                plantImageView.setImageResource(R.drawable.img_carrot)
                 
                 // First try 'Ampara' district which has more complete data
                 val districts = listOf("Ampara", "Colombo")
@@ -257,9 +258,6 @@ class MainActivity : AppCompatActivity() {
                                         
                                         Glide.with(this)
                                             .load(imageUrl)
-                                            .apply(RequestOptions()
-                                                .placeholder(R.drawable.img_carrot)
-                                                .error(R.drawable.img_carrot))
                                             .into(plantImageView)
                                         
                                         Log.d("PlantInfoPopup", "Successfully loaded image for ${document.id}")
@@ -325,13 +323,10 @@ class MainActivity : AppCompatActivity() {
             
             Glide.with(imageView.context)
                 .load(url)
-                .apply(RequestOptions()
-                    .placeholder(R.drawable.img_carrot)
-                    .error(R.drawable.img_carrot))
                 .into(imageView)
         } else {
-            // If we don't have a special case for this plant, keep the carrot image
-            Log.d("PlantInfoPopup", "No special handling for $plantName, using default image")
+            // If we don't have a special case for this plant, keep the ImageView empty
+            Log.d("PlantInfoPopup", "No special handling for $plantName, leaving image empty")
         }
     }
 
@@ -462,35 +457,54 @@ class MainActivity : AppCompatActivity() {
 
     private fun showPlantGrid(area: Float) {
         try {
+            // If grid is not showing, show it first
+            if (!isShowingGrid && !isShowingPlants) {
+                showGreenGrid()
+                return
+            }
+            
+            // If we're showing plants, just clear them
+            if (isShowingPlants) {
+                clearPlants()
+                updateGridButton()
+                return
+            }
+            
             // Clear existing plants first
             clearPlants()
 
             // Get plant type from intent
             plantType = intent.getStringExtra("PLANT_TYPE")?.lowercase() ?: "carrot"
 
-            // Calculate grid dimensions
-            val boundingWidth = points.maxOf { it.x } - points.minOf { it.x }
-            val boundingHeight = points.maxOf { it.z } - points.minOf { it.z }
-
-            val cols = (boundingWidth / plantSpacing).toInt().coerceAtLeast(1)
-            val rows = (boundingHeight / plantSpacing).toInt().coerceAtLeast(1)
-
-            val startX = points.minOf { it.x }
-            val startZ = points.minOf { it.z }
-            val groundY = points.map { it.y }.average().toFloat()
-
             // Create plant renderable based on plant type
             createPlantRenderable(
                 plantType ?: "default",
-                startX,
-                startZ,
-                groundY,
-                rows,
-                cols,
+                0f, 0f, 0f, // These values are not used as we use gridPositions
+                0, 0,       // These values are not used as we use gridPositions
                 plantSpacing
             )
 
+            // Remove the blue boundary lines (original measurement polygon)
+            measurementNodes.forEach { node ->
+                node.setParent(null)
+            }
+            measurementNodes.clear()
+            
+            // Remove the red marker points
+            placedAnchorNodes.forEach { node ->
+                node.setParent(null)
+                node.anchor?.detach()
+            }
+            placedAnchorNodes.clear()
+            placedAnchors.clear()
+            
+            // Hide the instructions text
+            runOnUiThread {
+                instructionsText?.visibility = View.GONE
+            }
+
             isShowingPlants = true
+            updateGridButton()
 
             // Make measurement text visible when plants are shown
             measurementText?.visibility = View.VISIBLE
@@ -501,6 +515,469 @@ class MainActivity : AppCompatActivity() {
             println("Error in showPlantGrid: ${e.message}")
             e.printStackTrace()
         }
+    }
+
+    private fun showGreenGrid() {
+        try {
+            if (points.size != 4) {
+                Toast.makeText(this, "Please define a valid area with 4 points first", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // Clear any existing grid
+            clearGrid()
+            
+            // Get plant type from intent
+            plantType = intent.getStringExtra("PLANT_TYPE")?.lowercase() ?: "carrot"
+            
+            // Determine spacing based on plant type
+            val spacing = when (plantType) {
+                "cabbage" -> 0.5f  // 50cm spacing for cabbage
+                "carrot" -> 0.2f   // 20cm spacing for carrot
+                else -> 0.25f      // Default spacing
+            }
+            
+            // Update plant spacing for use in later plant placement
+            plantSpacing = spacing
+            
+            // Calculate the ground height based on points
+            val groundY = points.map { it.y }.average().toFloat() + 0.005f // Slightly above ground
+            
+            // Find largest rectangle that fits inside the polygon
+            val rectangle = findLargestRectangleInPolygon(points, spacing)
+            
+            if (rectangle == null) {
+                Toast.makeText(this, "Could not find a suitable area for planting", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // Extract rectangle dimensions
+            val startX = rectangle.first.x
+            val startZ = rectangle.first.z
+            val width = rectangle.second.x
+            val height = rectangle.second.z
+            
+            // Calculate how many grid cells can fit
+            val cols = (width / spacing).toInt()
+            val rows = (height / spacing).toInt()
+            
+            if (cols <= 0 || rows <= 0) {
+                Toast.makeText(this, "Area too small for selected plant type", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // Calculate actual width and height of the grid area
+            val actualWidth = cols * spacing
+            val actualHeight = rows * spacing
+            
+            // Calculate offset to center the grid within the available rectangle
+            val offsetX = startX + (width - actualWidth) / 2
+            val offsetZ = startZ + (height - actualHeight) / 2
+            
+            // Store grid positions for later use in plant placement
+            val gridPositions = ArrayList<Vector3>()
+            
+            // Create grid cells
+            val gridColor = com.google.ar.sceneform.rendering.Color(0.2f, 0.8f, 0.2f, 0.3f) // Transparent green
+            
+            MaterialFactory.makeTransparentWithColor(this, gridColor)
+                .thenAccept { material ->
+                    // Create a grid of square cells
+                    var cellsPlaced = 0
+                    
+                    for (row in 0 until rows) {
+                        for (col in 0 until cols) {
+                            // Calculate center of cell
+                            val x = offsetX + (col * spacing) + (spacing / 2)
+                            val z = offsetZ + (row * spacing) + (spacing / 2)
+                            
+                            // Double-check that this cell's corners are inside the polygon
+                            val halfSpacing = spacing / 2 * 0.95f // Slightly smaller for margin
+                            if (isPointInside(x - halfSpacing, z - halfSpacing) && 
+                                isPointInside(x + halfSpacing, z - halfSpacing) &&
+                                isPointInside(x - halfSpacing, z + halfSpacing) &&
+                                isPointInside(x + halfSpacing, z + halfSpacing)) {
+                                
+                                // Create a square for each grid cell - exactly the size of the plant spacing
+                                val gridCell = ShapeFactory.makeCube(
+                                    Vector3(spacing * 0.95f, 0.001f, spacing * 0.95f),  // Slightly smaller for visual separation
+                                    Vector3.zero(),
+                                    material
+                                )
+                                
+                                val cellNode = Node()
+                                cellNode.setParent(arFragment?.arSceneView?.scene)
+                                cellNode.localPosition = Vector3(x, groundY, z)
+                                cellNode.renderable = gridCell
+                                
+                                gridNodes.add(cellNode)
+                                
+                                // Store this position for later plant placement
+                                gridPositions.add(Vector3(x, groundY, z))
+                                cellsPlaced++
+                            }
+                        }
+                    }
+                    
+                    // Store the grid positions for plant placement
+                    this.gridPositions = gridPositions
+                    
+                    if (cellsPlaced == 0) {
+                        Toast.makeText(this, "No valid grid cells found in the selected area", Toast.LENGTH_SHORT).show()
+                        return@thenAccept
+                    }
+                    
+                    // Remove the blue boundary lines (original measurement polygon)
+                    measurementNodes.forEach { node ->
+                        node.setParent(null)
+                    }
+                    measurementNodes.clear()
+                    
+                    // Remove the red marker points
+                    placedAnchorNodes.forEach { node ->
+                        node.setParent(null)
+                        node.anchor?.detach()
+                    }
+                    placedAnchorNodes.clear()
+                    placedAnchors.clear()
+                    
+                    // Hide the instructions text
+                    runOnUiThread {
+                        instructionsText?.visibility = View.GONE
+                    }
+                    
+                    // Update button and state
+                    isShowingGrid = true
+                    updateGridButton()
+                    
+                    // Draw rectangle outline for visualization
+                    drawRectangleOutline(rectangle.first, width, height, groundY)
+                    
+                    // Show measurement text
+                    measurementText?.text = "Grid: $cellsPlaced cells (${cols}×${rows}), Plant spacing: ${String.format("%.2f", spacing)}m"
+                    measurementText?.visibility = View.VISIBLE
+                }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error creating grid: ${e.message}")
+            e.printStackTrace()
+            Toast.makeText(this, "Error creating grid", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    // Draw outline of the rectangle for visualization
+    private fun drawRectangleOutline(startPoint: Vector3, width: Float, height: Float, groundY: Float) {
+        // Create a green outline material using MaterialFactory instead
+        val outlineColor = com.google.ar.sceneform.rendering.Color(0.1f, 0.8f, 0.1f, 1.0f)
+        
+        MaterialFactory.makeOpaqueWithColor(this, outlineColor)
+            .thenAccept { material ->
+                // Create outline lines
+                val lineThickness = 0.01f
+                
+                // Bottom line (startPoint to startPoint+width)
+                createOutlineLine(
+                    startPoint, 
+                    Vector3(startPoint.x + width, groundY, startPoint.z),
+                    lineThickness,
+                    material
+                )
+                
+                // Right line (startPoint+width to startPoint+width+height)
+                createOutlineLine(
+                    Vector3(startPoint.x + width, groundY, startPoint.z),
+                    Vector3(startPoint.x + width, groundY, startPoint.z + height),
+                    lineThickness,
+                    material
+                )
+                
+                // Top line (startPoint+width+height to startPoint+height)
+                createOutlineLine(
+                    Vector3(startPoint.x + width, groundY, startPoint.z + height),
+                    Vector3(startPoint.x, groundY, startPoint.z + height),
+                    lineThickness,
+                    material
+                )
+                
+                // Left line (startPoint+height to startPoint)
+                createOutlineLine(
+                    Vector3(startPoint.x, groundY, startPoint.z + height),
+                    startPoint,
+                    lineThickness,
+                    material
+                )
+            }
+    }
+    
+    private fun createOutlineLine(from: Vector3, to: Vector3, thickness: Float, material: com.google.ar.sceneform.rendering.Material) {
+        val difference = Vector3.subtract(to, from)
+        val directionFromTopToBottom = difference.normalized()
+        val rotationFromAToB = Quaternion.lookRotation(directionFromTopToBottom, Vector3.up())
+        val distance = difference.length()
+        
+        val cube = ShapeFactory.makeCube(
+            Vector3(thickness, thickness, distance),
+            Vector3.zero(),
+            material
+        )
+        
+        val lineNode = Node()
+        lineNode.setParent(arFragment?.arSceneView?.scene)
+        lineNode.localPosition = Vector3.add(from, difference.scaled(0.5f))
+        lineNode.localRotation = rotationFromAToB
+        lineNode.renderable = cube
+        gridNodes.add(lineNode) // Add to grid nodes so it gets cleared with the grid
+    }
+    
+    // Find the largest rectangle that can fit inside the polygon
+    private fun findLargestRectangleInPolygon(points: List<Vector3>, spacing: Float): Pair<Vector3, Vector3>? {
+        if (points.size < 3) return null
+        
+        // Define the search area: just use the bounding box of the points
+        val minX = points.minOf { it.x }
+        val minZ = points.minOf { it.z }
+        val maxX = points.maxOf { it.x }
+        val maxZ = points.maxOf { it.z }
+        val groundY = points.map { it.y }.average().toFloat()
+        
+        // Calculate the center of the polygon
+        val centerX = (minX + maxX) / 2
+        val centerZ = (minZ + maxZ) / 2
+        
+        // Add a small inset to ensure we stay inside the boundary
+        val boundaryInset = spacing * 0.25f // Inset by 25% of cell spacing
+        val adjustedMinX = minX + boundaryInset
+        val adjustedMinZ = minZ + boundaryInset
+        val adjustedMaxX = maxX - boundaryInset
+        val adjustedMaxZ = maxZ - boundaryInset
+        
+        // Check if the adjusted area is too small
+        if (adjustedMaxX <= adjustedMinX || adjustedMaxZ <= adjustedMinZ) {
+            return null
+        }
+        
+        // Allow a maximum of 5000 iterations (should be sufficient for most cases)
+        val maxIterations = 5000
+        val minDimension = spacing * 2 // Minimum rectangle size (2x2 grid cells)
+        
+        var bestArea = 0f
+        var bestRect: Pair<Vector3, Vector3>? = null
+        var bestCenterDistance = Float.MAX_VALUE // Track how centered the rectangle is
+        
+        // Try different rectangles to find the best-fitting one
+        var iterations = 0
+        
+        // Step size controls how many points we test - use plant spacing divided by 4 for finer control
+        val stepSize = spacing / 4
+        
+        // Prefer to search from center outward for better centering
+        val sortedXPoints = generateSequence(centerX) { prev -> 
+            val next = prev + stepSize
+            if (next <= adjustedMaxX) next else null 
+        }.toList() + generateSequence(centerX - stepSize) { prev ->
+            val next = prev - stepSize
+            if (next >= adjustedMinX) next else null
+        }
+        
+        val sortedZPoints = generateSequence(centerZ) { prev -> 
+            val next = prev + stepSize
+            if (next <= adjustedMaxZ) next else null 
+        }.toList() + generateSequence(centerZ - stepSize) { prev ->
+            val next = prev - stepSize
+            if (next >= adjustedMinZ) next else null
+        }
+        
+        for (startX in sortedXPoints) {
+            if (iterations >= maxIterations) break
+            
+            for (startZ in sortedZPoints) {
+                if (iterations >= maxIterations) break
+                
+                // Try to grow rectangle from this corner
+                val startPoint = Vector3(startX, groundY, startZ)
+                
+                // Only proceed if the corner point is inside the polygon
+                if (isPointInside(startPoint.x, startPoint.z)) {
+                    // Try different symmetrical width/height combinations
+                    var width = minDimension
+                    while (startX + width / 2 <= adjustedMaxX && startX - width / 2 >= adjustedMinX && iterations < maxIterations) {
+                        var height = minDimension
+                        while (startZ + height / 2 <= adjustedMaxZ && startZ - height / 2 >= adjustedMinZ && iterations < maxIterations) {
+                            iterations++
+                            
+                            // Recalculate actual start point for a centered rectangle
+                            val actualStartX = startX - width / 2
+                            val actualStartZ = startZ - height / 2
+                            val actualStartPoint = Vector3(actualStartX, groundY, actualStartZ)
+                            
+                            // Check if all four corners and additional points are inside the polygon
+                            if (isRectangleInside(actualStartPoint, width, height)) {
+                                val area = width * height
+                                
+                                // Calculate how centered this rectangle is
+                                val rectCenterX = actualStartX + width/2
+                                val rectCenterZ = actualStartZ + height/2
+                                val centerDistance = Math.abs(rectCenterX - centerX) + Math.abs(rectCenterZ - centerZ)
+                                
+                                // Prefer larger rectangles, but with a slight preference for more centered ones
+                                if (area > bestArea * 0.95f) { // Allow up to 5% smaller if better centered
+                                    if (area > bestArea || centerDistance < bestCenterDistance) {
+                                        bestArea = area
+                                        bestRect = Pair(actualStartPoint, Vector3(width, 0f, height))
+                                        bestCenterDistance = centerDistance
+                                    }
+                                }
+                            }
+                            
+                            height += stepSize * 2 // Increase by 2x step size to maintain symmetry
+                        }
+                        width += stepSize * 2 // Increase by 2x step size to maintain symmetry
+                    }
+                }
+            }
+        }
+        
+        // If no centered rectangle was found, fall back to original algorithm
+        if (bestRect == null) {
+            Log.d("MainActivity", "No centered rectangle found, falling back to original algorithm")
+            bestArea = 0f
+            iterations = 0
+            
+            var startX = adjustedMinX
+            while (startX <= adjustedMaxX && iterations < maxIterations) {
+                var startZ = adjustedMinZ
+                while (startZ <= adjustedMaxZ && iterations < maxIterations) {
+                    // Try to grow rectangle from this corner
+                    val startPoint = Vector3(startX, groundY, startZ)
+                    
+                    // Only proceed if the corner point is inside the polygon
+                    if (isPointInside(startPoint.x, startPoint.z)) {
+                        // Try different width/height combinations
+                        var width = minDimension
+                        while (startX + width <= adjustedMaxX && iterations < maxIterations) {
+                            var height = minDimension
+                            while (startZ + height <= adjustedMaxZ && iterations < maxIterations) {
+                                iterations++
+                                
+                                // Check if all four corners and additional points are inside the polygon
+                                if (isRectangleInside(startPoint, width, height)) {
+                                    val area = width * height
+                                    if (area > bestArea) {
+                                        bestArea = area
+                                        bestRect = Pair(startPoint, Vector3(width, 0f, height))
+                                    }
+                                }
+                                
+                                height += stepSize
+                            }
+                            width += stepSize
+                        }
+                    }
+                    startZ += stepSize
+                }
+                startX += stepSize
+            }
+        }
+        
+        return bestRect
+    }
+    
+    // Check if a rectangle is completely inside the polygon
+    private fun isRectangleInside(startPoint: Vector3, width: Float, height: Float): Boolean {
+        // Check corners
+        if (!isPointInside(startPoint.x, startPoint.z) ||
+            !isPointInside(startPoint.x + width, startPoint.z) ||
+            !isPointInside(startPoint.x, startPoint.z + height) ||
+            !isPointInside(startPoint.x + width, startPoint.z + height)) {
+            return false
+        }
+        
+        // Add more check points along edges for better boundary detection
+        // Check points along the top and bottom edges
+        val numEdgeChecks = 4
+        for (i in 1 until numEdgeChecks) {
+            val ratio = i.toFloat() / numEdgeChecks
+            // Top edge
+            if (!isPointInside(startPoint.x + width * ratio, startPoint.z)) {
+                return false
+            }
+            // Bottom edge
+            if (!isPointInside(startPoint.x + width * ratio, startPoint.z + height)) {
+                return false
+            }
+            // Left edge
+            if (!isPointInside(startPoint.x, startPoint.z + height * ratio)) {
+                return false
+            }
+            // Right edge
+            if (!isPointInside(startPoint.x + width, startPoint.z + height * ratio)) {
+                return false
+            }
+        }
+        
+        return true
+    }
+
+    private fun isPointInside(x: Float, z: Float): Boolean {
+        if (points.size < 3) return false
+
+        // Add a small epsilon to ensure the grid stays slightly inside the boundaries
+        val epsilon = 0.01f
+
+        // Ray casting algorithm to determine if point is inside polygon
+        var inside = false
+        val p = Vector3(x, points[0].y, z)  // Use consistent y-value
+
+        for (i in points.indices) {
+            val j = (i + 1) % points.size
+
+            val pi = points[i]
+            val pj = points[j]
+
+            // Check if point is on an edge - consider it outside to keep grid fully inside
+            if (distanceToLineSegment(pi, pj, p) < epsilon) {
+                return false
+            }
+
+            // Check if ray from point crosses this edge
+            if (((pi.z > p.z) != (pj.z > p.z)) &&
+                (p.x < (pj.x - pi.x) * (p.z - pi.z) / (pj.z - pi.z) + pi.x)) {
+                inside = !inside
+            }
+        }
+
+        return inside
+    }
+
+    private fun distanceToLineSegment(a: Vector3, b: Vector3, p: Vector3): Float {
+        val abx = b.x - a.x
+        val abz = b.z - a.z
+        val lengthSquared = abx * abx + abz * abz
+
+        // If line segment is a point, return distance to that point
+        if (lengthSquared == 0f) {
+            return Vector3.subtract(p, a).length()
+        }
+
+        // Calculate projection of p onto line segment
+        var t = ((p.x - a.x) * abx + (p.z - a.z) * abz) / lengthSquared
+        t = t.coerceIn(0f, 1f)
+
+        val projection = Vector3(
+            a.x + t * abx,
+            p.y,  // Keep the same y-value
+            a.z + t * abz
+        )
+
+        return Vector3.subtract(p, projection).length()
+    }
+
+    private fun clearGrid() {
+        gridNodes.forEach { node ->
+            node.setParent(null)
+        }
+        gridNodes.clear()
+        gridPositions.clear()
+        isShowingGrid = false
     }
 
     private fun createPlantRenderable(
@@ -529,7 +1006,7 @@ class MainActivity : AppCompatActivity() {
         val deepOrange = com.google.ar.sceneform.rendering.Color(1.0f, 0.4f, 0.0f)      // Deep carrot orange
         val lightGreen = com.google.ar.sceneform.rendering.Color(0.52f, 0.94f, 0.4f)    // Bright green for leaves
         val mediumGreen = com.google.ar.sceneform.rendering.Color(0.42f, 0.9f, 0.35f)   // Medium green for leaves
-        val stemGreen = com.google.ar.sceneform.rendering.Color(0.48f, 0.82f, 0.3f)     // Stem color     // Much brighter stem      // Brighter stem
+        val stemGreen = com.google.ar.sceneform.rendering.Color(0.48f, 0.82f, 0.3f)     // Stem color
 
         MaterialFactory.makeOpaqueWithColor(this, deepOrange)
             .thenAccept { orangeMaterial ->
@@ -539,76 +1016,57 @@ class MainActivity : AppCompatActivity() {
                             .thenAccept { mediumLeafMaterial ->
                                 MaterialFactory.makeOpaqueWithColor(this, stemGreen)
                                     .thenAccept { stemMaterial ->
-                                        // Plant spacing configuration
-                                        val carrotSpacing = spacing * 0.85f // More compact
+                                        // Instead of calculating a new grid, use the stored grid positions
+                                        for (position in gridPositions) {
+                                            // Create parent node at the exact grid cell position
+                                            val plantNode = Node()
+                                            plantNode.setParent(arFragment?.arSceneView?.scene)
+                                            plantNode.localPosition = position
 
-                                        // Calculate grid dimensions
-                                        val adjustedCols = (cols * spacing / carrotSpacing).toInt().coerceAtLeast(1)
-                                        val adjustedRows = (rows * spacing / carrotSpacing).toInt().coerceAtLeast(1)
+                                            // Apply small random rotation for natural appearance
+                                            plantNode.localRotation = Quaternion.axisAngle(
+                                                Vector3(0f, 1f, 0f),
+                                                (Math.random() * 360).toFloat()
+                                            )
 
-                                        // Place plants in grid
-                                        for (row in 0 until adjustedRows) {
-                                            for (col in 0 until adjustedCols) {
-                                                val jitter = (Math.random() * 0.04 - 0.02).toFloat()
-                                                val x = startX + (col * carrotSpacing) + jitter
-                                                val z = startZ + (row * carrotSpacing) + jitter
+                                            // Slight scale variation
+                                            val scale = 0.85f + (Math.random() * 0.15f).toFloat()
+                                            plantNode.localScale = Vector3(scale, scale, scale)
 
-                                                if (isPointInside(x, z)) {
-                                                    // Create parent node
-                                                    val plantNode = Node()
-                                                    plantNode.setParent(arFragment?.arSceneView?.scene)
-                                                    plantNode.localPosition = Vector3(x, groundY + 0.005f, z)
+                                            // Create carrot parts
+                                            val coreNode = Node()
+                                            coreNode.setParent(plantNode)
+                                            coreNode.localPosition = Vector3(0f, -0.02f, 0f)
+                                            coreNode.renderable = ShapeFactory.makeCylinder(
+                                                0.004f,
+                                                0.08f,
+                                                Vector3(0f, 0f, 0f),
+                                                orangeMaterial
+                                            )
 
-                                                    // Minimal rotation for consistency
-                                                    plantNode.localRotation = Quaternion.axisAngle(
-                                                        Vector3(0f, 1f, 0f),
-                                                        (Math.random() * 360).toFloat()
-                                                    )
+                                            // Create layered carrot shape
+                                            createCarrotLayers(plantNode, orangeMaterial)
 
-                                                    // Increased overall scale for more realistic size
-                                                    val scale = 0.85f + (Math.random() * 0.15f).toFloat()
-                                                    plantNode.localScale = Vector3(scale, scale, scale)
+                                            // Create stem
+                                            val stemNode = Node()
+                                            stemNode.setParent(plantNode)
+                                            stemNode.localPosition = Vector3(0f, 0.025f, 0f)
+                                            stemNode.renderable = ShapeFactory.makeCylinder(
+                                                0.003f,
+                                                0.015f,
+                                                Vector3(0f, 0f, 0f),
+                                                stemMaterial
+                                            )
 
-                                                    // Create center thin cylinder as core
-                                                    val carrotCore = ShapeFactory.makeCylinder(
-                                                        0.004f,
-                                                        0.08f,
-                                                        Vector3(0f, 0f, 0f),
-                                                        orangeMaterial
-                                                    )
+                                            // Create foliage
+                                            createSpreadFoliage(plantNode, lightLeafMaterial, mediumLeafMaterial)
 
-                                                    val coreNode = Node()
-                                                    coreNode.setParent(plantNode)
-                                                    coreNode.localPosition = Vector3(0f, -0.02f, 0f)
-                                                    coreNode.renderable = carrotCore
-
-                                                    // Create layered carrot shape (top to bottom)
-                                                    createCarrotLayers(plantNode, orangeMaterial)
-
-                                                    // Create thin stem connecting to leaves
-                                                    val stemHeight = 0.015f
-                                                    val stem = ShapeFactory.makeCylinder(
-                                                        0.003f,
-                                                        stemHeight,
-                                                        Vector3(0f, 0f, 0f),
-                                                        stemMaterial
-                                                    )
-
-                                                    val stemNode = Node()
-                                                    stemNode.setParent(plantNode)
-                                                    stemNode.localPosition = Vector3(0f, 0.025f, 0f)
-                                                    stemNode.renderable = stem
-
-                                                    // Create spread out foliage
-                                                    createSpreadFoliage(plantNode, lightLeafMaterial, mediumLeafMaterial)
-
-                                                    plantNodes.add(plantNode)
-                                                    plantsPlaced++
-                                                }
-                                            }
+                                            plantNodes.add(plantNode)
+                                            plantsPlaced++
                                         }
+
                                         runOnUiThread {
-                                            measurementText?.text = "${measurementText?.text}\nCarrots planted: $plantsPlaced"
+                                            measurementText?.text = "Carrots planted: $plantsPlaced"
                                         }
                                     }
                             }
@@ -799,7 +1257,6 @@ class MainActivity : AppCompatActivity() {
             lightLeafMaterial, mediumLeafMaterial)
     }
 
-
     private fun createCabbageRenderable(
         startX: Float,
         startZ: Float,
@@ -809,10 +1266,6 @@ class MainActivity : AppCompatActivity() {
         spacing: Float
     ) {
         var plantsPlaced = 0
-
-        // Set exact dimensions as requested: 40cm x 50cm (0.4m x 0.5m)
-        val cabbageWidthSpacing = 0.4f  // 40cm width
-        val cabbageLengthSpacing = 0.5f  // 50cm length
 
         // Realistic cabbage color palette
         val darkGreen = com.google.ar.sceneform.rendering.Color(0.12f, 0.4f, 0.12f)
@@ -831,208 +1284,76 @@ class MainActivity : AppCompatActivity() {
                                     .thenAccept { stemMaterial ->
                                         MaterialFactory.makeOpaqueWithColor(this, innerColor)
                                             .thenAccept { innerMaterial ->
-                                                // Calculate number of rows and columns based on exact dimensions
-                                                val adjustedCols = (cols * spacing / cabbageWidthSpacing).toInt().coerceAtLeast(1)
-                                                val adjustedRows = (rows * spacing / cabbageLengthSpacing).toInt().coerceAtLeast(1)
+                                                // Use the stored grid positions instead of calculating a new grid
+                                                for (position in gridPositions) {
+                                                    // Create cabbage at the exact grid cell position
+                                                    val cabbageNode = Node()
+                                                    cabbageNode.setParent(arFragment?.arSceneView?.scene)
+                                                    cabbageNode.localPosition = position
 
-                                                // Place cabbages in grid with proper rectangular spacing
-                                                for (row in 0 until adjustedRows) {
-                                                    for (col in 0 until adjustedCols) {
-                                                        val x = startX + (col * cabbageWidthSpacing) + (Math.random() * 0.02 - 0.01).toFloat()
-                                                        val z = startZ + (row * cabbageLengthSpacing) + (Math.random() * 0.02 - 0.01).toFloat()
+                                                    // Minimal rotation - cabbage heads up with small variation
+                                                    cabbageNode.localRotation = Quaternion.axisAngle(
+                                                        Vector3(0f, 1f, 0f),
+                                                        (Math.random() * 15).toFloat()
+                                                    )
 
-                                                        if (isPointInside(x, z)) {
-                                                            // Create parent node
-                                                            val cabbageNode = Node()
-                                                            cabbageNode.setParent(arFragment?.arSceneView?.scene)
-                                                            cabbageNode.localPosition = Vector3(x, groundY, z)
+                                                    // Consistent scale with minimal variation
+                                                    val scale = 0.97f + (Math.random() * 0.06f).toFloat()
+                                                    cabbageNode.localScale = Vector3(scale, scale, scale)
 
-                                                            // Minimal rotation - cabbage heads up with very small variation
-                                                            cabbageNode.localRotation = Quaternion.axisAngle(
-                                                                Vector3(0f, 1f, 0f),
-                                                                (Math.random() * 15).toFloat() // More uniform orientation
-                                                            )
+                                                    // Create stem
+                                                    val stemNode = Node()
+                                                    stemNode.setParent(cabbageNode)
+                                                    stemNode.localPosition = Vector3(0f, -0.02f, 0f)
+                                                    stemNode.renderable = ShapeFactory.makeCylinder(
+                                                        0.015f,  // radius
+                                                        0.06f,   // height
+                                                        Vector3(0f, 0f, 0f),
+                                                        stemMaterial
+                                                    )
 
-                                                            // Consistent scale with minimal variation
-                                                            val scale = 0.97f + (Math.random() * 0.06f).toFloat()
-                                                            cabbageNode.localScale = Vector3(scale, scale, scale)
+                                                    // Create core sphere (cabbage heart)
+                                                    val coreNode = Node()
+                                                    coreNode.setParent(cabbageNode)
+                                                    coreNode.localPosition = Vector3(0f, 0.045f, 0f)
+                                                    coreNode.renderable = ShapeFactory.makeSphere(
+                                                        0.05f,  // radius
+                                                        Vector3(0f, 0f, 0f),
+                                                        innerMaterial
+                                                    )
 
-                                                            // Create stem
-                                                            val stem = ShapeFactory.makeCylinder(
-                                                                0.015f,  // radius
-                                                                0.06f,   // height
-                                                                Vector3(0f, 0f, 0f),
-                                                                stemMaterial
-                                                            )
-                                                            val stemNode = Node()
-                                                            stemNode.setParent(cabbageNode)
-                                                            stemNode.localPosition = Vector3(0f, -0.02f, 0f)
-                                                            stemNode.renderable = stem
-
-                                                            // Create core sphere (cabbage heart)
-                                                            val core = ShapeFactory.makeSphere(
-                                                                0.05f,  // radius
-                                                                Vector3(0f, 0f, 0f),
-                                                                innerMaterial
-                                                            )
-                                                            val coreNode = Node()
-                                                            coreNode.setParent(cabbageNode)
-                                                            coreNode.localPosition = Vector3(0f, 0.045f, 0f)
-                                                            coreNode.renderable = core
-
-                                                            // Layer 1 - Bottom outer leaves (largest, nearly flat)
-                                                            for (i in 0 until 8) {
-                                                                val angle = (i * 45f).toFloat()
-                                                                val radius = 0.09f + (Math.random() * 0.008f).toFloat()
-                                                                val height = -0.01f + (Math.random() * 0.004f).toFloat()
-
-                                                                val leafRotation = Quaternion.multiply(
-                                                                    Quaternion.axisAngle(Vector3(1f, 0f, 0f), 10f + (Math.random() * 3).toFloat()),
-                                                                    Quaternion.axisAngle(Vector3(0f, 1f, 0f), angle)
-                                                                )
-
-                                                                ShapeFactory.makeCube(
-                                                                    Vector3(0.08f, 0.01f, 0.06f),
-                                                                    Vector3(0f, 0f, 0f),
-                                                                    darkMaterial
-                                                                ).also { leafRenderable ->
-                                                                    Node().apply {
-                                                                        setParent(cabbageNode)
-                                                                        localPosition = Vector3(
-                                                                            radius * Math.cos(Math.toRadians(angle.toDouble())).toFloat(),
-                                                                            height,
-                                                                            radius * Math.sin(Math.toRadians(angle.toDouble())).toFloat()
-                                                                        )
-                                                                        localRotation = leafRotation
-                                                                        renderable = leafRenderable
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            // Remaining layers (2-5) with similar implementation...
-                                                            // Layer 2 - Mid-outer leaves
-                                                            for (i in 0 until 8) {
-                                                                val angle = (i * 45f + 22.5f).toFloat()
-                                                                val radius = 0.07f + (Math.random() * 0.006f).toFloat()
-                                                                val height = 0.015f + (Math.random() * 0.006f).toFloat()
-
-                                                                val leafRotation = Quaternion.multiply(
-                                                                    Quaternion.axisAngle(Vector3(1f, 0f, 0f), 20f + (Math.random() * 3).toFloat()),
-                                                                    Quaternion.axisAngle(Vector3(0f, 1f, 0f), angle)
-                                                                )
-
-                                                                ShapeFactory.makeCube(
-                                                                    Vector3(0.07f, 0.012f, 0.055f),
-                                                                    Vector3(0f, 0f, 0f),
-                                                                    darkMaterial
-                                                                ).also { leafRenderable ->
-                                                                    Node().apply {
-                                                                        setParent(cabbageNode)
-                                                                        localPosition = Vector3(
-                                                                            radius * Math.cos(Math.toRadians(angle.toDouble())).toFloat(),
-                                                                            height,
-                                                                            radius * Math.sin(Math.toRadians(angle.toDouble())).toFloat()
-                                                                        )
-                                                                        localRotation = leafRotation
-                                                                        renderable = leafRenderable
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            // Layer 3 - Middle leaves
-                                                            for (i in 0 until 8) {
-                                                                val angle = (i * 45f).toFloat()
-                                                                val radius = 0.05f + (Math.random() * 0.006f).toFloat()
-                                                                val height = 0.04f + (Math.random() * 0.006f).toFloat()
-
-                                                                val leafRotation = Quaternion.multiply(
-                                                                    Quaternion.axisAngle(Vector3(1f, 0f, 0f), 30f + (Math.random() * 3).toFloat()),
-                                                                    Quaternion.axisAngle(Vector3(0f, 1f, 0f), angle)
-                                                                )
-
-                                                                ShapeFactory.makeCube(
-                                                                    Vector3(0.06f, 0.014f, 0.05f),
-                                                                    Vector3(0f, 0f, 0f),
-                                                                    mediumMaterial
-                                                                ).also { leafRenderable ->
-                                                                    Node().apply {
-                                                                        setParent(cabbageNode)
-                                                                        localPosition = Vector3(
-                                                                            radius * Math.cos(Math.toRadians(angle.toDouble())).toFloat(),
-                                                                            height,
-                                                                            radius * Math.sin(Math.toRadians(angle.toDouble())).toFloat()
-                                                                        )
-                                                                        localRotation = leafRotation
-                                                                        renderable = leafRenderable
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            // Layer 4 - Inner leaves
-                                                            for (i in 0 until 6) {
-                                                                val angle = (i * 60f + 30f).toFloat()
-                                                                val radius = 0.035f + (Math.random() * 0.004f).toFloat()
-                                                                val height = 0.065f + (Math.random() * 0.006f).toFloat()
-
-                                                                val leafRotation = Quaternion.multiply(
-                                                                    Quaternion.axisAngle(Vector3(1f, 0f, 0f), 45f + (Math.random() * 3).toFloat()),
-                                                                    Quaternion.axisAngle(Vector3(0f, 1f, 0f), angle)
-                                                                )
-
-                                                                ShapeFactory.makeCube(
-                                                                    Vector3(0.05f, 0.015f, 0.04f),
-                                                                    Vector3(0f, 0f, 0f),
-                                                                    mediumMaterial
-                                                                ).also { leafRenderable ->
-                                                                    Node().apply {
-                                                                        setParent(cabbageNode)
-                                                                        localPosition = Vector3(
-                                                                            radius * Math.cos(Math.toRadians(angle.toDouble())).toFloat(),
-                                                                            height,
-                                                                            radius * Math.sin(Math.toRadians(angle.toDouble())).toFloat()
-                                                                        )
-                                                                        localRotation = leafRotation
-                                                                        renderable = leafRenderable
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            // Layer 5 - Top inner leaves
-                                                            for (i in 0 until 4) {
-                                                                val angle = (i * 90f).toFloat()
-                                                                val radius = 0.02f + (Math.random() * 0.003f).toFloat()
-                                                                val height = 0.085f + (Math.random() * 0.004f).toFloat()
-
-                                                                val leafRotation = Quaternion.multiply(
-                                                                    Quaternion.axisAngle(Vector3(1f, 0f, 0f), 60f + (Math.random() * 3).toFloat()),
-                                                                    Quaternion.axisAngle(Vector3(0f, 1f, 0f), angle)
-                                                                )
-
-                                                                ShapeFactory.makeCube(
-                                                                    Vector3(0.04f, 0.016f, 0.03f),
-                                                                    Vector3(0f, 0f, 0f),
-                                                                    lightMaterial
-                                                                ).also { leafRenderable ->
-                                                                    Node().apply {
-                                                                        setParent(cabbageNode)
-                                                                        localPosition = Vector3(
-                                                                            radius * Math.cos(Math.toRadians(angle.toDouble())).toFloat(),
-                                                                            height,
-                                                                            radius * Math.sin(Math.toRadians(angle.toDouble())).toFloat()
-                                                                        )
-                                                                        localRotation = leafRotation
-                                                                        renderable = leafRenderable
-                                                                    }
-                                                                }
-                                                            }
-
-                                                            plantNodes.add(cabbageNode)
-                                                            plantsPlaced++
-                                                        }
+                                                    // Add cabbage leaves (layers)
+                                                    // Layer 1 - Bottom outer leaves
+                                                    for (i in 0 until 8) {
+                                                        createCabbageLeaf(cabbageNode, i * 45f, 0.09f, -0.01f, 10f, darkMaterial)
                                                     }
+
+                                                    // Layer 2 - Mid-outer leaves
+                                                    for (i in 0 until 8) {
+                                                        createCabbageLeaf(cabbageNode, i * 45f + 22.5f, 0.07f, 0.015f, 20f, darkMaterial)
+                                                    }
+
+                                                    // Layer 3 - Middle leaves
+                                                    for (i in 0 until 8) {
+                                                        createCabbageLeaf(cabbageNode, i * 45f, 0.05f, 0.04f, 30f, mediumMaterial)
+                                                    }
+
+                                                    // Layer 4 - Inner leaves
+                                                    for (i in 0 until 6) {
+                                                        createCabbageLeaf(cabbageNode, i * 60f + 30f, 0.035f, 0.065f, 45f, mediumMaterial)
+                                                    }
+
+                                                    // Layer 5 - Top inner leaves
+                                                    for (i in 0 until 4) {
+                                                        createCabbageLeaf(cabbageNode, i * 90f, 0.02f, 0.085f, 60f, lightMaterial)
+                                                    }
+
+                                                    plantNodes.add(cabbageNode)
+                                                    plantsPlaced++
                                                 }
+
                                                 runOnUiThread {
-                                                    measurementText?.text = "${measurementText?.text}\nCabbages planted: $plantsPlaced"
+                                                    measurementText?.text = "Cabbages planted: $plantsPlaced"
                                                 }
                                             }
                                     }
@@ -1040,60 +1361,49 @@ class MainActivity : AppCompatActivity() {
                     }
             }
     }
-    // Helper function to create a circular layer of leaves
-    private fun createCircularLayer(
-        parent: Node,
-        fragmentCount: Int,
-        radius: Float,
-        height: Float,
-        baseTilt: Float,
-        leafLength: Float,
-        leafWidth: Float,
-        material: com.google.ar.sceneform.rendering.Material
-    ) {
-        for (i in 0 until fragmentCount) {
-            val angle = (i * 360f / fragmentCount + (Math.random() * 5 - 2.5f)).toFloat()
-            val actualRadius = radius * (0.95f + (Math.random() * 0.1f).toFloat())
-            val actualHeight = height + (Math.random() * 0.01f).toFloat()
+    
+    // Helper method to create cabbage leaf
+    private fun createCabbageLeaf(parent: Node, angle: Float, radius: Float, height: Float, tilt: Float, material: com.google.ar.sceneform.rendering.Material) {
+        val leafRotation = Quaternion.multiply(
+            Quaternion.axisAngle(Vector3(1f, 0f, 0f), tilt + (Math.random() * 3).toFloat()),
+            Quaternion.axisAngle(Vector3(0f, 1f, 0f), angle)
+        )
 
-            // Vary the tilt slightly for each leaf
-            val tiltVariation = (Math.random() * 10 - 5).toFloat()
-            val sideVariation = (Math.random() * 16 - 8).toFloat()
+        val randomRadius = radius + (Math.random() * 0.006f).toFloat()
+        val randomHeight = height + (Math.random() * 0.006f).toFloat()
 
-            // Create fragment rotation with proper curvature
-            val fragmentRotation = Quaternion.multiply(
-                Quaternion.axisAngle(Vector3(1f, 0f, 0f), baseTilt + tiltVariation),
-                Quaternion.multiply(
-                    Quaternion.axisAngle(Vector3(0f, 1f, 0f), angle),
-                    Quaternion.axisAngle(Vector3(0f, 0f, 1f), sideVariation)
-                )
-            )
+        // Create leaf
+        val leafNode = Node()
+        leafNode.setParent(parent)
+        leafNode.localPosition = Vector3(
+            randomRadius * Math.cos(Math.toRadians(angle.toDouble())).toFloat(),
+            randomHeight,
+            randomRadius * Math.sin(Math.toRadians(angle.toDouble())).toFloat()
+        )
+        leafNode.localRotation = leafRotation
 
-            // Create leaf with random size variation
-            val actualLeafLength = leafLength * (0.9f + (Math.random() * 0.2f).toFloat())
-            val actualLeafWidth = leafWidth * (0.9f + (Math.random() * 0.2f).toFloat())
-
-            ShapeFactory.makeCube(
-                Vector3(
-                    actualLeafLength,
-                    0.005f + (Math.random() * 0.003f).toFloat(), // slight thickness variation
-                    actualLeafWidth
-                ),
-                Vector3(0f, 0f, 0f),
-                material
-            ).also { fragmentRenderable ->
-                Node().apply {
-                    setParent(parent)
-                    localPosition = Vector3(
-                        actualRadius * Math.cos(Math.toRadians(angle.toDouble())).toFloat(),
-                        actualHeight,
-                        actualRadius * Math.sin(Math.toRadians(angle.toDouble())).toFloat()
-                    )
-                    localRotation = fragmentRotation
-                    renderable = fragmentRenderable
-                }
-            }
+        // Size based on layer (parameters)
+        val leafWidth = when {
+            radius > 0.08f -> 0.08f
+            radius > 0.06f -> 0.07f
+            radius > 0.04f -> 0.06f
+            radius > 0.02f -> 0.05f
+            else -> 0.04f
         }
+        
+        val leafLength = when {
+            radius > 0.08f -> 0.06f
+            radius > 0.06f -> 0.055f
+            radius > 0.04f -> 0.05f
+            radius > 0.02f -> 0.04f
+            else -> 0.03f
+        }
+
+        leafNode.renderable = ShapeFactory.makeCube(
+            Vector3(leafWidth, 0.01f + (Math.random() * 0.006f).toFloat(), leafLength),
+            Vector3(0f, 0f, 0f),
+            material
+        )
     }
 
     private fun createDefaultRenderable(
@@ -1120,60 +1430,37 @@ class MainActivity : AppCompatActivity() {
                             .thenAccept { lightMaterial ->
                                 MaterialFactory.makeOpaqueWithColor(this, stemBrown)
                                     .thenAccept { stemMaterial ->
-                                        // Place plants in a grid pattern
-                                        for (row in 0 until rows) {
-                                            for (col in 0 until cols) {
-                                                val x = startX + col * spacing
-                                                val z = startZ + row * spacing
+                                        // Use stored grid positions instead of calculating new ones
+                                        for (position in gridPositions) {
+                                            // Create plant at exact grid cell position
+                                            val plantNode = Node()
+                                            plantNode.setParent(arFragment?.arSceneView?.scene)
+                                            plantNode.localPosition = position
 
-                                                // Only place plants if inside the polygon
-                                                if (isPointInside(x, z)) {
-                                                    // Create plant anchor
-                                                    val plantAnchor = arFragment?.arSceneView?.session?.createAnchor(
-                                                        com.google.ar.core.Pose.makeTranslation(
-                                                            x, groundY, z
-                                                        )
-                                                    )
+                                            // Create stem
+                                            createDetailedStem(plantNode, stemMaterial)
 
-                                                    val anchorNode = AnchorNode(plantAnchor).apply {
-                                                        setParent(arFragment?.arSceneView?.scene)
-                                                    }
+                                            // Add foliage
+                                            createLayeredFoliage(
+                                                plantNode,
+                                                6, // Consistent leaf count
+                                                darkMaterial,
+                                                mediumMaterial,
+                                                lightMaterial
+                                            )
 
-                                                    val plantNode = Node().apply {
-                                                        setParent(anchorNode)
-                                                    }
-
-                                                    // Create stem first
-                                                    createDetailedStem(plantNode, stemMaterial)
-
-                                                    // Add foliage to the plant
-                                                    createLayeredFoliage(
-                                                        plantNode,
-                                                        6, // Consistent leaf count
-                                                        darkMaterial,
-                                                        mediumMaterial,
-                                                        lightMaterial
-                                                    )
-
-                                                    plantNodes.add(plantNode)
-                                                    plantsPlaced++
-                                                }
-                                            }
+                                            plantNodes.add(plantNode)
+                                            plantsPlaced++
                                         }
 
-                                        // Update UI to show number of plants placed
                                         runOnUiThread {
-                                            measurementText?.text = String.format(
-                                                "Plants placed: %d", plantsPlaced
-                                            )
+                                            measurementText?.text = "Plants placed: $plantsPlaced"
                                         }
                                     }
                             }
                     }
             }
     }
-
-
 
     private fun createDetailedStem(
         parentNode: Node,
@@ -1251,8 +1538,6 @@ class MainActivity : AppCompatActivity() {
             material
         )
     }
-
-
 
     private fun createLayeredFoliage(
         parentNode: Node,
@@ -1508,107 +1793,6 @@ class MainActivity : AppCompatActivity() {
         leafletNode.renderable = leaflet
     }
 
-
-
-    private fun createLeaflet(
-        parentNode: Node,
-        positionRatio: Float,
-        side: Int,  // -1 for left, 0 for center, 1 for right
-        stemLength: Float,
-        material: com.google.ar.sceneform.rendering.Material
-    ) {
-        val leafletNode = Node()
-        leafletNode.setParent(parentNode)
-
-        // Position along stem
-        leafletNode.localPosition = Vector3(
-            0f,
-            0.001f,
-            stemLength * positionRatio
-        )
-
-        // Angle based on side
-        var baseAngle = when(side) {
-            -1 -> -45f    // left side
-            1 -> 45f      // right side
-            else -> 0f    // terminal leaflet
-        }
-
-        // Add variation
-        baseAngle += (Math.random() * 20 - 10).toFloat()
-
-        // Tilt leaflet upward
-        val upTilt = 20f + (Math.random() * 20)
-
-        leafletNode.localRotation = Quaternion.multiply(
-            Quaternion.axisAngle(Vector3(0f, 1f, 0f), baseAngle),
-            Quaternion.axisAngle(Vector3(1f, 0f, 0f), -upTilt.toFloat())
-        )
-
-        // Create leaflet shape - smaller than main leaves
-        val leafletLength = 0.03f + (Math.random() * 0.02f).toFloat()
-        val leafletWidth = 0.015f + (Math.random() * 0.01f).toFloat()
-
-        val leaflet = ShapeFactory.makeCube(
-            Vector3(leafletWidth, 0.002f, leafletLength),
-            Vector3(0f, 0f, leafletLength * 0.4f),
-            material
-        )
-
-        leafletNode.renderable = leaflet
-    }
-
-    private fun isPointInside(x: Float, z: Float): Boolean {
-        if (points.size < 3) return false
-
-        // Ray casting algorithm to determine if point is inside polygon
-        var inside = false
-        val p = Vector3(x, points[0].y, z)  // Use consistent y-value
-
-        for (i in points.indices) {
-            val j = (i + 1) % points.size
-
-            val pi = points[i]
-            val pj = points[j]
-
-            // Check if point is on an edge
-            if (distanceToLineSegment(pi, pj, p) < 0.01f) {
-                return true
-            }
-
-            // Check if ray from point crosses this edge
-            if (((pi.z > p.z) != (pj.z > p.z)) &&
-                (p.x < (pj.x - pi.x) * (p.z - pi.z) / (pj.z - pi.z) + pi.x)) {
-                inside = !inside
-            }
-        }
-
-        return inside
-    }
-
-    private fun distanceToLineSegment(a: Vector3, b: Vector3, p: Vector3): Float {
-        val abx = b.x - a.x
-        val abz = b.z - a.z
-        val lengthSquared = abx * abx + abz * abz
-
-        // If line segment is a point, return distance to that point
-        if (lengthSquared == 0f) {
-            return Vector3.subtract(p, a).length()
-        }
-
-        // Calculate projection of p onto line segment
-        var t = ((p.x - a.x) * abx + (p.z - a.z) * abz) / lengthSquared
-        t = t.coerceIn(0f, 1f)
-
-        val projection = Vector3(
-            a.x + t * abx,
-            p.y,  // Keep the same y-value
-            a.z + t * abz
-        )
-
-        return Vector3.subtract(p, projection).length()
-    }
-
     private fun clearPlants() {
         plantNodes.forEach { node ->
             node.setParent(null)
@@ -1633,14 +1817,21 @@ class MainActivity : AppCompatActivity() {
             }
             measurementNodes.clear()
 
-            // Clear plants
+            // Clear plants and grid
             clearPlants()
+            clearGrid()
 
             points.clear()
             measurementText?.text = ""
             
             // Hide measurement text when clearing
             measurementText?.visibility = View.GONE
+            
+            // Show the instructions text again
+            instructionsText?.visibility = View.VISIBLE
+            
+            // Update button
+            updateGridButton()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -1698,8 +1889,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onShowPlantsClicked(view: View) {
-        val intent = Intent(this, PlantVisualizationActivity::class.java)
-        startActivity(intent)
+        if (points.size == 4) {
+            val area = calculateQuadrilateralArea(points)
+            showPlantGrid(area)
+        } else {
+            Toast.makeText(this, "Please define a valid area with 4 points first", Toast.LENGTH_SHORT).show()
+        }
     }
 
 }

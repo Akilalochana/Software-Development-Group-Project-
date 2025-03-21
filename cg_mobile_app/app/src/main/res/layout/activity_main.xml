@@ -104,7 +104,7 @@
         android:layout_height="56dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:text="Show Plants"
+        android:text="Green Grid"
         android:textAllCaps="false"
         app:cornerRadius="28dp"
         android:onClick="onShowPlantsClicked"
