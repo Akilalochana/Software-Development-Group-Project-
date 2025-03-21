@@ -1,47 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="#F5F7F7">
 
     <!-- Header with back button and title -->
-    <LinearLayout
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="12dp">
+        android:layout_marginHorizontal="0dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="12dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="#FFFFFF">
 
-        <ImageButton
-            android:id="@+id/backButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_back_arrow"
-            android:background="@null"
-            android:layout_marginTop="18dp"
-            android:contentDescription="Back" />
-
-        <TextView
-            android:id="@+id/headerTitleText"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Garden name - District"
-            android:textAlignment="center"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
-            android:layout_marginTop="16dp" />
-    </LinearLayout>
+            android:orientation="vertical"
+            android:paddingVertical="16dp"
+            android:paddingHorizontal="16dp">
 
-    <!-- Subtitle -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Choose a plant of your preference and explore \nits characteristics,growth conditions, and benefits."
-        android:textSize="14sp"
-        android:textColor="#757575"
-        android:textAlignment="center"
-        android:layout_marginBottom="8dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageButton
+                    android:id="@+id/backButton"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_back_arrow"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="Back" />
+
+                <TextView
+                    android:id="@+id/headerTitleText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Garden name - District"
+                    android:textAlignment="center"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"
+                    android:fontFamily="sans-serif-medium"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="36dp" />
+            </LinearLayout>
+
+            <!-- Subtitle -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Choose a plant of your preference and explore its characteristics, growth conditions, and benefits."
+                android:textSize="14sp"
+                android:textColor="#757575"
+                android:fontFamily="sans-serif"
+                android:textAlignment="center"
+                android:layout_marginTop="12dp"
+                android:layout_marginHorizontal="16dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
     <!-- No recommendations text -->
     <TextView
@@ -51,13 +76,16 @@
         android:text="No recommended plants for this district"
         android:textAlignment="center"
         android:textSize="16sp"
+        android:fontFamily="sans-serif-medium"
+        android:textColor="#757575"
         android:padding="16dp"
         android:visibility="gone" />
 
     <!-- ScrollView to contain plant cards -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginTop="4dp">
 
         <GridLayout
             android:id="@+id/gridLayout"
