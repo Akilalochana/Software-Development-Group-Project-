@@ -18,11 +18,11 @@
         android:layout_height="match_parent"
         android:background="@drawable/gradient_overlay" />
 
-    <!-- Bottom Section with Text - Moved up to avoid overlap -->
+    <!-- Bottom Section with Text -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/pagination_container"
+        android:layout_above="@+id/button_container"
         android:layout_marginBottom="16dp"
         android:orientation="vertical"
         android:paddingStart="24dp"
@@ -55,40 +55,6 @@
             android:textSize="16sp" />
     </LinearLayout>
 
-    <!-- Pagination Indicators container -->
-    <LinearLayout
-        android:id="@+id/pagination_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/button_container"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="24dp"
-        android:orientation="horizontal">
-
-        <View
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_marginEnd="4dp"
-            android:background="@drawable/indicator_active" />
-
-        <View
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_marginEnd="4dp"
-            android:background="@drawable/indicator_inactive" />
-
-        <View
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:layout_marginEnd="4dp"
-            android:background="@drawable/indicator_inactive" />
-
-        <View
-            android:layout_width="8dp"
-            android:layout_height="8dp"
-            android:background="@drawable/indicator_inactive" />
-    </LinearLayout>
-
     <!-- Get Started Button Container -->
     <FrameLayout
         android:id="@+id/button_container"
@@ -111,6 +77,5 @@
             android:textSize="16sp"
             app:cornerRadius="8dp" />
     </FrameLayout>
-
 
 </RelativeLayout>

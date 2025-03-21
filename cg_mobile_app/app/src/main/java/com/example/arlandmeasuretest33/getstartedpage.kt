@@ -29,7 +29,7 @@ class getstartedpage : AppCompatActivity() {
                 finish()
             } else {
                 // User is not logged in, continue with onboarding
-                val onboardingIntent = Intent(this, Getstart2::class.java)
+                val onboardingIntent = Intent(this, Welcome_screen::class.java)
                 startActivity(onboardingIntent)
             }
         }

@@ -30,7 +30,7 @@ class Getstart2 : AppCompatActivity() {
 
         // Handle Skip button click using its ID
         findViewById<LinearLayout>(R.id.skip_button).setOnClickListener {
-            val intent = Intent(this, Welcome_screen::class.java)
+            val intent = Intent(this, getstartedpage::class.java)
             startActivity(intent)
         }
     }
