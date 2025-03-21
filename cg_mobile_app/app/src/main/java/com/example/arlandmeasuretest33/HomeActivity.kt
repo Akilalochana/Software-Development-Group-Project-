@@ -212,15 +212,24 @@ class HomeActivity : AppCompatActivity() {
     private fun setupRealTimeUpdates() {
         val currentUser = auth.currentUser ?: return
 
+        // Log authentication method to debug
+        val authMethod = currentUser.providerData.firstOrNull()?.providerId ?: "unknown"
+        android.util.Log.d("HomeActivity", "Auth method: $authMethod, UID: ${currentUser.uid}")
+
         // First, get all gardens for the current user
         val userGardensPath = "user_data/${currentUser.uid}/user_gardens"
 
+        // Log the path we're checking
+        android.util.Log.d("HomeActivity", "Checking path: $userGardensPath")
+
+        // Check if the user has any gardens
         db.collection(userGardensPath)
             .get()
             .addOnSuccessListener { gardens ->
                 if (!gardens.isEmpty) {
                     // Get the first garden (or you could show a selection to the user)
                     val firstGarden = gardens.documents[0].id
+                    android.util.Log.d("HomeActivity", "Found garden: $firstGarden")
 
                     // Now listen to plants in this garden
                     val userPlantsPath = "$userGardensPath/$firstGarden/plants"
@@ -229,6 +238,7 @@ class HomeActivity : AppCompatActivity() {
                     db.collection(userPlantsPath)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
+                                android.util.Log.e("HomeActivity", "Error listening for plants: ${error.message}")
                                 android.widget.Toast.makeText(
                                     this,
                                     "Error listening for plant updates: ${error.message}",
@@ -240,17 +250,21 @@ class HomeActivity : AppCompatActivity() {
                             if (snapshot != null && !snapshot.isEmpty) {
                                 // Get the first plant document
                                 val plantDoc = snapshot.documents[0]
+                                android.util.Log.d("HomeActivity", "Found plant: ${plantDoc.id}, data: ${plantDoc.data}")
                                 updatePlantUI(plantDoc.data)
                             } else {
+                                android.util.Log.d("HomeActivity", "No plants found")
                                 updateEmptyPlantUI()
                             }
                         }
                 } else {
                     // No gardens found
+                    android.util.Log.d("HomeActivity", "No gardens found")
                     updateEmptyPlantUI()
                 }
             }
             .addOnFailureListener { exception ->
+                android.util.Log.e("HomeActivity", "Error retrieving gardens: ${exception.message}")
                 android.widget.Toast.makeText(
                     this,
                     "Error retrieving gardens: ${exception.message}",
@@ -281,7 +295,7 @@ class HomeActivity : AppCompatActivity() {
         plantIcon.setImageResource(R.drawable.aloe_vera)
     }
 
-    // Add this function to update the UI with plant data
+    // Function to update the UI with plant data
     private fun updatePlantUI(plantData: Map<String, Any>?) {
         plantData?.let { data ->
             // Get plant name
@@ -333,11 +347,19 @@ class HomeActivity : AppCompatActivity() {
             }
 
             // Update area size info
-            // Update area size info
             val areaTextView = findViewById<TextView>(R.id.area_size)
-            val area = data["area"] as? Double ?: 0.0
+            // Handle different possible number types from Firestore
+            val area = when (val areaValue = data["area"]) {
+                is Double -> areaValue
+                is Float -> areaValue.toDouble()
+                is Long -> areaValue.toDouble()
+                is Int -> areaValue.toDouble()
+                is String -> areaValue.toDoubleOrNull() ?: 0.0
+                else -> 0.0
+            }
             val roundedArea = Math.round(area * 100.0) / 100.0  // Round to 2 decimal places
             areaTextView.text = "$roundedArea sq.m"
+
             // Update growth period info
             val growthPeriodTextView = findViewById<TextView>(R.id.growth_period)
             growthPeriodTextView.text = "$growthPeriod days"
