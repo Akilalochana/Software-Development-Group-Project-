@@ -215,8 +215,8 @@ class PlantRecommendationActivity : AppCompatActivity() {
             try {
                 val requestOptions = RequestOptions()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.img_carrot)  // Default placeholder while loading
-                    .error(R.drawable.img_carrot)  // Error placeholder if loading fails
+                    .placeholder(R.drawable.aloe_vera)  // Default placeholder while loading
+                    .error(R.drawable.aloe_vera)  // Error placeholder if loading fails
 
                 Glide.with(this)
                     .load(plant.imageRef)
