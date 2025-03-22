@@ -108,7 +108,7 @@
                     app:cardElevation="0dp"
                     app:cardBackgroundColor="#FFFFFF"
                     app:strokeWidth="1dp"
-                    app:strokeColor="#000000">
+                    app:strokeColor="#999999">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -365,6 +365,7 @@
                             android:paddingEnd="16dp"
                             app:strokeColor="#3498DB"
                             app:strokeWidth="1dp"
+                            app:rippleColor="#B3E6F2FF"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -435,6 +436,7 @@
                             android:paddingEnd="16dp"
                             app:strokeColor="#FF6B6B"
                             app:strokeWidth="1dp"
+                            app:rippleColor="#B3FFF0F0"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
@@ -505,6 +507,7 @@
                             android:paddingEnd="16dp"
                             app:strokeColor="#FFB142"
                             app:strokeWidth="1dp"
+                            app:rippleColor="#B3FFF9E6"
                             style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>

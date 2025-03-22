@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="#F5F5F5">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:background="#FFFFFF">
+        android:padding="16dp">
 
         <!-- Header Section -->
         <TextView
@@ -39,15 +39,15 @@
             app:layout_constraintEnd_toEndOf="parent"/>
 
 
-        <!-- Garden Info Card -->
+        <!-- Garden Info Card - Updated to match home screen style -->
         <androidx.cardview.widget.CardView
             android:id="@+id/gardenInfoCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="#E0EBE0"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF"
             android:layout_marginHorizontal="4dp"
             app:layout_constraintTop_toBottomOf="@id/subtitleText">
 
@@ -55,7 +55,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="16dp">
+
+                <!-- Section Header with Icon -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Garden Info"
+                        android:textSize="18sp"
+                        android:textColor="#4CAF50"
+                        android:textStyle="bold"
+                        android:layout_marginStart="12dp"/>
+                </LinearLayout>
 
                 <!-- Garden Name Field -->
                 <TextView
@@ -66,7 +86,6 @@
                     android:textColor="#000000"
                     android:textStyle="bold"/>
 
-                <!-- Fixed EditText with larger touch target -->
                 <EditText
                     android:id="@+id/gardenNameInput"
                     android:layout_width="match_parent"
@@ -89,7 +108,6 @@
                     android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
 
-                <!-- Fixed Spinner with larger touch target -->
                 <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -108,15 +126,16 @@
                 </FrameLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-        <!-- Location Features Card -->
+
+        <!-- Location Features Card - Updated to match home screen style -->
         <androidx.cardview.widget.CardView
             android:id="@+id/locationFeaturesCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="#E0EBE0"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF"
             android:layout_marginHorizontal="4dp"
             app:layout_constraintTop_toBottomOf="@id/gardenInfoCard">
 
@@ -124,7 +143,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="16dp">
 
                 <!-- Section Header with Icon -->
                 <LinearLayout
@@ -134,20 +153,29 @@
                     android:gravity="center_vertical"
                     android:layout_marginBottom="16dp">
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_sprout"
-                        android:contentDescription="Location Features Icon"/>
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        app:cardBackgroundColor="#E0EBE0"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_sprout"
+                            android:contentDescription="Location Features Icon"/>
+                    </androidx.cardview.widget.CardView>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Location Features"
-                        android:textSize="20sp"
-                        android:textColor="#000000"
+                        android:textSize="18sp"
+                        android:textColor="#4CAF50"
                         android:textStyle="bold"
-                        android:layout_marginStart="8dp"/>
+                        android:layout_marginStart="12dp"/>
                 </LinearLayout>
 
                 <!-- First Row - Climate and Rainfall -->
@@ -165,13 +193,13 @@
                         android:layout_marginEnd="8dp"
                         app:cardCornerRadius="8dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardBackgroundColor="#F5F5F5">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:padding="16dp">
+                            android:padding="12dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -200,13 +228,13 @@
                         android:layout_marginStart="8dp"
                         app:cardCornerRadius="8dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardBackgroundColor="#F5F5F5">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:padding="16dp">
+                            android:padding="12dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -227,7 +255,7 @@
                     </androidx.cardview.widget.CardView>
                 </LinearLayout>
 
-                <!-- Second Row - Soil Type and Elevation -->
+                <!-- Second Row - Soil Type and Sunlight -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -241,13 +269,13 @@
                         android:layout_marginEnd="8dp"
                         app:cardCornerRadius="8dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardBackgroundColor="#F5F5F5">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:padding="16dp">
+                            android:padding="12dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -267,7 +295,7 @@
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
-                    <!-- Elevation Box -->
+                    <!-- Sunlight Box -->
                     <androidx.cardview.widget.CardView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -275,13 +303,13 @@
                         android:layout_marginStart="8dp"
                         app:cardCornerRadius="8dp"
                         app:cardElevation="0dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        app:cardBackgroundColor="#F5F5F5">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:padding="16dp">
+                            android:padding="12dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -304,6 +332,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- Gardening Tips Card - Updated to match home screen style -->
         <androidx.cardview.widget.CardView
             android:id="@+id/gardeningTipsCard"
             android:layout_width="match_parent"
@@ -311,8 +340,8 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="12dp"
-            app:cardElevation="0dp"
-            app:cardBackgroundColor="#E0EBE0"
+            app:cardElevation="2dp"
+            app:cardBackgroundColor="#FFFFFF"
             android:layout_marginHorizontal="4dp"
             app:layout_constraintTop_toBottomOf="@id/locationFeaturesCard"
             app:layout_constraintBottom_toTopOf="@id/createButton">
@@ -321,40 +350,51 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="16dp">
 
-                <!-- Section Header -->
+                <!-- Section Header with Icon -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
 
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/ic_lightbulb"
-                        android:contentDescription="Gardening Tips Icon"/>
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        app:cardBackgroundColor="#FFF9E6"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_lightbulb"
+                            android:contentDescription="Gardening Tips Icon"/>
+                    </androidx.cardview.widget.CardView>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Gardening Tips"
                         android:textSize="18sp"
-                        android:textColor="#000000"
+                        android:textColor="#FFB142"
                         android:textStyle="bold"
-                        android:layout_marginStart="8dp"/>
+                        android:layout_marginStart="12dp"/>
                 </LinearLayout>
+
                 <!-- Sunlight Requirements -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginTop="8dp">
 
                     <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@drawable/ic_sun"
                         android:contentDescription="Sun Icon"/>
 
@@ -362,7 +402,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginStart="16dp">
+                        android:layout_marginStart="12dp">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -390,8 +430,8 @@
                     android:layout_marginTop="16dp">
 
                     <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@drawable/ic_water_drop"
                         android:contentDescription="Water Drop Icon"/>
 
@@ -399,7 +439,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginStart="16dp">
+                        android:layout_marginStart="12dp">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -427,8 +467,8 @@
                     android:layout_marginTop="16dp">
 
                     <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@drawable/ic_soil"
                         android:contentDescription="Soil Icon"/>
 
@@ -436,7 +476,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginStart="16dp">
+                        android:layout_marginStart="12dp">
 
                         <TextView
                             android:layout_width="match_parent"
@@ -458,28 +498,20 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- XML Layout for Create Garden Button -->
-        <!-- Replace the existing Create Garden button with this -->
-        <LinearLayout
+        <!-- Continue Button - Style matches home screen buttons -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/createButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="56dp"
             android:layout_marginTop="16dp"
-            android:orientation="horizontal"
+            android:text="Continue"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            app:backgroundTint="#4CAF50"
+            style="@style/Widget.MaterialComponents.Button"
             app:layout_constraintTop_toBottomOf="@id/gardeningTipsCard"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/createButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Continue"
-                android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                app:backgroundTint="#4CAF50"
-                style="@style/Widget.MaterialComponents.Button" />
-        </LinearLayout>
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="16dp"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
