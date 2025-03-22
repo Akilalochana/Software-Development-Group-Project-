@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1B4D3E"
+    android:background="#FFFFFF"
     android:padding="16dp">
 
     <ImageButton
@@ -14,46 +14,9 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_back"
         android:contentDescription="Back"
+        app:tint="#2E7D32"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-
-    <!-- Add this to activity_weather.xml, positioned at the bottom center -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/wateringCycleButton"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_marginBottom="24dp"
-        app:cardBackgroundColor="#2A5F4E"
-        app:cardCornerRadius="24dp"
-        app:cardElevation="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Watering Cycle"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"/>
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:layout_marginStart="8dp"
-                android:src="@drawable/ic_arrowright"
-                android:contentDescription="Right Arrow"/>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
 
     <TextView
         android:id="@+id/cityNameText"
@@ -61,8 +24,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:text="Colombo"
-        android:textColor="@android:color/white"
-        android:textSize="24sp"
+        android:textColor="#2E7D32"
+        android:textSize="28sp"
+        android:fontFamily="sans-serif-medium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -71,18 +35,19 @@
         android:id="@+id/temperatureText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="21°"
-        android:textColor="@android:color/white"
-        android:textSize="72sp"
+        android:textColor="#333333"
+        android:textSize="80sp"
+        android:fontFamily="sans-serif-light"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cityNameText" />
 
     <ImageView
         android:id="@+id/weatherIcon"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_marginStart="8dp"
         app:layout_constraintStart_toEndOf="@id/temperatureText"
         app:layout_constraintTop_toTopOf="@id/temperatureText" />
@@ -92,8 +57,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Partly Cloudy"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
+        android:textColor="#4CAF50"
+        android:textSize="18sp"
+        android:fontFamily="sans-serif"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/temperatureText" />
@@ -103,8 +69,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="H:29° L:15°"
-        android:textColor="@android:color/white"
+        android:textColor="#757575"
         android:textSize="16sp"
+        android:fontFamily="sans-serif"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/conditionText" />
@@ -114,18 +81,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="6-DAY FORECAST"
-        android:textColor="#80FFFFFF"
-        android:textSize="12sp"
-        android:layout_marginTop="32dp"
+        android:textColor="#2E7D32"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-medium"
+        android:layout_marginTop="40dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/highLowText" />
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        app:cardBackgroundColor="#2A5F4E"
-        app:cardCornerRadius="12dp"
+        android:layout_marginTop="12dp"
+        app:cardBackgroundColor="#E8F5E9"
+        app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
         app:layout_constraintTop_toBottomOf="@id/forecastLabel">
 
@@ -135,9 +103,47 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="visible"
+            android:paddingVertical="8dp"
             android:nestedScrollingEnabled="false"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/wateringCycleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:layout_marginBottom="24dp"
+        app:cardBackgroundColor="#4CAF50"
+        app:cardCornerRadius="28dp"
+        app:cardElevation="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Watering Cycle"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif-medium"/>
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/ic_arrowright"
+                android:contentDescription="Right Arrow"/>
+        </LinearLayout>
     </androidx.cardview.widget.CardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
