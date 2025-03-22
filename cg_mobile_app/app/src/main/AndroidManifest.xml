@@ -101,6 +101,10 @@
         <activity
             android:name=".PlantInformationDetailActivity"
             android:exported="false" />
+        <activity
+            android:name=".ChatbotActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>
