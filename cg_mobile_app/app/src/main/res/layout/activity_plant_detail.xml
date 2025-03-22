@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    tools:context=".PlantDetailActivity">
+
+    <!-- Plant Image - Takes up top portion of screen (now extended upwards) -->
+    <ImageView
+        android:id="@+id/plantImage"
+        android:layout_width="match_parent"
+        android:layout_height="320dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_plant"
+        android:contentDescription="Plant image" />
+
+    <!-- Scrollable Content Container -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="300dp"
+        android:background="@drawable/rounded_top_white_bg"
+        android:elevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Plant Name Section - Modified to include save button -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp">
+                
+                <TextView
+                    android:id="@+id/plantName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Proin semper ornare"
+                    android:textColor="#222222"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@id/saveButton" />
+                
+                <Button
+                    android:id="@+id/saveButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="Save"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:paddingHorizontal="20dp"
+                    android:background="@drawable/green_button_background" />
+            </RelativeLayout>
+
+            <!-- Plant Subtitle -->
+            <TextView
+                android:id="@+id/plantSubtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Lectus mauris dolor (In rutrum)"
+                android:textColor="#666666"
+                android:textSize="16sp" />
+
+            <!-- Plant Details Grid -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#F5F9F5">
+
+                <GridLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:columnCount="2"
+                    android:rowCount="5"
+                    android:padding="16dp">
+
+                    <!-- Cost per unit -->
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="Cost per Unit:"
+                        android:textColor="#666666"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:id="@+id/costValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="Rs. 9.75"
+                        android:textColor="#222222"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="end"
+                        android:layout_marginBottom="12dp"/>
+
+                    <!-- Fertilizer -->
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="Fertilizer Required:"
+                        android:textColor="#666666"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:id="@+id/fertilizerValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="22"
+                        android:textColor="#222222"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="end"
+                        android:layout_marginBottom="12dp"/>
+
+                    <!-- Growth Period -->
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="Growth Period:"
+                        android:textColor="#666666"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:id="@+id/growthPeriodValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="85 days"
+                        android:textColor="#222222"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="end"
+                        android:layout_marginBottom="12dp"/>
+
+                    <!-- Expected Yield -->
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="Expected Yield:"
+                        android:textColor="#666666"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="12dp"/>
+
+                    <TextView
+                        android:id="@+id/yieldValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="3500 kg"
+                        android:textColor="#222222"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="end"
+                        android:layout_marginBottom="12dp"/>
+
+                    <!-- Space Required -->
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="Space Required:"
+                        android:textColor="#666666"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:id="@+id/spaceValue"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_rowWeight="1"
+                        android:text="90 x 60"
+                        android:textColor="#222222"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:gravity="end"/>
+                </GridLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Plant Description -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Description"
+                android:textColor="#222222"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/plantDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="6dp"
+                android:text="Nam eu varius sapien. Vestibulum nisi metus, aliquet et urna a, laoreet fermentum dui. Proin sed urna massa. Proin quis elementum mi imperdiet risim. Curabitur consequat, libero gravida."
+                android:textColor="#444444"
+                android:textSize="16sp" />
+
+            <!-- Care Instructions Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Care Instructions"
+                    android:textColor="#222222"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <!-- Care items -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_water"
+                        android:contentDescription="Watering" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:text="Water regularly, keeping soil moist"
+                        android:textColor="#444444"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_sun"
+                        android:contentDescription="Sunlight" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:text="Partial to full sunlight"
+                        android:textColor="#444444"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp">
+
+                    <ImageView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:src="@drawable/ic_soil"
+                        android:contentDescription="Soil" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:text="Well-drained, fertile soil"
+                        android:textColor="#444444"
+                        android:textSize="16sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout> 
