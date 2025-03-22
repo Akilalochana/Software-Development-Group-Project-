@@ -22,6 +22,10 @@ import okhttp3.*
 import okhttp3.RequestBody.Companion.asRequestBody
 import com.google.firebase.firestore.FirebaseFirestore
 import com.airbnb.lottie.LottieAnimationView
+import org.apache.poi.xwpf.usermodel.XWPFTableCell
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+
 
 val db = FirebaseFirestore.getInstance()
 
@@ -29,11 +33,15 @@ class Report : AppCompatActivity() {
     private lateinit var lottieView: LottieAnimationView
     private lateinit var pdfImageView: ImageView
     private lateinit var downloadButton: ImageView  // Change to ImageView
+    private lateinit var auth: FirebaseAuth
     private var pdfFilePath: String = ""
     private var plantSpacing: Double = 0.0 // Space needed per plant in sq meters
     private var totalSqm: Double = 0.0 // Total area in sq meters
     private var numberOfPlants: Int = 0 // Calculated number of plants
     private var perimeter: Double = 0.0 // Perimeter from AR
+    private var currentUser: FirebaseUser? = null
+    private var userPlantName: String = ""
+    private var userDistrict: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,19 +71,80 @@ class Report : AppCompatActivity() {
         // Get AR measurements from intent and calculate number of plants
         getArMeasurementsAndCalculatePlants()
 
-        // Get district and crop name (could be from intent or user selection)
-        // For now, we'll use "Colombo" and "Carrots" as an example
-        val district = "Colombo"
-        val cropName = "Carrots"
+        // Initialize Firebase
+        auth = FirebaseAuth.getInstance()
+        currentUser =auth.currentUser
+        // Get garden name from SharedPreferences instead of intent
+        val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+        val gardenName = sharedPreferences.getString("GARDEN_NAME", "") ?: ""
+        val plantName = sharedPreferences.getString("CURRENT_PLANT_NAME", "") ?: ""
+//        var district = ""
 
-        // Fetch crop data from Firebase
-        fetchCropDataFromFirebase(district, cropName) { replacements ->
-            // Start Processing in Background
-            Thread {
-                modifyWordDocument(templatePath, outputDocxPath, imagePath, replacements)
-                convertWordToPdf(outputDocxPath, pdfFilePath)
-                // UI update happens inside convertWordToPdf after successful conversion
-            }.start()
+//        // Reference to the specific garden document's plants subcollectionk
+//        currentUser?.let {
+//            db.collection("user_data")
+//                .document(it.uid)
+//                .collection("user_gardens")
+//                .document(gardenName)
+//                .get()
+//                .addOnSuccessListener { document ->
+//                    district = document.getString("district").toString()
+//                    println("District: $district")
+//                }
+//                .addOnFailureListener { e ->
+//                    println("Error: ${e.message}")
+//                }
+//        }
+
+        if (gardenName.isBlank()) {
+            Log.e("MainActivity", "Garden name is blank, cannot save measurements")
+            Toast.makeText(this, "Garden name not found, measurements not saved", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        Log.d("MainActivity", "Using garden name from SharedPreferences: '$gardenName'")
+
+        // Start by getting the district first
+        currentUser?.let { user ->
+            val userDocRef = db.collection("user_data")
+                .document(user.uid)
+                .collection("user_gardens")
+                .document(gardenName)
+
+            userDocRef.get()
+                .addOnSuccessListener { document ->
+                    val district = document.getString("district") ?: ""
+
+                    // Now that we have the district, fetch plant data
+                    getUserPlantData(district, gardenName, plantName) { success ->
+                        if (success) {
+                            println("hello")
+                            // Proceed to fetch crop data and process document
+                            fetchCropDataFromFirebase(userDistrict, userPlantName) { replacements ->
+                                println("Replacements"+replacements)
+                                Thread {
+                                    modifyWordDocument(
+                                        templatePath,
+                                        outputDocxPath,
+                                        imagePath,
+                                        replacements
+                                    )
+                                    convertWordToPdf(outputDocxPath, pdfFilePath)
+                                }.start()
+                            }
+                        } else {
+                            runOnUiThread {
+                                lottieView.visibility = View.GONE
+                                Toast.makeText(this, "Error loading plant data", Toast.LENGTH_LONG)
+                                    .show()
+                            }
+                        }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Firestore", "Error getting district: ${e.message}")
+                    Toast.makeText(this, "Failed to load garden details", Toast.LENGTH_SHORT).show()
+                }
         }
 
         // Set Download Button Click Event
@@ -83,6 +152,61 @@ class Report : AppCompatActivity() {
             downloadPdfToDownloads(pdfFilePath, "Ceilão Grid Report.pdf")
         }
     }
+
+    private fun getUserPlantData(
+        district: String,
+        userGardenName: String,
+        plant: String,
+        callback: (Boolean) -> Unit
+    ) {
+        if (currentUser == null) {
+            Log.e("USER_DATA", "No user logged in")
+            callback(false)
+            return
+        }
+        println(district+userGardenName+plant)
+        // Check if data is passed through Intent
+        val intentPlantName = intent.getStringExtra("PLANT_NAME")
+        if (!intentPlantName.isNullOrEmpty()) {
+            userPlantName = intentPlantName
+            userDistrict = intent.getStringExtra("DISTRICT") ?: district
+            Log.d("USER_DATA", "Using plant data from intent: $userDistrict/$userPlantName")
+            callback(true)
+            return
+        }
+
+        val userId = currentUser!!.uid
+        val plantDocRef = db.collection("user_data")
+            .document(userId)
+            .collection("user_gardens")
+            .document(userGardenName)
+            .collection("plants")
+
+        // Get all documents in "plants" collection and pick the first one
+        plantDocRef.get()
+            .addOnSuccessListener { querySnapshot ->
+                if (!querySnapshot.isEmpty) {
+                    val firstPlantDoc = querySnapshot.documents.first()
+                    userPlantName = firstPlantDoc.id
+                    userDistrict = district
+                    Log.d("USER_DATA", "Found user plant: $userDistrict/$userPlantName")
+                    callback(true)
+                } else {
+                    // No plant documents, fallback
+                    userPlantName = plant
+                    userDistrict = district
+                    Log.d("USER_DATA", "No plants found, using fallback: $userDistrict/$userPlantName")
+                    callback(true)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("USER_DATA", "Error getting plants: ${e.message}")
+                userPlantName = plant
+                userDistrict = district
+                callback(true)
+            }
+    }
+
 
     // Add the onBackPressed method here
     override fun onBackPressed() {
@@ -99,7 +223,7 @@ class Report : AppCompatActivity() {
             .show()
     }
 
-    // Function to fetch crop data from Firestore
+    // Modify the fetchCropDataFromFirebase function to match your template.docx placeholders
     private fun fetchCropDataFromFirebase(district: String, cropName: String, callback: (Map<String, String>) -> Unit) {
         val replacementsMap = mutableMapOf<String, String>()
 
@@ -116,6 +240,7 @@ class Report : AppCompatActivity() {
 
         // Reference to the crop document in Firestore
         val cropRef = db.collection("districts").document(district).collection("crops").document(cropName)
+        println("abc" + cropRef)
 
         cropRef.get()
             .addOnSuccessListener { document ->
@@ -124,26 +249,58 @@ class Report : AppCompatActivity() {
                     val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd").format(java.util.Date())
 
                     // Add date to replacements
-                    replacementsMap["{{date}}"] to currentDate
+                    replacementsMap["{{date}}"] = currentDate
 
                     // Add plant type to replacements
                     replacementsMap["{{plant_type}}"] = "$district/$cropName"
 
-                    // Map Firestore fields to replacements
-                    replacementsMap["{{description}}"] = document.getString("description") ?: defaultValues["description"]!!
-                    replacementsMap["{{estimated_expenses_per_Month}}"] = document.getString("estimated_expenses_per_Month") ?: defaultValues["estimated_expenses_per_Month"]!!
-                    replacementsMap["{{expected_income_per_month}}"] = document.getString("expected_income_per_month") ?: defaultValues["expected_income_per_month"]!!
-                    replacementsMap["{{expected_yield_per_plant}}"] = document.getString("expected_yield_per_plant") ?: defaultValues["expected_yield_per_plant"]!!
-                    replacementsMap["{{market_price_per_unit}}"] = document.getString("market_price_per_unit") ?: defaultValues["market_price_per_unit"]!!
-                    replacementsMap["{{growth_cycle_duration}}"] = document.getString("growth_cycle_duration") ?: defaultValues["growth_cycle_duration"]!!
+                    // Get basic crop data from Firestore
+                    val description = document.getString("description") ?: defaultValues["description"]!!
+                    val estimatedExpenses = document.getString("estimated_expenses_per_Month") ?: defaultValues["estimated_expenses_per_Month"]!!
+                    val expectedIncome = document.getString("expected_income_per_month") ?: defaultValues["expected_income_per_month"]!!
+                    val expectedYieldPerPlant = document.getString("expected_yield_per_plant") ?: defaultValues["expected_yield_per_plant"]!!
+                    val marketPricePerUnit = document.getString("market_price_per_unit") ?: defaultValues["market_price_per_unit"]!!
+                    val growthCycleDuration = document.getString("growth_cycle_duration") ?: defaultValues["growth_cycle_duration"]!!
+
+                    // Basic crop information
+                    replacementsMap["{{description}}"] = description
+                    replacementsMap["{{estimated_expenses_per_Month}}"] = estimatedExpenses
+                    replacementsMap["{{expected_income_per_month}}"] = expectedIncome
+                    replacementsMap["{{expected_yield_per_plant}}"] = expectedYieldPerPlant
+                    replacementsMap["{{market_price_per_unit}}"] = marketPricePerUnit
+                    replacementsMap["{{growth_cycle_duration}}"] = growthCycleDuration
 
                     // Get plant spacing for calculation
-                    val spacing = document.getDouble("spacing") ?: defaultValues["spacing"]!!.toDouble()
+                    // Parse the spacing format (e.g., "25*5" from cm to square meters)
+                    val spacingString = document.getString("spacing") ?: defaultValues["spacing"]!!
+                    val plantSpacing = if (spacingString.contains("*")) {
+                        // Format like "25*5" (in cm)
+                        val dimensions = spacingString.split("*")
+                        if (dimensions.size == 2) {
+                            try {
+                                // Convert from cm² to m²
+                                val length = dimensions[0].trim().toDouble() / 100
+                                val width = dimensions[1].trim().toDouble() / 100
+                                length * width
+                            } catch (e: Exception) {
+                                defaultValues["spacing"]!!.toDouble()
+                            }
+                        } else {
+                            defaultValues["spacing"]!!.toDouble()
+                        }
+                    } else {
+                        // Just a single value
+                        try {
+                            spacingString.toDouble()
+                        } catch (e: Exception) {
+                            defaultValues["spacing"]!!.toDouble()
+                        }
+                    }
 
                     // Update the plant spacing value in the class
-                    plantSpacing = spacing
+                    this.plantSpacing = plantSpacing
 
-                    // Recalculate number of plants based on the new spacing value
+                    // Calculate number of plants based on the area
                     if (totalSqm > 0) {
                         numberOfPlants = (totalSqm / plantSpacing).toInt()
                         if (numberOfPlants < 1 && totalSqm > 0) {
@@ -151,11 +308,66 @@ class Report : AppCompatActivity() {
                         }
                     }
 
-                    // Add calculated values to replacements
-                    replacementsMap["{{sqm}}"] = String.format("%.2f m²", totalSqm)
+                    // Add basic area information to replacements
+                    replacementsMap["{{sqm}}"] = String.format("%.2f", totalSqm)
                     replacementsMap["{{number_of_plants}}"] = numberOfPlants.toString()
 
-                    Log.d("FIREBASE", "✅ Successfully fetched crop data for $district/$cropName")
+                    // Extract numeric values for calculations
+                    val seedCostPerUnit = 50.0 // Cost per plant in LKR (from "cost_per_unit" field)
+                    val fertilizerCostPerUnit = document.getString("Fertilizers")?.toDoubleOrNull() ?: 2.0
+                    val yieldPerPlant = expectedYieldPerPlant.replace("kg", "").trim().toDoubleOrNull() ?: 0.15
+                    val pricePerKg = marketPricePerUnit.replace("LKR", "").trim().toDoubleOrNull() ?: 150.0
+
+                    // ---- COST BREAKDOWN CALCULATIONS ----
+
+                    // Seeds/Plants costs
+                    val seedsQuantity = numberOfPlants
+                    val seedsTotalCost = seedCostPerUnit * seedsQuantity
+
+                    // Fertilizers costs (10kg as specified)
+                    val fertilizerQuantity = 10
+                    val fertilizerTotalCost = fertilizerCostPerUnit * fertilizerQuantity
+
+                    // Total costs
+                    val totalCost = seedsTotalCost + fertilizerTotalCost
+
+                    // ---- REVENUE ESTIMATION CALCULATIONS ----
+
+                    // Total yield
+                    val totalYield = yieldPerPlant * numberOfPlants
+
+                    // Total revenue
+                    val totalRevenue = totalYield * pricePerKg
+
+                    // Net profit
+                    val netProfit = totalRevenue - totalCost
+
+                    // ---- ADD CALCULATIONS TO TEMPLATE PLACEHOLDERS ----
+
+                    // Cost table - Seeds/Plants row
+                    replacementsMap["{{}}"] = String.format("%.2f", seedCostPerUnit) // Cost per unit
+                    replacementsMap["{{}}"] = seedsQuantity.toString() // Quantity
+                    replacementsMap["{{}}"] = String.format("%.2f", seedsTotalCost) // Total Cost
+
+                    // Cost table - Fertilizers row
+                    replacementsMap["{{}}"] = String.format("%.2f", fertilizerCostPerUnit) // Cost per unit
+                    replacementsMap["{{}}"] = fertilizerQuantity.toString() // Quantity
+                    replacementsMap["{{}}"] = String.format("%.2f", fertilizerTotalCost) // Total Cost
+
+                    // Cost table - Total Cost
+                    replacementsMap["{{}}"] = String.format("%.2f", totalCost) // Total Cost at bottom of table
+
+                    // Revenue table
+                    replacementsMap["{{}}"] = String.format("%.2f", totalYield) // Quantity
+                    replacementsMap["{{}}"] = String.format("%.2f", pricePerKg) // Price per Unit
+                    replacementsMap["{{}}"] = String.format("%.2f", totalRevenue) // Total Revenue
+
+                    // Profit calculation
+                    replacementsMap["{{}}"] = String.format("%.2f", totalRevenue) // Total Revenue
+                    replacementsMap["{{}}"] = String.format("%.2f", totalCost) // Total Cost
+                    replacementsMap["{{}}"] = String.format("%.2f", netProfit) // Net Profit
+
+                    Log.d("FIREBASE", "✅ Successfully calculated all values for the report")
                 } else {
                     Log.e("FIREBASE", "No data found for $district/$cropName")
                     // Use default values if no document exists
@@ -173,7 +385,8 @@ class Report : AppCompatActivity() {
             }
     }
 
-    // Helper function to set default replacement values
+
+    // Update the setDefaultReplacements function with simplified replacement values
     private fun setDefaultReplacements(
         replacementsMap: MutableMap<String, String>,
         district: String,
@@ -182,6 +395,7 @@ class Report : AppCompatActivity() {
     ) {
         val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd").format(java.util.Date())
 
+        // Basic info
         replacementsMap["{{date}}"] = currentDate
         replacementsMap["{{plant_type}}"] = "$district/$cropName"
         replacementsMap["{{description}}"] = defaultValues["description"]!!
@@ -190,8 +404,71 @@ class Report : AppCompatActivity() {
         replacementsMap["{{expected_yield_per_plant}}"] = defaultValues["expected_yield_per_plant"]!!
         replacementsMap["{{market_price_per_unit}}"] = defaultValues["market_price_per_unit"]!!
         replacementsMap["{{growth_cycle_duration}}"] = defaultValues["growth_cycle_duration"]!!
-        replacementsMap["{{sqm}}"] = String.format("%.2f m²", totalSqm)
+
+        // Set a minimum area if not available
+        if (totalSqm <= 0) {
+            totalSqm = 1.0
+        }
+
+        // Calculate number of plants based on the default spacing
+        val plantSpacing = defaultValues["spacing"]!!.toDouble()
+        numberOfPlants = (totalSqm / plantSpacing).toInt()
+        if (numberOfPlants < 1) {
+            numberOfPlants = 1
+        }
+
+        replacementsMap["{{sqm}}"] = String.format("%.2f", totalSqm)
         replacementsMap["{{number_of_plants}}"] = numberOfPlants.toString()
+
+        // Default values for calculations
+        val seedCostPerUnit = 50.0 // Default cost per plant in LKR
+        val fertilizerCostPerUnit = 2.0 // Default cost per kg in LKR
+        val yieldPerPlant = 0.15 // Default yield in kg per plant
+        val pricePerKg = 150.0 // Default price per kg in LKR
+
+        // Seeds/Plants costs
+        val seedsQuantity = numberOfPlants
+        val seedsTotalCost = seedCostPerUnit * seedsQuantity
+
+        // Fertilizers costs
+        val fertilizerQuantity = 10
+        val fertilizerTotalCost = fertilizerCostPerUnit * fertilizerQuantity
+
+        // Total costs
+        val totalCost = seedsTotalCost + fertilizerTotalCost
+
+        // Total yield
+        val totalYield = yieldPerPlant * numberOfPlants
+
+        // Total revenue
+        val totalRevenue = totalYield * pricePerKg
+
+        // Net profit
+        val netProfit = totalRevenue - totalCost
+
+        // Fill all the empty placeholders with calculated values
+        // Cost table - Seeds/Plants row
+        replacementsMap["{{}}"] = String.format("%.2f", seedCostPerUnit) // Cost per unit
+        replacementsMap["{{}}"] = seedsQuantity.toString() // Quantity
+        replacementsMap["{{}}"] = String.format("%.2f", seedsTotalCost) // Total Cost
+
+        // Cost table - Fertilizers row
+        replacementsMap["{{}}"] = String.format("%.2f", fertilizerCostPerUnit) // Cost per unit
+        replacementsMap["{{}}"] = fertilizerQuantity.toString() // Quantity
+        replacementsMap["{{}}"] = String.format("%.2f", fertilizerTotalCost) // Total Cost
+
+        // Cost table - Total Cost
+        replacementsMap["{{}}"] = String.format("%.2f", totalCost) // Total Cost at bottom of table
+
+        // Revenue table
+        replacementsMap["{{}}"] = String.format("%.2f", totalYield) // Quantity
+        replacementsMap["{{}}"] = String.format("%.2f", pricePerKg) // Price per Unit
+        replacementsMap["{{}}"] = String.format("%.2f", totalRevenue) // Total Revenue
+
+        // Profit calculation
+        replacementsMap["{{}}"] = String.format("%.2f", totalRevenue) // Total Revenue
+        replacementsMap["{{}}"] = String.format("%.2f", totalCost) // Total Cost
+        replacementsMap["{{}}"] = String.format("%.2f", netProfit) // Net Profit
     }
 
     // Function to get AR measurements from intent and calculate plants
@@ -265,7 +542,7 @@ class Report : AppCompatActivity() {
         }
     }
 
-    // Function to modify Word template
+    // Improved function to modify Word document with special handling for tables
     private fun modifyWordDocument(
         templatePath: String,
         outputPath: String,
@@ -275,14 +552,17 @@ class Report : AppCompatActivity() {
         try {
             val doc = XWPFDocument(FileInputStream(templatePath))
 
-            // Replace text in paragraphs
+            // Replace named placeholders in paragraphs
             for (paragraph in doc.paragraphs) {
                 val text = paragraph.text
                 var modifiedText = text
 
                 for ((key, value) in replacementsMap) {
-                    if (modifiedText.contains(key)) {
-                        modifiedText = modifiedText.replace(key, value)
+                    // Only replace named placeholders (those with text inside curly braces)
+                    if (key.contains("{") && key.contains("}") && key.length > 4) {
+                        if (modifiedText.contains(key)) {
+                            modifiedText = modifiedText.replace(key, value)
+                        }
                     }
                 }
 
@@ -291,6 +571,164 @@ class Report : AppCompatActivity() {
                         run.setText("", 0) // Clear existing text
                     }
                     paragraph.createRun().setText(modifiedText) // Set new text
+                }
+            }
+
+            // Handle tables separately
+            if (doc.tables.size >= 2) {
+                // Cost table is the first table (index 0)
+                val costTable = doc.tables[0]
+
+                // Seeds/Plants row - Row 1 (index 1)
+                if (costTable.rows.size > 1) {
+                    val seedsRow = costTable.rows[1]
+
+                    // Cost per unit - Cell 1 (index 1)
+                    if (seedsRow.tableCells.size > 1) {
+                        setCellText(seedsRow.getCell(1), String.format("%.2f", 50.0) + " LKR")
+                    }
+
+                    // Quantity - Cell 2 (index 2)
+                    if (seedsRow.tableCells.size > 2) {
+                        setCellText(seedsRow.getCell(2), numberOfPlants.toString())
+                    }
+
+                    // Total Cost - Cell 3 (index 3)
+                    if (seedsRow.tableCells.size > 3) {
+                        val seedsTotalCost = 50.0 * numberOfPlants
+                        setCellText(seedsRow.getCell(3), String.format("%.2f", seedsTotalCost) + " LKR")
+                    }
+                }
+
+                // Fertilizers row - Row 2 (index 2)
+                if (costTable.rows.size > 2) {
+                    val fertRow = costTable.rows[2]
+
+                    // Cost per unit - Cell 1 (index 1)
+                    if (fertRow.tableCells.size > 1) {
+                        setCellText(fertRow.getCell(1), String.format("%.2f", 2.0) + " LKR")
+                    }
+
+                    // Quantity - Cell 2 (index 2)
+                    if (fertRow.tableCells.size > 2) {
+                        setCellText(fertRow.getCell(2), "10 Kg")
+                    }
+
+                    // Total Cost - Cell 3 (index 3)
+                    if (fertRow.tableCells.size > 3) {
+                        val fertTotalCost = 2.0 * 10
+                        setCellText(fertRow.getCell(3), String.format("%.2f", fertTotalCost) + " LKR")
+                    }
+                }
+
+                // Total Cost row - Row 3 (index 3)
+                if (costTable.rows.size > 3) {
+                    val totalRow = costTable.rows[3]
+
+                    // Total Cost - Cell 3 (index 3)
+                    if (totalRow.tableCells.size > 3) {
+                        val seedsTotalCost = 50.0 * numberOfPlants
+                        val fertTotalCost = 2.0 * 10
+                        val totalCost = seedsTotalCost + fertTotalCost
+                        setCellText(totalRow.getCell(3), String.format("%.2f", totalCost) + " LKR")
+                    }
+                }
+
+                // Revenue table is the second table (index 1)
+                val revenueTable = doc.tables[1]
+
+                // Expected Yield row - Row 1 (index 1)
+                if (revenueTable.rows.size > 1) {
+                    val yieldRow = revenueTable.rows[1]
+
+                    // Get expected yield per plant value
+                    val yieldPerPlantStr = replacementsMap["{{expected_yield_per_plant}}"] ?: "0.15"
+                    val yieldPerPlant = yieldPerPlantStr.replace("Kg per cycle", "").trim().toDoubleOrNull() ?: 0.15
+
+                    // Quantity - Cell 1 (index 1)
+                    if (yieldRow.tableCells.size > 1) {
+                        val totalYield = yieldPerPlant * numberOfPlants
+                        setCellText(yieldRow.getCell(1), String.format("%.2f", totalYield) + " Kg")
+                    }
+
+                    // Price per Unit - Cell 2 (index 2)
+                    if (yieldRow.tableCells.size > 2) {
+                        // Get market price per unit value
+                        val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
+                        val pricePerUnit = pricePerUnitStr.toDoubleOrNull() ?: 150.0
+                        setCellText(yieldRow.getCell(2), String.format("%.2f", pricePerUnit) + " LKR/Kg")
+                    }
+
+                    // Total Revenue - Cell 3 (index 3)
+                    if (yieldRow.tableCells.size > 3) {
+                        val totalYield = yieldPerPlant * numberOfPlants
+                        val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
+                        val pricePerUnit = pricePerUnitStr.toDoubleOrNull() ?: 150.0
+                        val totalRevenue = totalYield * pricePerUnit
+                        setCellText(yieldRow.getCell(3), String.format("%.2f", totalRevenue) + " LKR")
+                    }
+                }
+            }
+
+            // Find and process profit calculation paragraphs
+            for (i in doc.paragraphs.indices) {
+                val paragraph = doc.paragraphs[i]
+                val text = paragraph.text.trim()
+
+                // Total Revenue paragraph
+                if (text.startsWith("Total Revenue:")) {
+                    // Calculate total revenue
+                    val yieldPerPlantStr = replacementsMap["{{expected_yield_per_plant}}"] ?: "0.15"
+                    val yieldPerPlant = yieldPerPlantStr.replace("Kg per cycle", "").trim().toDoubleOrNull() ?: 0.15
+                    val totalYield = yieldPerPlant * numberOfPlants
+
+                    val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
+                    val pricePerUnit = pricePerUnitStr.toDoubleOrNull() ?: 150.0
+                    val totalRevenue = totalYield * pricePerUnit
+
+                    // Replace the paragraph text
+                    for (run in paragraph.runs) {
+                        run.setText("", 0)
+                    }
+                    paragraph.createRun().setText("Total Revenue: " + String.format("%.2f", totalRevenue) + " LKR")
+                }
+
+                // Total Cost paragraph
+                if (text.startsWith("Total Cost:")) {
+                    // Calculate total cost
+                    val seedsTotalCost = 50.0 * numberOfPlants
+                    val fertTotalCost = 2.0 * 10
+                    val totalCost = seedsTotalCost + fertTotalCost
+
+                    // Replace the paragraph text
+                    for (run in paragraph.runs) {
+                        run.setText("", 0)
+                    }
+                    paragraph.createRun().setText("Total Cost: " + String.format("%.2f", totalCost) + " LKR")
+                }
+
+                // Net Profit paragraph
+                if (text.startsWith("Net Profit:")) {
+                    // Calculate net profit
+                    val yieldPerPlantStr = replacementsMap["{{expected_yield_per_plant}}"] ?: "0.15"
+                    val yieldPerPlant = yieldPerPlantStr.replace("Kg per cycle", "").trim().toDoubleOrNull() ?: 0.15
+                    val totalYield = yieldPerPlant * numberOfPlants
+
+                    val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
+                    val pricePerUnit = pricePerUnitStr.toDoubleOrNull() ?: 150.0
+                    val totalRevenue = totalYield * pricePerUnit
+
+                    val seedsTotalCost = 50.0 * numberOfPlants
+                    val fertTotalCost = 2.0 * 10
+                    val totalCost = seedsTotalCost + fertTotalCost
+
+                    val netProfit = totalRevenue - totalCost
+
+                    // Replace the paragraph text
+                    for (run in paragraph.runs) {
+                        run.setText("", 0)
+                    }
+                    paragraph.createRun().setText("Net Profit: [Revenue - Cost] = " + String.format("%.2f", netProfit) + " LKR")
                 }
             }
 
@@ -321,6 +759,20 @@ class Report : AppCompatActivity() {
             Log.d("SUCCESS", "✅ Word Document Modified Successfully: $outputPath")
         } catch (e: IOException) {
             Log.e("ERROR", "Failed to modify Word document: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    // Helper function to set text in a table cell, clearing existing content first
+    private fun setCellText(cell: XWPFTableCell, text: String) {
+        // Clear existing paragraphs
+        if (cell.paragraphs.size > 0) {
+            val paragraph = cell.paragraphs[0]
+            paragraph.runs.forEach { run -> run.setText("", 0) }
+            paragraph.createRun().setText(text)
+        } else {
+            // Create new paragraph if needed
+            cell.addParagraph().createRun().setText(text)
         }
     }
 

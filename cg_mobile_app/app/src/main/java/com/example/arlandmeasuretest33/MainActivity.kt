@@ -151,7 +151,7 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("AR_PERIMETER", perimeter)
         intent.putExtra("PLANT_TYPE", "Carrot")
         intent.putExtra("SELECTED_DISTRICT", "Mannar")
-
+        println("Dumidu")
         startActivity(intent)
     }
     private fun showPlantInfoPopup() {

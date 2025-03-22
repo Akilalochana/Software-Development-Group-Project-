@@ -338,6 +338,12 @@ class PlantRecommendationActivity : AppCompatActivity() {
         try {
             Log.d(TAG, "Saving plant ${plant.name} to garden $gardenName for user $userId")
 
+            val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+            sharedPreferences.edit().apply {
+                putString("CURRENT_PLANT_NAME", plant.name)
+                apply()
+            }
+
             // Reference to the specific garden document's plants subcollection
             val gardenPlantsRef = db.collection("user_data")
                 .document(userId)
