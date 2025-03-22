@@ -32,6 +32,7 @@ class PricePredictionActivity : AppCompatActivity() {
     private lateinit var loadingProgressBar: ProgressBar
     private lateinit var errorTextView: TextView
     private lateinit var goToArButton: Button
+    private lateinit var shareButton: Button
 
     private val db = FirebaseFirestore.getInstance()
     private var currentPlantType: String = ""
@@ -60,6 +61,7 @@ class PricePredictionActivity : AppCompatActivity() {
         loadingProgressBar = findViewById(R.id.loadingProgressBar)
         errorTextView = findViewById(R.id.errorTextView)
         goToArButton = findViewById(R.id.continueButton)
+        shareButton = findViewById(R.id.shareButton)
 
         // Get plant type from intent
         val plantType = intent.getStringExtra("PLANT_TYPE") ?: ""
@@ -77,9 +79,15 @@ class PricePredictionActivity : AppCompatActivity() {
             goToArButton.setOnClickListener {
                 startARFeature(plantType)
             }
+
+            // Set up Share button click listener
+            shareButton.setOnClickListener {
+                sharePricePrediction()
+            }
         } else {
             showError("No plant selected")
             goToArButton.visibility = View.GONE
+            shareButton.visibility = View.GONE
         }
     }
 
@@ -223,6 +231,7 @@ class PricePredictionActivity : AppCompatActivity() {
 
                         // Show the AR button
                         goToArButton.visibility = View.VISIBLE
+                        shareButton.visibility = View.VISIBLE
 
                         showLoading(false)
                     } catch (e: Exception) {
@@ -287,6 +296,70 @@ class PricePredictionActivity : AppCompatActivity() {
         }
     }
 
+    private fun sharePricePrediction() {
+        // Get the plant name
+        val plantName = plantNameTextView.text.toString()
+
+        // Create share text content with all available price predictions
+        val shareText = buildString {
+            append("$plantName Price Prediction\n\n")
+            append("Current Date: ${currentDateTextView.text}\n")
+
+            // Next week prediction
+            if (nextWeekPriceTextView.text.isNotEmpty() && nextWeekPriceTextView.text != "No data") {
+                append("Next week: ${nextWeekPriceTextView.text}\n")
+            }
+
+            // Two weeks prediction
+            if (nextTwoWeeksPriceTextView.text.isNotEmpty() && nextTwoWeeksPriceTextView.text != "No data") {
+                append("In two weeks: ${nextTwoWeeksPriceTextView.text}\n")
+            }
+
+            // Add detailed forecast if available
+            if (futureDateOneTextView.visibility == View.VISIBLE) {
+                append("\nDetailed Forecast:\n")
+
+                if (futureDateOneTextView.text.isNotEmpty() && futurePriceOneTextView.text != "No data") {
+                    append("${futureDateOneTextView.text}: ${futurePriceOneTextView.text}\n")
+                }
+
+                if (futureDateTwoTextView.text.isNotEmpty() && futurePriceTwoTextView.text != "No data") {
+                    append("${futureDateTwoTextView.text}: ${futurePriceTwoTextView.text}\n")
+                }
+
+                if (futureDateThreeTextView.text.isNotEmpty() && futurePriceThreeTextView.text != "No data") {
+                    append("${futureDateThreeTextView.text}: ${futurePriceThreeTextView.text}\n")
+                }
+
+                if (futureDateFourTextView.text.isNotEmpty() && futurePriceFourTextView.text != "No data") {
+                    append("${futureDateFourTextView.text}: ${futurePriceFourTextView.text}\n")
+                }
+
+                if (futureDateFiveTextView.text.isNotEmpty() && futurePriceFiveTextView.text != "No data") {
+                    append("${futureDateFiveTextView.text}: ${futurePriceFiveTextView.text}\n")
+                }
+            }
+
+            // Add recommendation if available
+            val recommendationTextView = findViewById<TextView>(R.id.recommendationTextView)
+            if (recommendationTextView != null && recommendationTextView.text.isNotEmpty()) {
+                append("\nRecommendation: ${recommendationTextView.text}")
+            }
+
+            append("\n\nShared from Arland Measure App")
+        }
+
+        // Create share intent
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, "$plantName Price Prediction")
+            putExtra(Intent.EXTRA_TEXT, shareText)
+        }
+
+        // Start the share activity
+        startActivity(Intent.createChooser(shareIntent, "Share via"))
+    }
+
     private fun showLoading(isLoading: Boolean) {
         loadingProgressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         errorTextView.visibility = View.GONE
@@ -307,6 +380,7 @@ class PricePredictionActivity : AppCompatActivity() {
         futurePriceFiveTextView.visibility = contentVisibility
 
         goToArButton.visibility = if (isLoading || currentPlantType.isEmpty()) View.GONE else View.VISIBLE
+        shareButton.visibility = if (isLoading || currentPlantType.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun showError(message: String) {
@@ -330,5 +404,6 @@ class PricePredictionActivity : AppCompatActivity() {
         futurePriceFiveTextView.visibility = View.GONE
 
         goToArButton.visibility = View.GONE
+        shareButton.visibility = View.GONE
     }
 }
