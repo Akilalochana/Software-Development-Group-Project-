@@ -130,18 +130,52 @@ class PlantRecommendationActivity : AppCompatActivity() {
 
                                     val imageRef = document.getString("image") ?: ""
                                     Log.d(TAG, "Image URL for $plantName: $imageRef")
-                                    
+
                                     // Verify the image URL format
                                     if (imageRef.isNotEmpty()) {
                                         Log.d(TAG, "Image URL validation: Length=${imageRef.length}, " +
-                                               "Starts with http=${imageRef.startsWith("http")}")
+                                                "Starts with http=${imageRef.startsWith("http")}")
                                     }
+
+                                    // Parse fertilizer field
+                                    val fertilizer = try {
+                                        when (val fertilizerValue = document.get("fertilizer")) {
+                                            is Number -> fertilizerValue.toInt()
+                                            is String -> fertilizerValue.toString().toIntOrNull() ?: 0
+                                            else -> 0
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error parsing fertilizer for ${document.id}: ${e.message}")
+                                        0
+                                    }
+
+                                    // Get description
+                                    val description = document.getString("description") ?: ""
+
+                                    // Parse expected yield per plant
+                                    val expectedYieldPerPlant = try {
+                                        when (val yieldValue = document.get("expected_yield_per_plant")) {
+                                            is Number -> yieldValue.toInt()
+                                            is String -> yieldValue.toString().toIntOrNull() ?: 0
+                                            else -> 0
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error parsing expected yield for ${document.id}: ${e.message}")
+                                        0
+                                    }
+
+                                    // Get space requirement
+                                    val space = document.getString("space") ?: ""
 
                                     plantsList.add(PlantInfo(
                                         name = plantName,
                                         costPerUnit = costPerUnit,
                                         growthPeriod = growthPeriod,
-                                        imageRef = imageRef
+                                        imageRef = imageRef,
+                                        fertilizer = fertilizer,
+                                        description = description,
+                                        expectedYieldPerPlant = expectedYieldPerPlant,
+                                        space = space
                                     ))
                                     Log.d(TAG, "Added plant: $plantName with cost: $costPerUnit and growth period: $growthPeriod")
                                 } catch (e: Exception) {
@@ -239,7 +273,7 @@ class PlantRecommendationActivity : AppCompatActivity() {
         selectButton.setOnClickListener {
             // Get the garden name from intent
             val gardenName = intent.getStringExtra("GARDEN_NAME") ?: ""
-            
+
             // Get the current user ID - assuming you have Firebase Authentication
             val userId = FirebaseAuth.getInstance().currentUser?.uid
 
@@ -253,14 +287,14 @@ class PlantRecommendationActivity : AppCompatActivity() {
             try {
                 // Option to show AR visualization
                 val arIntent = Intent(this, MainActivity::class.java)
-                
+
                 // Pass all necessary data
                 arIntent.putExtra("GARDEN_NAME", gardenName)
-                
+
                 // Preserve original plant name capitalization exactly as it appears in database
                 Log.d(TAG, "Passing plant type to AR: ${plant.name}")
                 arIntent.putExtra("PLANT_TYPE", plant.name)
-                
+
                 // Clean and validate the image URL
                 if (plant.imageRef.isNotEmpty()) {
                     val trimmedUrl = plant.imageRef.trim()
@@ -269,12 +303,16 @@ class PlantRecommendationActivity : AppCompatActivity() {
                 } else {
                     Log.d(TAG, "No image URL to pass to MainActivity")
                 }
-                
+
                 arIntent.putExtra("PLANT_COST", plant.costPerUnit)
                 arIntent.putExtra("PLANT_GROWTH_PERIOD", plant.growthPeriod)
-                
+                arIntent.putExtra("PLANT_FERTILIZER", plant.fertilizer)
+                arIntent.putExtra("PLANT_DESCRIPTION", plant.description)
+                arIntent.putExtra("PLANT_EXPECTED_YIELD", plant.expectedYieldPerPlant)
+                arIntent.putExtra("PLANT_SPACE", plant.space)
+
                 Log.d(TAG, "Starting AR with plant: ${plant.name}")
-                
+
                 startActivity(arIntent)
             } catch (e: Exception) {
                 Log.e(TAG, "Error launching AR: ${e.message}")
@@ -308,12 +346,16 @@ class PlantRecommendationActivity : AppCompatActivity() {
                 .collection("plants")
                 .document(plant.name)
 
-            // Create plant data map
+            // Create plant data map with all fields
             val plantData = hashMapOf(
                 "name" to plant.name,
                 "costPerUnit" to plant.costPerUnit,
                 "growthPeriod" to plant.growthPeriod,
                 "imageRef" to plant.imageRef,
+                "fertilizer" to plant.fertilizer,
+                "description" to plant.description,
+                "expectedYieldPerPlant" to plant.expectedYieldPerPlant,
+                "space" to plant.space,
                 "dateAdded" to System.currentTimeMillis()
             )
 
@@ -360,11 +402,15 @@ class PlantRecommendationActivity : AppCompatActivity() {
         }
     }
 
-    // Data class to hold plant information
+    // Data class to hold plant information with all fields
     data class PlantInfo(
         val name: String,
         val costPerUnit: Int,
         val growthPeriod: Int,
-        val imageRef: String
+        val imageRef: String,
+        val fertilizer: Int = 0,
+        val description: String = "",
+        val expectedYieldPerPlant: Int = 0,
+        val space: String = ""
     )
 }
