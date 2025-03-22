@@ -3,4 +3,5 @@
     <!-- Dot indicator dimensions -->
     <dimen name="dot_size">8dp</dimen>
     <dimen name="dot_margin">4dp</dimen>
+
 </resources>

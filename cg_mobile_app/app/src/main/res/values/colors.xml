@@ -6,4 +6,8 @@
     <color name="garden_green">#46CB6B</color>
     <color name="dark_bg">#2A2E2C</color>
     <color name="light_bg">#F5F8F5</color>
+
+    <color name="light_green">#E8F5E9</color>
+    <color name="dark_text">#333333</color>
+    <color name="gray">#9E9E9E</color>
 </resources>

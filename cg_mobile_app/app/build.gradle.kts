@@ -175,4 +175,15 @@ dependencies {
 
     implementation ("com.github.bumptech.glide:glide:4.15.0")
     annotationProcessor ("com.github.bumptech.glide:compiler:4.15.0")
+
+
+
+    // Gemini AI API - updated version
+    implementation ("com.google.ai.client.generativeai:generativeai:0.3.0")
+
+    // Coroutines for asynchronous operations
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+
+    implementation ("com.google.android.material:material:1.10.0")
 }
