@@ -92,6 +92,15 @@
         <activity
             android:name=".TipsActivity"
             android:exported="false" />
+        <activity
+            android:name=".PlantInformationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PlantDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PlantInformationDetailActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

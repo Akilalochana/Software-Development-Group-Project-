@@ -272,7 +272,7 @@ class PricePredictionActivity : AppCompatActivity() {
             "brinjal" -> "Brinjal"
             "carrots" -> "Carrot"
             "cabbage" -> "Cabbage"
-            "leeks" -> "Leeks"
+           "leeks"  -> "Leeks"
             "potato" -> "Potato"
             "onion" -> "Onion"
             "manioc" -> "Manioc"

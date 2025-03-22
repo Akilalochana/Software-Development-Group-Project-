@@ -21,8 +21,12 @@ import com.google.firebase.firestore.ListenerRegistration
 import android.view.View
 import java.text.SimpleDateFormat
 import java.util.*
+import android.util.Log
+import android.widget.Toast
 
 class HomeActivity : AppCompatActivity() {
+
+    private val TAG = "HomeActivity"
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
@@ -44,6 +48,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var checkWeatherButton: View
     private lateinit var viewReportsButton: View
     private lateinit var getTipsButton: View
+    private lateinit var getPlantInfoButton: View
     private lateinit var startButton: View
 
     // Drawer components
@@ -143,6 +148,7 @@ class HomeActivity : AppCompatActivity() {
         checkWeatherButton = findViewById(R.id.checkWeatherButton)
         viewReportsButton = findViewById(R.id.viewReportsButton)
         getTipsButton = findViewById(R.id.getTipsButton)
+        getPlantInfoButton = findViewById(R.id.getPlantInfoButton)
         startButton = findViewById(R.id.startButton)
 
         // Make sure the plant card is clickable
@@ -158,6 +164,19 @@ class HomeActivity : AppCompatActivity() {
                 "Plant details will be shown here",
                 android.widget.Toast.LENGTH_SHORT
             ).show()
+        }
+
+        // Find the Plant Information button if it exists
+        val plantInfoButton = findViewById<View>(R.id.getPlantInfoButton)
+        plantInfoButton?.setOnClickListener {
+            try {
+                // Launch PlantInformationActivity
+                val intent = Intent(this, PlantInformationActivity::class.java)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error launching Plant Information: ${e.message}")
+                Toast.makeText(this, "Plant Information feature coming soon", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -362,6 +381,12 @@ class HomeActivity : AppCompatActivity() {
         // Tips button - get gardening tips
         getTipsButton.setOnClickListener {
             val intent = Intent(this, TipsActivity::class.java)
+            startActivity(intent)
+        }
+        
+        // Plant Information button - access plant information
+        getPlantInfoButton.setOnClickListener {
+            val intent = Intent(this, PlantInformationActivity::class.java)
             startActivity(intent)
         }
     }
