@@ -4,12 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.example.arlandmeasuretest33.BannerSlideAdapter
@@ -38,6 +40,14 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var viewReportsButton: View
     private lateinit var getTipsButton: View
     private lateinit var startButton: View
+
+    // Drawer components
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var profileButton: ImageView
+    private lateinit var closeMenuButton: ImageView
+    private lateinit var userNameText: TextView
+    private lateinit var userEmailText: TextView
+    private lateinit var userStatusText: TextView
 
     // List of banner images and their corresponding titles and descriptions
     private val bannerSlides = listOf(
@@ -71,6 +81,9 @@ class HomeActivity : AppCompatActivity() {
 
         // Initialize UI components
         initializeUIComponents()
+
+        // Initialize drawer components
+        initializeDrawer()
 
         // Set user information
         updateUserInfo()
@@ -123,6 +136,99 @@ class HomeActivity : AppCompatActivity() {
                 android.widget.Toast.LENGTH_SHORT
             ).show()
         }
+    }
+
+    private fun initializeDrawer() {
+        // Initialize drawer components
+        drawerLayout = findViewById(R.id.drawer_layout)
+        profileButton = findViewById(R.id.profileButton)
+        closeMenuButton = findViewById(R.id.closeMenuButton)
+        userNameText = findViewById(R.id.userNameText)
+        userEmailText = findViewById(R.id.userEmailText)
+        userStatusText = findViewById(R.id.userStatusText)
+
+        // Set up drawer profile information
+        setupUserProfile()
+
+        // Set up drawer click listeners
+        setupDrawerListeners()
+    }
+
+    private fun setupUserProfile() {
+        val currentUser = auth.currentUser
+        currentUser?.let { user ->
+            // Get user data from Firestore
+            db.collection("user_data").document(user.uid).get()
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        // Try to get name, if not available use email, then fallback to default
+                        val userName = document.getString("name")
+                            ?: document.getString("email")
+                            ?: user.email
+                            ?: user.displayName
+                            ?: "Gardener"
+
+                        // Extract the part before @ if it's an email
+                        val displayName = if (userName.contains("@")) {
+                            userName.split("@")[0]
+                        } else {
+                            userName
+                        }
+
+                        // Update drawer profile info
+                        userNameText.text = displayName
+                        userEmailText.text = user.email ?: "No email available"
+                        userStatusText.text = "Active Gardener"
+                    } else {
+                        // If document doesn't exist, use email from Firebase Auth
+                        val displayName = if (user.email != null && user.email!!.contains("@")) {
+                            user.email!!.split("@")[0]
+                        } else {
+                            user.email ?: user.displayName ?: "Gardener"
+                        }
+
+                        userNameText.text = displayName
+                        userEmailText.text = user.email ?: "No email available"
+                        userStatusText.text = "Active Gardener"
+                    }
+                }
+                .addOnFailureListener {
+                    // Fallback to email from auth
+                    val displayName = if (user.email != null && user.email!!.contains("@")) {
+                        user.email!!.split("@")[0]
+                    } else {
+                        user.email ?: user.displayName ?: "Gardener"
+                    }
+
+                    userNameText.text = displayName
+                    userEmailText.text = user.email ?: "No email available"
+                    userStatusText.text = "Active Gardener"
+                }
+        } ?: run {
+            userNameText.text = "Guest User"
+            userEmailText.text = "No email available"
+            userStatusText.text = "Guest"
+        }
+    }
+
+    private fun setupDrawerListeners() {
+        // Open drawer when profile button is clicked
+        profileButton.setOnClickListener {
+            openDrawer()
+        }
+
+        // Close drawer when close button is clicked
+        closeMenuButton.setOnClickListener {
+            closeDrawer()
+        }
+    }
+
+    private fun openDrawer() {
+        drawerLayout.openDrawer(Gravity.RIGHT)
+    }
+
+    private fun closeDrawer() {
+        drawerLayout.closeDrawer(Gravity.RIGHT)
     }
 
     private fun updateUserInfo() {
@@ -449,4 +555,13 @@ class HomeActivity : AppCompatActivity() {
         // Resume slideshow when activity resumes
         sliderHandler.postDelayed(sliderRunnable, 3000)
     }
+
+    override fun onBackPressed() {
+        if (drawerLayout.isDrawerOpen(Gravity.RIGHT)) {
+            closeDrawer()
+        } else {
+            super.onBackPressed()
+        }
+    }
 }
+
