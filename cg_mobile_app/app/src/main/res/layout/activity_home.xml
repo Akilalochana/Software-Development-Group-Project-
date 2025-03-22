@@ -453,19 +453,28 @@
                 </androidx.cardview.widget.CardView>
 
                 <!-- Bottom Button -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/startButton"
+                <!-- Replace the existing bottom button with this -->
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="56dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginHorizontal="16dp"
                     android:layout_marginTop="24dp"
                     android:layout_marginBottom="20dp"
-                    android:text="Start Your Garden Journey"
-                    android:textAllCaps="false"
-                    android:textColor="#FFFFFF"
-                    android:textSize="16sp"
-                    app:backgroundTint="#4CAF50"
-                    style="@style/Widget.MaterialComponents.Button" />
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/startButton"
+                        android:layout_width="0dp"
+                        android:layout_height="56dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        android:text="Continue"
+                        android:textAllCaps="false"
+                        android:textColor="#FFFFFF"
+                        android:textSize="16sp"
+                        app:backgroundTint="#4CAF50"
+                        style="@style/Widget.MaterialComponents.Button" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
