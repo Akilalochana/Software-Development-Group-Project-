@@ -39,6 +39,7 @@ class WeatherActivity : AppCompatActivity() {
             // Initialize views and setup
             setupRecyclerView()
             setupBackButton()
+            setupWateringCycleButton() // Add this line
 
             // Fetch weather data immediately
             fetchWeatherData()
@@ -198,5 +199,20 @@ class WeatherActivity : AppCompatActivity() {
 
         println("WeatherActivity: Processed ${dailyForecasts.size} daily forecasts")
         forecastAdapter.updateForecasts(dailyForecasts)
+    }
+
+
+    private fun setupWateringCycleButton() {
+        try {
+            findViewById<androidx.cardview.widget.CardView>(R.id.wateringCycleButton).setOnClickListener {
+                println("WeatherActivity: Watering Cycle button clicked")
+                // Navigate to WateringCycleActivity
+                val intent = Intent(this, WateringCycleActivity::class.java)
+                startActivity(intent)
+            }
+        } catch (e: Exception) {
+            println("WeatherActivity: setupWateringCycleButton ERROR - ${e.message}")
+            e.printStackTrace()
+        }
     }
 }
