@@ -40,6 +40,16 @@ class ChatbotActivity : AppCompatActivity() {
 
         // Add welcome message
         addBotMessage("Hello! I'm your agricultural assistant. How can I help with your farming needs today?")
+
+        // Check if there's a message passed from HomeActivity
+        intent.getStringExtra("USER_MESSAGE")?.let { message ->
+            // Set the message in the EditText
+            messageEditText.setText(message)
+
+            // Optional: Automatically send the message
+            sendMessage(message)
+            messageEditText.text.clear()
+        }
     }
 
     private fun initViews() {

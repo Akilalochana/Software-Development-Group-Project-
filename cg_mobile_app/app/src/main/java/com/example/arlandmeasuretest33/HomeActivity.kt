@@ -21,6 +21,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import android.view.View
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
+import android.widget.EditText
 import java.util.*
 
 
@@ -132,11 +133,19 @@ class HomeActivity : AppCompatActivity() {
         // User info components
         greetingText = findViewById(R.id.greetingText)
 
-        // Add chatbot floating action button
-        val chatbotButton = findViewById<FloatingActionButton>(R.id.chatbotButton)
-        chatbotButton.setOnClickListener {
-            val intent = Intent(this, ChatbotActivity::class.java)
-            startActivity(intent)
+        // Initialize chat input and send button
+        val chatInput = findViewById<EditText>(R.id.chat_input)
+        val sendButton = findViewById<CardView>(R.id.send_button)
+
+        // Set click listener for send button
+        sendButton.setOnClickListener {
+            val message = chatInput.text.toString().trim()
+            if (message.isNotEmpty()) {
+                // Process the message
+                processMessage(message)
+                // Clear the input field
+                chatInput.text.clear()
+            }
         }
 
         // Banner components
@@ -168,6 +177,21 @@ class HomeActivity : AppCompatActivity() {
                 android.widget.Toast.LENGTH_SHORT
             ).show()
         }
+    }
+
+    // New method to process messages
+    private fun processMessage(message: String) {
+        // You can either handle the chat directly here or navigate to ChatbotActivity
+        val intent = Intent(this, ChatbotActivity::class.java)
+        intent.putExtra("USER_MESSAGE", message)
+        startActivity(intent)
+
+        // Alternatively, display a toast for testing
+        android.widget.Toast.makeText(
+            this,
+            "Message sent: $message",
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun initializeDrawer() {
