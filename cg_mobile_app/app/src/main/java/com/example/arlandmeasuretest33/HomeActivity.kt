@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
-import android.view.View
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -18,6 +17,8 @@ import com.example.arlandmeasuretest33.BannerSlideAdapter
 import com.example.arlandmeasuretest33.BannerSlide
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
+import android.view.View
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,6 +31,10 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var dots: Array<View?>
     private var currentPage = 0
     private val sliderHandler = Handler(Looper.getMainLooper())
+
+    // Track Firestore listeners to properly remove them
+    private var authStateListener: FirebaseAuth.AuthStateListener? = null
+    private var firestoreListener: ListenerRegistration? = null
 
     // UI component properties
     private lateinit var greetingText: TextView
@@ -85,17 +90,35 @@ class HomeActivity : AppCompatActivity() {
         // Initialize drawer components
         initializeDrawer()
 
-        // Set user information
-        updateUserInfo()
-
-        // Set up real-time updates for plant data
-        setupRealTimeUpdates()
-
         // Set up the banner slideshow
         setupBannerSlideshow()
 
         // Set click listeners for all buttons
         setupButtonListeners()
+
+        // Add auth state listener to track login/logout
+        authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            if (user != null) {
+                // User is signed in
+                updateUserInfo()
+                setupRealTimeUpdates()
+            } else {
+                // User is signed out - remove listeners
+                firestoreListener?.remove()
+                // Update UI to show logged out state
+                updateEmptyPlantUI()
+            }
+        }
+        auth.addAuthStateListener(authStateListener!!)
+
+        // Initial check of user authentication state
+        if (auth.currentUser != null) {
+            updateUserInfo()
+            setupRealTimeUpdates()
+        } else {
+            updateEmptyPlantUI()
+        }
     }
 
     private fun enableEdgeToEdge() {
@@ -221,6 +244,12 @@ class HomeActivity : AppCompatActivity() {
         closeMenuButton.setOnClickListener {
             closeDrawer()
         }
+
+        // Logout button click listener
+        val logoutButton = findViewById<View>(R.id.logoutButton)
+        logoutButton.setOnClickListener {
+            logout()
+        }
     }
 
     private fun openDrawer() {
@@ -229,6 +258,29 @@ class HomeActivity : AppCompatActivity() {
 
     private fun closeDrawer() {
         drawerLayout.closeDrawer(Gravity.RIGHT)
+    }
+
+    private fun logout() {
+        // Show confirmation dialog
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Logout")
+            .setMessage("Are you sure you want to logout?")
+            .setPositiveButton("Yes") { _, _ ->
+                // Clear user session
+                auth.signOut()
+
+                // Clear any saved credentials
+                val sharedPrefs = getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                sharedPrefs.edit().clear().apply()
+
+                // Redirect to welcome screen
+                val intent = Intent(this, Welcome_screen::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 
     private fun updateUserInfo() {
@@ -316,6 +368,9 @@ class HomeActivity : AppCompatActivity() {
 
     // Setup real-time updates for plant data
     private fun setupRealTimeUpdates() {
+        // Remove any existing listener first
+        firestoreListener?.remove()
+
         val currentUser = auth.currentUser ?: return
 
         // Log authentication method to debug
@@ -341,7 +396,7 @@ class HomeActivity : AppCompatActivity() {
                     val userPlantsPath = "$userGardensPath/$firstGarden/plants"
 
                     // Set up the real-time listener for plants in this garden
-                    db.collection(userPlantsPath)
+                    firestoreListener = db.collection(userPlantsPath)
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) {
                                 android.util.Log.e("HomeActivity", "Error listening for plants: ${error.message}")
@@ -556,6 +611,14 @@ class HomeActivity : AppCompatActivity() {
         sliderHandler.postDelayed(sliderRunnable, 3000)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        // Clean up listeners to prevent memory leaks
+        authStateListener?.let { auth.removeAuthStateListener(it) }
+        firestoreListener?.remove()
+        sliderHandler.removeCallbacks(sliderRunnable)
+    }
+
     override fun onBackPressed() {
         if (drawerLayout.isDrawerOpen(Gravity.RIGHT)) {
             closeDrawer()
@@ -564,4 +627,3 @@ class HomeActivity : AppCompatActivity() {
         }
     }
 }
-

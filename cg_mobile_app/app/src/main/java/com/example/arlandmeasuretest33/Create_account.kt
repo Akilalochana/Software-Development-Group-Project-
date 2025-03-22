@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -35,7 +36,12 @@ class Create_account : AppCompatActivity() {
         val emailEditText = findViewById<EditText>(R.id.emailEditText)
         val passwordEditText = findViewById<EditText>(R.id.passwordEditText)
         val signupButton = findViewById<CardView>(R.id.loginButton)
+        val togglePasswordVisibility = findViewById<ImageButton>(R.id.togglePasswordVisibility)
 
+        // Set up password visibility toggle
+        togglePasswordVisibility.setOnClickListener {
+            togglePasswordVisibility(passwordEditText, togglePasswordVisibility)
+        }
 
         // Set up signup button click listener
         signupButton.setOnClickListener {
@@ -64,8 +70,22 @@ class Create_account : AppCompatActivity() {
             // Direct sign up without pre-checking email
             signUpWithEmailPassword(email, password)
         }
+    }
 
+    private fun togglePasswordVisibility(passwordEditText: EditText, toggleButton: ImageButton) {
+        val selection = passwordEditText.selectionEnd // Save cursor position
 
+        if (passwordEditText.inputType == 129) { // 129 = textPassword
+            // Show password
+            passwordEditText.inputType = 1 // 1 = text
+            toggleButton.setImageResource(R.drawable.ic_visibility_off) // Change icon to "visibility off"
+        } else {
+            // Hide password
+            passwordEditText.inputType = 129 // 129 = textPassword
+            toggleButton.setImageResource(R.drawable.ic_visibility) // Change icon to "visibility"
+        }
+
+        passwordEditText.setSelection(selection) // Restore cursor position
     }
 
     private fun signUpWithEmailPassword(email: String, password: String) {

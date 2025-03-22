@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -28,6 +29,7 @@ class Login : AppCompatActivity() {
         val passwordEditText = findViewById<EditText>(R.id.passwordEditText)
         val loginButton = findViewById<CardView>(R.id.loginButton)
         val signUpText = findViewById<TextView>(R.id.signUpButton)
+        val togglePasswordVisibility = findViewById<ImageButton>(R.id.togglePasswordVisibility)
 
         // Set up login button click listener
         loginButton.setOnClickListener {
@@ -56,6 +58,27 @@ class Login : AppCompatActivity() {
             val intent = Intent(this, Create_account::class.java)
             startActivity(intent)
         }
+
+        // Set up password visibility toggle
+        togglePasswordVisibility.setOnClickListener {
+            togglePasswordVisibility(passwordEditText, togglePasswordVisibility)
+        }
+    }
+
+    private fun togglePasswordVisibility(passwordEditText: EditText, toggleButton: ImageButton) {
+        val selection = passwordEditText.selectionEnd // Save cursor position
+
+        if (passwordEditText.inputType == 129) { // 129 = textPassword
+            // Show password
+            passwordEditText.inputType = 1 // 1 = text
+            toggleButton.setImageResource(R.drawable.ic_visibility_off) // Change icon to "visibility off"
+        } else {
+            // Hide password
+            passwordEditText.inputType = 129 // 129 = textPassword
+            toggleButton.setImageResource(R.drawable.ic_visibility) // Change icon to "visibility"
+        }
+
+        passwordEditText.setSelection(selection) // Restore cursor position
     }
 
     private fun loginWithEmailPassword(email: String, password: String) {
