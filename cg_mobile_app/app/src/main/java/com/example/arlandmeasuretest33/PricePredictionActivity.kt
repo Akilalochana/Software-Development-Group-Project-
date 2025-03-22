@@ -270,7 +270,7 @@ class PricePredictionActivity : AppCompatActivity() {
             "long purple eggplant" -> "Long Purple Eggplant"
             "beetroot" -> "Beetroot"
             "brinjal" -> "Brinjal"
-            "carrot" -> "Carrot"
+            "carrots" -> "Carrot"
             "cabbage" -> "Cabbage"
             "leeks" -> "Leeks"
             "potato" -> "Potato"

@@ -459,19 +459,27 @@
         </androidx.cardview.widget.CardView>
 
         <!-- XML Layout for Create Garden Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/createButton"
+        <!-- Replace the existing Create Garden button with this -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Create Garden"
-            android:textAllCaps="false"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:backgroundTint="#76B947"
             android:layout_marginTop="16dp"
-            app:cornerRadius="24dp"
+            android:orientation="horizontal"
             app:layout_constraintTop_toBottomOf="@id/gardeningTipsCard"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:minHeight="48dp"/>
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/createButton"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Continue"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:backgroundTint="#4CAF50"
+                style="@style/Widget.MaterialComponents.Button" />
+        </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

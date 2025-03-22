@@ -82,17 +82,18 @@
                 android:maxLines="1"
                 android:ellipsize="end" />
 
-            <Button
+            <!-- Replace the existing Button with this MaterialButton -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/selectButton"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:layout_marginTop="10dp"
-                android:backgroundTint="#9AD268"
                 android:text="Select"
-                android:textColor="#FFFFFF"
                 android:textAllCaps="false"
-                app:cornerRadius="8dp"
-                android:elevation="0dp" />
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                app:backgroundTint="#4CAF50"
+                style="@style/Widget.MaterialComponents.Button" />
         </LinearLayout>
     </LinearLayout>
 

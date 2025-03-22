@@ -468,7 +468,7 @@
                         android:layout_height="56dp"
                         android:layout_weight="1"
                         android:layout_marginStart="8dp"
-                        android:text="Continue"
+                        android:text="Start Your Garden Journey"
                         android:textAllCaps="false"
                         android:textColor="#FFFFFF"
                         android:textSize="16sp"
