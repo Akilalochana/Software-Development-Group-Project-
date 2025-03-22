@@ -265,7 +265,7 @@ class PricePredictionActivity : AppCompatActivity() {
     private fun getNormalizedPlantName(plantType: String): String {
         return when (plantType.lowercase()) {
             "bitter melon" -> "Bitter Melon"
-            "winged bean" -> "Winged Bean"
+            "winged_bean" -> "Winged Bean"
             "red spinach" -> "Red Spinach"
             "long purple eggplant" -> "Long Purple Eggplant"
             "beetroot" -> "Beetroot"
@@ -277,7 +277,7 @@ class PricePredictionActivity : AppCompatActivity() {
             "onion" -> "Onion"
             "manioc" -> "Manioc"
             "taro" -> "Taro"
-            "eggplant" -> "Eggplant"
+            "eggplant" -> "Long Purple Eggplant"
             "pumpkin" -> "Pumpkin"
             "knolkhol" -> "Knol-Khol"
             "drumstick" -> "Drumsticks"
