@@ -1,44 +1,45 @@
 name: Deploy to Firebase App Distribution
+
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-          
+
       - name: Grant execute permission for gradlew
         run: chmod +x ./cg_mobile_app/gradlew
-        
-      - name: Create keystore file
-        run: echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 -d > ./cg_mobile_app/app/release.keystore
-        
-      - name: Build and sign with Gradle
+
+      - name: Build with Gradle
         working-directory: ./cg_mobile_app
-        env:
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
         run: ./gradlew assembleRelease
-        
-      - name: Upload APK
+
+      - name: Copy APK to a known location
+        working-directory: ./cg_mobile_app
+        run: |
+          mkdir -p ./apprelease
+          cp ./app/build/outputs/apk/release/app-release.apk ./apprelease/app-release.apk
+
+      - name: Upload APK as an artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: ./cg_mobile_app/app/build/outputs/apk/release/app-release.apk
-  
+          path: ./cg_mobile_app/apprelease/app-release.apk
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -47,16 +48,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: .
-          
+          path: ./downloaded-apk
+
       - name: List downloaded files
-        run: ls -la
-        
+        run: ls -la ./downloaded-apk
+
       - name: Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: app-release.apk
+          file: ./downloaded-apk/app-release.apk
           releaseNotes: "New version available for testing"
