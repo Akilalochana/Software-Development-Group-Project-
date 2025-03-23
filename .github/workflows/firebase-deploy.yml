@@ -18,40 +18,24 @@ jobs:
           distribution: 'temurin'
           cache: gradle
       
-      - name: Find gradlew
-        run: find . -name gradlew
-      
       - name: Grant execute permission for gradlew
-        run: |
-          GRADLEW_PATH=$(find . -name gradlew | head -n 1)
-          if [ -n "$GRADLEW_PATH" ]; then
-            chmod +x $GRADLEW_PATH
-            echo "GRADLEW_PATH=$GRADLEW_PATH" >> $GITHUB_ENV
-            echo "Found gradlew at $GRADLEW_PATH"
-          else
-            echo "Could not find gradlew file!"
-            exit 1
-          fi
+        run: chmod +x ./cg_mobile_app/gradlew
       
       - name: Build with Gradle
-        run: |
-          GRADLEW_DIR=$(dirname ${{ env.GRADLEW_PATH }})
-          cd $GRADLEW_DIR
-          ./gradlew assembleRelease
-          echo "BUILD_DIR=$GRADLEW_DIR" >> $GITHUB_ENV
+        working-directory: ./cg_mobile_app
+        run: ./gradlew assembleRelease
       
-      - name: Find APK
+      - name: Sign APK
+        working-directory: ./cg_mobile_app
         run: |
-          APK_PATH=$(find . -name "*.apk" | grep release)
-          echo "Found APKs at:"
-          find . -name "*.apk"
-          echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
+          # Optional: Add signing configuration here if needed
+          cp ./app/build/outputs/apk/release/app-release-unsigned.apk ./app/build/outputs/apk/release/app-release.apk
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: ${{ env.APK_PATH }}
+          path: ./cg_mobile_app/app/release/app-release.apk
   
   deploy:
     needs: build
@@ -62,7 +46,7 @@ jobs:
         with:
           name: app-release
       
-      - name: List files
+      - name: List downloaded files
         run: ls -la
       
       - name: Firebase App Distribution
@@ -71,5 +55,5 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: $(find . -name "*.apk" | head -n 1)
-          releaseNotes: "New version available for testing - $(date +'%Y-%m-%d %H:%M')"
+          file: app-release.apk
+          releaseNotes: "New version available for testing"
