@@ -12,7 +12,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/dark_bg"
+        android:background="#4CAF50"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageButton
