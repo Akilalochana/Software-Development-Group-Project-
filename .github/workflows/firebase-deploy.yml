@@ -1,4 +1,4 @@
-name: Build Android Debug APK
+name: Build and Deploy Android App
 
 on:
   push:
@@ -16,10 +16,21 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
       
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+        
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+        working-directory: cg_mobile_app
+      
+      - name: Update compileSdk in build.gradle.kts
+        run: |
+          sed -i 's/compileSdk = 35/compileSdk = 34/g' app/build.gradle.kts
+        working-directory: cg_mobile_app
+      
+      - name: Clean project
+        run: ./gradlew clean
         working-directory: cg_mobile_app
       
       - name: Build debug APK
@@ -27,7 +38,20 @@ jobs:
         working-directory: cg_mobile_app
       
       - name: Upload debug APK
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-debug
           path: cg_mobile_app/app/build/outputs/apk/debug/app-debug.apk
+          
+      - name: Build release APK
+        run: ./gradlew assembleRelease --stacktrace
+        working-directory: cg_mobile_app
+      
+      - name: Upload release APK to Firebase
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        if: success()
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: testers
+          file: cg_mobile_app/app/build/outputs/apk/release/app-release.apk
