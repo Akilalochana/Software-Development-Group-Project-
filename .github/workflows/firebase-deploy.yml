@@ -18,17 +18,40 @@ jobs:
           distribution: 'temurin'
           cache: gradle
       
+      - name: Find gradlew
+        run: find . -name gradlew
+      
       - name: Grant execute permission for gradlew
-        run: chmod +x ./gradlew
+        run: |
+          GRADLEW_PATH=$(find . -name gradlew | head -n 1)
+          if [ -n "$GRADLEW_PATH" ]; then
+            chmod +x $GRADLEW_PATH
+            echo "GRADLEW_PATH=$GRADLEW_PATH" >> $GITHUB_ENV
+            echo "Found gradlew at $GRADLEW_PATH"
+          else
+            echo "Could not find gradlew file!"
+            exit 1
+          fi
       
       - name: Build with Gradle
-        run: ./gradlew assembleRelease
+        run: |
+          GRADLEW_DIR=$(dirname ${{ env.GRADLEW_PATH }})
+          cd $GRADLEW_DIR
+          ./gradlew assembleRelease
+          echo "BUILD_DIR=$GRADLEW_DIR" >> $GITHUB_ENV
+      
+      - name: Find APK
+        run: |
+          APK_PATH=$(find . -name "*.apk" | grep release)
+          echo "Found APKs at:"
+          find . -name "*.apk"
+          echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/release/app-release.apk
+          path: ${{ env.APK_PATH }}
   
   deploy:
     needs: build
@@ -39,11 +62,14 @@ jobs:
         with:
           name: app-release
       
+      - name: List files
+        run: ls -la
+      
       - name: Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: app-release.apk
+          file: $(find . -name "*.apk" | head -n 1)
           releaseNotes: "New version available for testing - $(date +'%Y-%m-%d %H:%M')"
