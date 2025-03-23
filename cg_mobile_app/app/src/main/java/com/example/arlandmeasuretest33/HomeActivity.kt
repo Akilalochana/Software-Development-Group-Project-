@@ -397,6 +397,22 @@ class HomeActivity : AppCompatActivity() {
             val intent = Intent(this, TipsActivity::class.java)
             startActivity(intent)
         }
+        
+        // Plant Information button - access plant information
+        val getPlantInfoButton = findViewById<View>(R.id.getPlantInfoButton)
+        getPlantInfoButton.setOnClickListener {
+            try {
+                val intent = Intent(this, PlantInformationActivity::class.java)
+                startActivity(intent)
+            } catch (e: Exception) {
+                android.util.Log.e("HomeActivity", "Error launching Plant Information: ${e.message}")
+                android.widget.Toast.makeText(
+                    this,
+                    "Error launching Plant Information", 
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     // Setup real-time updates for plant data
