@@ -1,11 +1,10 @@
 name: Deploy to Firebase App Distribution
-
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:
 
 jobs:
   build:
@@ -19,19 +18,21 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-      
+          
       - name: Grant execute permission for gradlew
         run: chmod +x ./cg_mobile_app/gradlew
-      
-      - name: Build with Gradle
+        
+      - name: Create keystore file
+        run: echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 -d > ./cg_mobile_app/app/release.keystore
+        
+      - name: Build and sign with Gradle
         working-directory: ./cg_mobile_app
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
         run: ./gradlew assembleRelease
-      
-      - name: Sign APK
-        working-directory: ./cg_mobile_app
-        run: |
-          cp ./app/build/outputs/apk/release/app-release-unsigned.apk ./app/build/outputs/apk/release/app-release.apk
-      
+        
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -47,10 +48,10 @@ jobs:
         with:
           name: app-release
           path: .
-      
+          
       - name: List downloaded files
         run: ls -la
-      
+        
       - name: Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
