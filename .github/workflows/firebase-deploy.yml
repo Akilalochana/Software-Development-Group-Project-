@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: cg_mobile_app/app/build/outputs/apk/release/*.apk
+          path: cg_mobile_app/app/release/*.apk
           if-no-files-found: error
   
   deploy:
