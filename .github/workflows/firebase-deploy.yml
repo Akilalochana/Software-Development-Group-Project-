@@ -27,21 +27,28 @@ jobs:
         working-directory: ./cg_mobile_app
         run: ./gradlew assembleRelease
       
+      - name: Debug - List APK files
+        run: find cg_mobile_app -name "*.apk" -type f
+      
       - name: Upload APK
-        uses: actions/upload-artifact@v4  # Updated from v3 to v4
+        uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: cg_mobile_app/app/build/outputs/apk/release/app-release.apk
+          path: cg_mobile_app/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
   
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download APK from build
-        uses: actions/download-artifact@v4  # Updated from v3 to v4
+        uses: actions/download-artifact@v4
         with:
           name: app-release
           path: app-release
+      
+      - name: List downloaded files
+        run: ls -la app-release/
       
       - name: Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -49,4 +56,4 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: app-release/app-release.apk
+          file: app-release/*.apk
