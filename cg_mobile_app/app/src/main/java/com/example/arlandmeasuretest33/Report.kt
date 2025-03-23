@@ -342,6 +342,10 @@ class Report : AppCompatActivity() {
                     // Net profit
                     val netProfit = totalRevenue - totalCost
 
+                    // ADD THESE LINES HERE - Update estimated expenses and expected income
+                    replacementsMap["{{estimated_expenses_per_Month}}"] = String.format("%.2f", totalCost)
+                    replacementsMap["{{expected_income_per_month}}"] = String.format("%.2f", netProfit)
+
                     // ---- ADD CALCULATIONS TO TEMPLATE PLACEHOLDERS ----
 
                     // Cost table - Seeds/Plants row
@@ -445,6 +449,11 @@ class Report : AppCompatActivity() {
 
         // Net profit
         val netProfit = totalRevenue - totalCost
+
+        // Update these lines in setDefaultReplacements
+        replacementsMap["{{estimated_expenses_per_Month}}"] = String.format("%.2f", totalCost)
+        replacementsMap["{{expected_income_per_month}}"] = String.format("%.2f", netProfit)
+
 
         // Fill all the empty placeholders with calculated values
         // Cost table - Seeds/Plants row
