@@ -1,10 +1,12 @@
 name: Deploy to Firebase App Distribution
+
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:  # Allows manual triggering
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,17 +27,14 @@ jobs:
         working-directory: ./cg_mobile_app
         run: ./gradlew assembleRelease
       
-      - name: Sign APK
-        working-directory: ./cg_mobile_app
-        run: |
-          # Optional: Add signing configuration here if needed
-          cp ./app/build/outputs/apk/release/app-release-unsigned.apk ./app/build/outputs/apk/release/app-release.apk
+      - name: List built APK files
+        run: ls -la ./cg_mobile_app/app/build/outputs/apk/release/
       
-      - name: Upload APK
+      - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: ./cg_mobile_app/app/release/app-release.apk
+          path: ./cg_mobile_app/app/build/outputs/apk/release/app-release.apk
   
   deploy:
     needs: build
@@ -55,5 +54,5 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: app-release.apk
+          file: app-release/app-release.apk  # Correct path to the APK
           releaseNotes: "New version available for testing"
