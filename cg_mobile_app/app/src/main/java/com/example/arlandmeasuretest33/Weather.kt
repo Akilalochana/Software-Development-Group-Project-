@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.view.View
-import com.bumptech.glide.Glide
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -39,7 +38,7 @@ class WeatherActivity : AppCompatActivity() {
             // Initialize views and setup
             setupRecyclerView()
             setupBackButton()
-            setupWateringCycleButton() // Add this line
+
 
             // Fetch weather data immediately
             fetchWeatherData()
@@ -201,18 +200,4 @@ class WeatherActivity : AppCompatActivity() {
         forecastAdapter.updateForecasts(dailyForecasts)
     }
 
-
-    private fun setupWateringCycleButton() {
-        try {
-            findViewById<androidx.cardview.widget.CardView>(R.id.wateringCycleButton).setOnClickListener {
-                println("WeatherActivity: Watering Cycle button clicked")
-                // Navigate to WateringCycleActivity
-                val intent = Intent(this, WateringCycleActivity::class.java)
-                startActivity(intent)
-            }
-        } catch (e: Exception) {
-            println("WeatherActivity: setupWateringCycleButton ERROR - ${e.message}")
-            e.printStackTrace()
-        }
-    }
 }
