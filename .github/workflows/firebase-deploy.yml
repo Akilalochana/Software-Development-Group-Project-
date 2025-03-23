@@ -46,10 +46,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: .
+          path: app-release
       
       - name: List downloaded files
-        run: ls -la
+        run: ls -la app-release/
       
       - name: Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -57,5 +57,5 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: app-release.apk
+          file: app-release/app-release.apk
           releaseNotes: "New version available for testing"
