@@ -1,11 +1,11 @@
-name: Deploy to Firebase
+name: Build Android Debug APK
 
 on:
   push:
-    branches: [ main ]  # Change to your default branch if needed
+    branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -22,30 +22,12 @@ jobs:
         run: chmod +x ./gradlew
         working-directory: cg_mobile_app
       
-      - name: Build with Gradle (with verbose output)
-        run: ./gradlew build --stacktrace --info
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --stacktrace
         working-directory: cg_mobile_app
       
-      - name: Check if release directory exists
-        run: mkdir -p app/release
-        working-directory: cg_mobile_app
-      
-      - name: Build Release APK
-        run: ./gradlew assembleRelease --stacktrace --info
-        working-directory: cg_mobile_app
-      
-      - name: Debug - List all directories
-        run: find . -type d | sort
-        working-directory: cg_mobile_app
-      
-      - name: Debug - List all APK files
-        run: find . -name "*.apk"
-        working-directory: cg_mobile_app
-      
-      - name: Upload APK to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v3
         with:
-          appId: ${{ secrets.FIREBASE_APP_ID }}
-          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          groups: testers
-          file: cg_mobile_app/app/build/outputs/apk/release/app-release.apk  # Changed path to standard output location
+          name: app-debug
+          path: cg_mobile_app/app/build/outputs/apk/debug/app-debug.apk
