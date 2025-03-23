@@ -1,63 +1,63 @@
-name: Build and Deploy Android App
+name: Build and Deploy Android App 
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+on: 
+  push: 
+    branches: [ main ] 
+  workflow_dispatch: 
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      
-      - name: Check directory structure
-        run: |
-          echo "Current directory: $(pwd)"
-          ls -la
-          echo "Looking for gradlew:"
-          find . -name "gradlew"
-      
-      - name: Grant execute permission for gradlew
-        run: |
-          find . -name "gradlew" -exec chmod +x {} \;
-      
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          cache: gradle
-      
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v2
-      
-      - name: Verify gradlew permissions
-        run: |
-          find . -name "gradlew" -exec ls -la {} \;
-      
-      - name: Clean project
-        run: |
-          cd $(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1)
-          ./gradlew clean
-      
-      - name: Update compileSdk in build.gradle files
-        run: |
-          find . -name "build.gradle*" -exec grep -l "compileSdk" {} \; | xargs -I{} sed -i 's/compileSdk[ ]*=[ ]*35/compileSdk = 34/g' {}
-      
-      - name: Build debug APK
-        run: |
-          cd $(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1)
-          ./gradlew assembleDebug --stacktrace
-      
-      - name: Upload debug APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug
-          path: |
-            **/build/outputs/apk/debug/*.apk
+jobs: 
+  build: 
+    runs-on: ubuntu-latest 
+    steps: 
+      - name: Checkout code 
+        uses: actions/checkout@v3 
+        with: 
+          fetch-depth: 0 
+          
+      - name: Check directory structure 
+        run: | 
+          echo "Current directory: $(pwd)" 
+          ls -la 
+          echo "Looking for gradlew:" 
+          find . -name "gradlew" 
+          
+      - name: Grant execute permission for gradlew 
+        run: | 
+          find . -name "gradlew" -exec chmod +x {} \; 
+          
+      - name: Set up JDK 17 
+        uses: actions/setup-java@v3 
+        with: 
+          java-version: '17' 
+          distribution: 'temurin' 
+          cache: gradle 
+          
+      - name: Setup Android SDK 
+        uses: android-actions/setup-android@v2 
+        
+      - name: Verify gradlew permissions 
+        run: | 
+          find . -name "gradlew" -exec ls -la {} \; 
+          
+      - name: Clean project 
+        run: | 
+          cd $(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1) 
+          ./gradlew clean 
+          
+      - name: Update compileSdk in build.gradle files 
+        run: | 
+          find . -name "build.gradle*" -exec grep -l "compileSdk" {} \; | xargs -I{} sed -i 's/compileSdk[ ]*=[ ]*35/compileSdk = 34/g' {} 
+          
+      - name: Build debug APK 
+        run: | 
+          cd $(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1) 
+          ./gradlew assembleDebug --stacktrace 
+          
+      - name: Upload debug APK 
+        if: success() 
+        uses: actions/upload-artifact@v4 
+        with: 
+          name: app-debug 
+          path: | 
+            **/build/outputs/apk/debug/*.apk 
           retention-days: 7
