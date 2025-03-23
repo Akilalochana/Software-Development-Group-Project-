@@ -20,10 +20,8 @@ jobs:
           ls -la 
           echo "Looking for gradlew:" 
           find . -name "gradlew" 
-          
-      - name: Grant execute permission for gradlew 
-        run: | 
-          find . -name "gradlew" -exec chmod +x {} \; 
+          echo "Checking project structure:"
+          find . -type f -name "*.gradle" -o -name "*.gradle.kts" | sort
           
       - name: Set up JDK 17 
         uses: actions/setup-java@v3 
@@ -35,23 +33,64 @@ jobs:
       - name: Setup Android SDK 
         uses: android-actions/setup-android@v2 
         
-      - name: Verify gradlew permissions 
+      - name: Grant execute permission for gradlew 
         run: | 
-          find . -name "gradlew" -exec ls -la {} \; 
+          find . -name "gradlew" -exec chmod +x {} \; 
           
-      - name: Clean project 
-        run: | 
-          cd $(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1) 
-          ./gradlew clean 
+      - name: Display Gradle and Project Info
+        run: |
+          APP_DIR=$(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1)
+          cd $APP_DIR
+          echo "==== Gradle Info ===="
+          ./gradlew --version
+          echo "==== Gradle Files ===="
+          if [ -f "gradle/wrapper/gradle-wrapper.properties" ]; then
+            cat gradle/wrapper/gradle-wrapper.properties
+          fi
+          echo "==== Memory Info ===="
+          free -h
           
-      - name: Update compileSdk in build.gradle files 
-        run: | 
-          find . -name "build.gradle*" -exec grep -l "compileSdk" {} \; | xargs -I{} sed -i 's/compileSdk[ ]*=[ ]*35/compileSdk = 34/g' {} 
+      - name: Configure Gradle memory settings
+        run: |
+          APP_DIR=$(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1)
+          cd $APP_DIR
+          mkdir -p gradle
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" > gradle.properties
+          echo "org.gradle.parallel=true" >> gradle.properties
+          echo "org.gradle.caching=true" >> gradle.properties
+          echo "android.enableJetifier=false" >> gradle.properties
           
-      - name: Build debug APK 
+      - name: Fix compileSdk issues
+        run: |
+          find . -name "build.gradle*" -print -exec cat {} \; 
+          find . -name "build.gradle*" -exec sed -i 's/compileSdk[ ]*=[ ]*35/compileSdk = 34/g' {} \;
+          find . -name "build.gradle*" -exec sed -i 's/compileSdkVersion[ ]*35/compileSdkVersion 34/g' {} \;
+          
+      - name: Update dependencies if needed
+        run: |
+          find . -name "build.gradle*" -exec sed -i 's/com.android.tools.build:gradle:[0-9]\+\.[0-9]\+\.[0-9]\+/com.android.tools.build:gradle:8.1.0/g' {} \;
+          
+      - name: Clean project with debug output
         run: | 
-          cd $(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1) 
-          ./gradlew assembleDebug --stacktrace 
+          APP_DIR=$(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1)
+          cd $APP_DIR
+          ./gradlew clean --info
+          
+      - name: Build debug APK with full logging
+        run: | 
+          APP_DIR=$(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1)
+          cd $APP_DIR
+          ./gradlew assembleDebug --stacktrace --info --scan > build_log.txt 2>&1 || (cat build_log.txt && exit 1)
+          
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            **/build_log.txt
+            **/build/reports/**
+          retention-days: 7
           
       - name: Upload debug APK 
         if: success() 
