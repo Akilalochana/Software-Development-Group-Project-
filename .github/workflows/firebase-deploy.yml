@@ -20,6 +20,23 @@ jobs:
           distribution: 'temurin'
           cache: gradle
       
+      - name: Install Android SDK Build Tools
+        run: |
+          # Install Android SDK Command-line Tools
+          sudo apt-get update
+          sudo apt-get install -y wget unzip
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip commandlinetools-linux-9477386_latest.zip -d android-sdk
+          
+          # Add Android SDK tools to PATH
+          echo "$PWD/android-sdk/cmdline-tools/bin:$PWD/android-sdk/platform-tools" >> $GITHUB_PATH
+          
+          # Accept licenses
+          yes | sdkmanager --licenses
+          
+          # Install Build Tools and Platform Tools
+          sdkmanager "build-tools;33.0.2" "platform-tools"
+
       - name: Grant execute permission for gradlew
         run: chmod +x ./cg_mobile_app/gradlew
       
