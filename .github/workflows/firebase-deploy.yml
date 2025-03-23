@@ -27,10 +27,12 @@ jobs:
         working-directory: ./cg_mobile_app
         run: ./gradlew assembleRelease
       
-      - name: List built APK files
-        run: ls -la ./cg_mobile_app/app/build/outputs/apk/release/
+      - name: Sign APK
+        working-directory: ./cg_mobile_app
+        run: |
+          cp ./app/build/outputs/apk/release/app-release-unsigned.apk ./app/build/outputs/apk/release/app-release.apk
       
-      - name: Upload APK as artifact
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
@@ -44,6 +46,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
+          path: .
       
       - name: List downloaded files
         run: ls -la
@@ -54,5 +57,5 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: app-release/app-release.apk  # Correct path to the APK
+          file: app-release.apk
           releaseNotes: "New version available for testing"
