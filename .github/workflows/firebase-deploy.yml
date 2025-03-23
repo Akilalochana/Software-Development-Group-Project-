@@ -16,10 +16,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
       
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
-        
+      
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
         working-directory: cg_mobile_app
@@ -42,10 +43,15 @@ jobs:
         with:
           name: app-debug
           path: cg_mobile_app/app/build/outputs/apk/debug/app-debug.apk
-          
-      - name: Build release APK
-        run: ./gradlew assembleRelease --stacktrace
+          retention-days: 7
+      
+      - name: Sign Release APK
+        run: ./gradlew assembleRelease
         working-directory: cg_mobile_app
+        env:
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
       
       - name: Upload release APK to Firebase
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -55,3 +61,4 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: testers
           file: cg_mobile_app/app/build/outputs/apk/release/app-release.apk
+          releaseNotes: "Automated build from GitHub Actions"
