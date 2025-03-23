@@ -5,41 +5,39 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Allows manual triggering
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+      
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-
+      
       - name: Grant execute permission for gradlew
         run: chmod +x ./cg_mobile_app/gradlew
-
+      
       - name: Build with Gradle
         working-directory: ./cg_mobile_app
         run: ./gradlew assembleRelease
-
-      - name: Copy APK to a known location
+      
+      - name: Sign APK
         working-directory: ./cg_mobile_app
         run: |
-          mkdir -p ./apprelease
-          cp ./app/build/outputs/apk/release/app-release.apk ./apprelease/app-release.apk
-
-      - name: Upload APK as an artifact
+          cp ./app/build/outputs/apk/release/app-release-unsigned.apk ./app/build/outputs/apk/release/app-release.apk
+      
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: ./cg_mobile_app/apprelease/app-release.apk
-
+          path: ./cg_mobile_app/app/build/outputs/apk/release/app-release.apk
+  
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -48,16 +46,16 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: ./downloaded-apk
-
+          path: .
+      
       - name: List downloaded files
-        run: ls -la ./downloaded-apk
-
+        run: ls -la
+      
       - name: Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: ./downloaded-apk/app-release.apk
+          file: app-release.apk
           releaseNotes: "New version available for testing"
