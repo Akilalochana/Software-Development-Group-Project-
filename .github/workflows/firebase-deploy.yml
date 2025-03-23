@@ -2,13 +2,14 @@ name: Deploy to Firebase
 
 on:
   push:
-    branches: [ main ]  # or master, depending on your default branch
+    branches: [ main ] 
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
       
       - name: Set up JDK 11
         uses: actions/setup-java@v3
@@ -19,12 +20,19 @@ jobs:
       
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+        working-directory: cg_mobile_app  # Adjust if this is not correct
       
       - name: Build with Gradle
         run: ./gradlew build
+        working-directory: cg_mobile_app  # Adjust if this is not correct
       
       - name: Build Release APK
         run: ./gradlew assembleRelease
+        working-directory: cg_mobile_app  # Adjust if this is not correct
+      
+      - name: Debug - List APK files
+        run: Build Release APK
+        working-directory: cg_mobile_app  # Adjust if this is not correct
       
       - name: Upload APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -32,4 +40,4 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: testers
-          file: app/release/app-release.apk
+          file: cg_mobile_app/app/release/app-release.apk  # Using your provided path
