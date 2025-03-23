@@ -14,7 +14,7 @@ class ChatbotService(private val context: Context) {
 
     private val generativeModel by lazy {
         GenerativeModel(
-            modelName = "gemini-1.5-pro",
+            modelName = "gemini-2.0-flash",
             apiKey = apiKey
         )
     }
