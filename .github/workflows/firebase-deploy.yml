@@ -29,13 +29,18 @@ jobs:
       
       - name: Sign APK
         working-directory: ./cg_mobile_app
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           # Copy unsigned APK
           cp ./app/build/outputs/apk/release/app-release-unsigned.apk ./app/build/outputs/apk/release/app-release.apk
 
           # Sign the APK using jarsigner
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore ${{ secrets.KEYSTORE_FILE_PATH }} \
+            -keystore ./keystore.jks \
+            -storepass ${{ secrets.KEYSTORE_PASSWORD }} \
+            -keypass ${{ secrets.KEY_PASSWORD }} \
             ./app/build/outputs/apk/release/app-release.apk \
             ${{ secrets.KEY_ALIAS }}
 
