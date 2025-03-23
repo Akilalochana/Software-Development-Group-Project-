@@ -1,5 +1,4 @@
 name: Deploy to Firebase App Distribution
-
 on:
   push:
     branches: [ main, master ]
@@ -8,19 +7,28 @@ on:
   workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
       
-      - name: Verify APK exists
-        run: |
-          ls -la cg_mobile_app/app/release/
-          if [ ! -f "cg_mobile_app/app/release/app-release.apk" ]; then
-            echo "APK not found at expected location"
-            exit 1
-          fi
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./cg_mobile_app/gradlew
+      
+      - name: Build with Gradle
+        working-directory: ./cg_mobile_app
+        run: ./gradlew assembleRelease
+      
+      - name: Display APK directory contents
+        run: ls -la cg_mobile_app/app/build/outputs/apk/release/
       
       - name: Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -28,4 +36,4 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: cg_mobile_app/app/release/app-release.apk
+          file: cg_mobile_app/app/build/outputs/apk/release/app-release.apk
