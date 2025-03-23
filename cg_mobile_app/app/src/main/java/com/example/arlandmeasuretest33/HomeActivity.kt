@@ -231,6 +231,15 @@ class HomeActivity : AppCompatActivity() {
                         userNameText.text = displayName
                         userEmailText.text = user.email ?: "No email available"
                         userStatusText.text = "Active Gardener"
+                        
+                        // Load saved profile picture if available
+                        val profilePicture = document.getLong("profilePicture")
+                        if (profilePicture != null) {
+                            val profileImage = findViewById<ImageView>(R.id.profileImage)
+                            profileImage.setImageResource(profilePicture.toInt())
+                            profileButton.setImageResource(profilePicture.toInt())
+                            android.util.Log.d("HomeActivity", "Loaded profile picture from database: $profilePicture")
+                        }
                     } else {
                         // If document doesn't exist, use email from Firebase Auth
                         val displayName = if (user.email != null && user.email!!.contains("@")) {
@@ -761,12 +770,20 @@ class HomeActivity : AppCompatActivity() {
         // Save user preference if user is logged in
         auth.currentUser?.let { user ->
             val userRef = db.collection("user_data").document(user.uid)
-            userRef.update("profilePicture", resId)
+            
+            // Create a map with profile picture data
+            val profileData = hashMapOf(
+                "profilePicture" to resId,
+                "lastUpdated" to System.currentTimeMillis()
+            )
+            
+            // Use set with merge option to create doc if it doesn't exist or update existing doc
+            userRef.set(profileData, com.google.firebase.firestore.SetOptions.merge())
                 .addOnSuccessListener {
-                    android.util.Log.d("HomeActivity", "Profile picture preference saved")
+                    android.util.Log.d("HomeActivity", "Profile picture saved to database")
                 }
                 .addOnFailureListener { e ->
-                    android.util.Log.e("HomeActivity", "Error saving profile picture preference: ${e.message}")
+                    android.util.Log.e("HomeActivity", "Error saving profile picture: ${e.message}")
                 }
         }
         
