@@ -14,15 +14,6 @@ jobs:
         with: 
           fetch-depth: 0 
           
-      - name: Check directory structure 
-        run: | 
-          echo "Current directory: $(pwd)" 
-          ls -la 
-          echo "Looking for gradlew:" 
-          find . -name "gradlew" 
-          echo "Checking project structure:"
-          find . -type f -name "*.gradle" -o -name "*.gradle.kts" | sort
-          
       - name: Set up JDK 17 
         uses: actions/setup-java@v3 
         with: 
@@ -33,22 +24,16 @@ jobs:
       - name: Setup Android SDK 
         uses: android-actions/setup-android@v2 
         
+      - name: Display project structure
+        run: |
+          echo "Project Root:"
+          ls -la
+          echo "Looking for Android project files:"
+          find . -name "build.gradle*" -o -name "gradlew" -o -name "AndroidManifest.xml" | sort
+      
       - name: Grant execute permission for gradlew 
         run: | 
           find . -name "gradlew" -exec chmod +x {} \; 
-          
-      - name: Display Gradle and Project Info
-        run: |
-          APP_DIR=$(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1)
-          cd $APP_DIR
-          echo "==== Gradle Info ===="
-          ./gradlew --version
-          echo "==== Gradle Files ===="
-          if [ -f "gradle/wrapper/gradle-wrapper.properties" ]; then
-            cat gradle/wrapper/gradle-wrapper.properties
-          fi
-          echo "==== Memory Info ===="
-          free -h
           
       - name: Configure Gradle memory settings
         run: |
@@ -58,29 +43,51 @@ jobs:
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" > gradle.properties
           echo "org.gradle.parallel=true" >> gradle.properties
           echo "org.gradle.caching=true" >> gradle.properties
-          echo "android.enableJetifier=false" >> gradle.properties
+          echo "org.gradle.logging.level=info" >> gradle.properties
+          
+      - name: Show build files content
+        run: |
+          echo "=== Main build.gradle ==="
+          find . -name "build.gradle" -not -path "*/app/*" -exec cat {} \;
+          echo "=== App build.gradle ==="
+          find . -path "*/app/build.gradle*" -exec cat {} \;
+          echo "=== settings.gradle ==="
+          find . -name "settings.gradle*" -exec cat {} \;
           
       - name: Fix compileSdk issues
         run: |
-          find . -name "build.gradle*" -print -exec cat {} \; 
           find . -name "build.gradle*" -exec sed -i 's/compileSdk[ ]*=[ ]*35/compileSdk = 34/g' {} \;
           find . -name "build.gradle*" -exec sed -i 's/compileSdkVersion[ ]*35/compileSdkVersion 34/g' {} \;
           
-      - name: Update dependencies if needed
+      - name: List available Android SDK platforms
         run: |
-          find . -name "build.gradle*" -exec sed -i 's/com.android.tools.build:gradle:[0-9]\+\.[0-9]\+\.[0-9]\+/com.android.tools.build:gradle:8.1.0/g' {} \;
+          ls -la $ANDROID_HOME/platforms
           
-      - name: Clean project with debug output
+      - name: Clean with diagnostic output
         run: | 
           APP_DIR=$(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1)
           cd $APP_DIR
-          ./gradlew clean --info
+          ./gradlew clean --debug > clean_log.txt 2>&1 || (cat clean_log.txt && exit 1)
           
-      - name: Build debug APK with full logging
+      - name: Build debug APK with verbose logging
         run: | 
           APP_DIR=$(find . -name "gradlew" | sed 's|/gradlew||' | head -n 1)
           cd $APP_DIR
-          ./gradlew assembleDebug --stacktrace --info --scan > build_log.txt 2>&1 || (cat build_log.txt && exit 1)
+          ./gradlew tasks --all > available_tasks.txt
+          echo "====== Available Gradle Tasks ======"
+          cat available_tasks.txt
+          # Try build with multiple combinations to isolate the issue
+          echo "====== First attempt: assembleDebug ======"
+          ./gradlew assembleDebug --debug > build_log.txt 2>&1 || true
+          if [ ! -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+            echo "====== Second attempt: app:assembleDebug ======"
+            ./gradlew app:assembleDebug --debug >> build_log.txt 2>&1 || true
+          fi
+          # Try a simpler task to get more info
+          if [ ! -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+            echo "====== Attempting simple compile ======"
+            ./gradlew compileDebugJavaWithJavac --debug >> build_log.txt 2>&1 || true
+          fi
           
       - name: Upload build logs
         if: always()
@@ -89,8 +96,14 @@ jobs:
           name: build-logs
           path: |
             **/build_log.txt
+            **/clean_log.txt
+            **/available_tasks.txt
             **/build/reports/**
           retention-days: 7
+          
+      - name: Check if APK was generated
+        run: |
+          find . -name "*.apk"
           
       - name: Upload debug APK 
         if: success() 
