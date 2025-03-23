@@ -36,4 +36,4 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: cg_mobile_app/app/build/outputs/apk/release/app-release.apk
+          file: cg_mobile_app/app/release/app-release.apk
