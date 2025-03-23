@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="140dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_plant"
+            android:src="@drawable/aloe_vera"
             android:contentDescription="Plant image" />
 
         <!-- Plant Info -->

@@ -42,7 +42,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:contentDescription="Plant Image" />
+                android:contentDescription="Plant Image"
+                android:src="@drawable/aloe_vera" />
         </androidx.cardview.widget.CardView>
 
         <com.airbnb.lottie.LottieAnimationView
@@ -78,7 +79,7 @@
                     android:id="@+id/plantIcon"
                     android:layout_width="28dp"
                     android:layout_height="28dp"
-                    android:src="@drawable/ic_plant"
+                    android:src="@drawable/aloe_vera"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:tint="#4CAF50" />

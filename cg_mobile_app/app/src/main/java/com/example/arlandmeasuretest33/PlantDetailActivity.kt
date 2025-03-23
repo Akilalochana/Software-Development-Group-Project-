@@ -52,7 +52,7 @@ class PlantDetailActivity : AppCompatActivity() {
 
     private fun displayPlantData(name: String, category: String) {
         // Set image and text fields with placeholder data
-        plantImage.setImageResource(R.drawable.ic_plant)
+        plantImage.setImageResource(R.drawable.aloe_vera)
         plantName.text = name
         plantSubtitle.text = "Lectus mauris dolor (In rutrum)"
         plantDescription.text = """

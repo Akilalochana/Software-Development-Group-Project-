@@ -427,7 +427,7 @@ class PlantInformationActivity : AppCompatActivity() {
                                     name = plantName,
                                     category = category,
                                     // Use default drawable resource - the adapter will handle mapping to the correct image
-                                    imageResource = R.drawable.ic_plant,
+                                    imageResource = R.drawable.aloe_vera,
                                     district = district
                                 )
                                 uniquePlants[plantNameLower] = plant
@@ -531,7 +531,7 @@ class PlantInformationActivity : AppCompatActivity() {
                                     name = doc.id,
                                     category = category,
                                     // Use default drawable - adapter will map to correct image
-                                    imageResource = R.drawable.ic_plant,
+                                    imageResource = R.drawable.aloe_vera,
                                     district = district
                                 )
                                 uniquePlants[doc.id.lowercase()] = plant
@@ -551,7 +551,7 @@ class PlantInformationActivity : AppCompatActivity() {
                                     name = plantName,
                                     category = "Vegetable",
                                     // Use default drawable - adapter will map to correct image
-                                    imageResource = R.drawable.ic_plant,
+                                    imageResource = R.drawable.aloe_vera,
                                     district = "Default"
                                 )
                                 uniquePlants[plantName.lowercase()] = plant
@@ -577,7 +577,7 @@ class PlantInformationActivity : AppCompatActivity() {
                                 name = plantName,
                                 category = "Vegetable",
                                 // Use default drawable - adapter will map to correct image
-                                imageResource = R.drawable.ic_plant,
+                                imageResource = R.drawable.aloe_vera,
                                 district = "Default"
                             )
                             uniquePlants[plantName.lowercase()] = plant
@@ -602,21 +602,21 @@ class PlantInformationActivity : AppCompatActivity() {
         
         // Add hardcoded plants
         val hardcodedPlants = listOf(
-            PlantCategory("Pumpkin", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Bitter Melon", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Winged Bean", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Red Spinach", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Beetroot", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Brinjal", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Carrot", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Cabbage", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Leeks", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Potato", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Onion", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Manioc", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Taro", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Eggplant", "Vegetables", R.drawable.ic_plant, "Ampara"),
-            PlantCategory("Drumstick", "Vegetables", R.drawable.ic_plant, "Ampara")
+            PlantCategory("Pumpkin", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Bitter Melon", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Winged Bean", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Red Spinach", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Beetroot", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Brinjal", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Carrot", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Cabbage", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Leeks", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Potato", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Onion", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Manioc", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Taro", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Eggplant", "Vegetables", R.drawable.aloe_vera, "Ampara"),
+            PlantCategory("Drumstick", "Vegetables", R.drawable.aloe_vera, "Ampara")
         )
         
         // Add each plant to our map to ensure uniqueness

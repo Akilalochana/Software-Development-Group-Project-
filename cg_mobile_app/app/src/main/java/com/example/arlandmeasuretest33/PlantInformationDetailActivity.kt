@@ -204,7 +204,7 @@ class PlantInformationDetailActivity : AppCompatActivity() {
             loadImage(imageUrl)
         } else {
             // Use fallback image
-            plantImage.setImageResource(R.drawable.ic_plant)
+            plantImage.setImageResource(R.drawable.aloe_vera)
         }
 
         // Try to set other fields if they exist in the layout
@@ -270,8 +270,8 @@ class PlantInformationDetailActivity : AppCompatActivity() {
         try {
             val requestOptions = RequestOptions()
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .placeholder(R.drawable.ic_plant)
-                .error(R.drawable.ic_plant)
+                .placeholder(R.drawable.aloe_vera)
+                .error(R.drawable.aloe_vera)
 
             Glide.with(this)
                 .load(imageUrl)
@@ -281,7 +281,7 @@ class PlantInformationDetailActivity : AppCompatActivity() {
             Log.d(TAG, "Loading image from URL: $imageUrl")
         } catch (e: Exception) {
             Log.e(TAG, "Error loading image: ${e.message}")
-            plantImage.setImageResource(R.drawable.ic_plant)
+            plantImage.setImageResource(R.drawable.aloe_vera)
         }
     }
 
@@ -519,7 +519,7 @@ class PlantInformationDetailActivity : AppCompatActivity() {
             this.plantName.text = plantId.split(" ").joinToString(" ") { it.capitalize() }
             plantSubtitle.text = "Plant Information"
             plantDescription.text = "This is a common vegetable plant. Detailed information for this plant is being updated."
-            plantImage.setImageResource(R.drawable.ic_plant)
+            plantImage.setImageResource(R.drawable.aloe_vera)
             
             // Set reasonable defaults for other fields
             try {

@@ -73,7 +73,7 @@ class PlantCatalogAdapter(
             "okra" -> R.drawable.img_okra
             "radish" -> R.drawable.img_radish
             "capsicum" -> R.drawable.img_capsicum
-            else -> R.drawable.ic_plant // Default image for unknown plants
+            else -> R.drawable.aloe_vera // Use aloe_vera as default image to match home page
         }
     }
 
