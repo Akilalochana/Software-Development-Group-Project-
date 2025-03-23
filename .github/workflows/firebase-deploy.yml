@@ -14,7 +14,7 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '17'  # Changed from 11 to 17
+          java-version: '17'
           distribution: 'temurin'
           cache: gradle
       
@@ -22,15 +22,23 @@ jobs:
         run: chmod +x ./gradlew
         working-directory: cg_mobile_app
       
-      - name: Build with Gradle
-        run: ./gradlew build
+      - name: Build with Gradle (with verbose output)
+        run: ./gradlew build --stacktrace --info
+        working-directory: cg_mobile_app
+      
+      - name: Check if release directory exists
+        run: mkdir -p app/release
         working-directory: cg_mobile_app
       
       - name: Build Release APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease --stacktrace --info
         working-directory: cg_mobile_app
       
-      - name: Debug - List APK files
+      - name: Debug - List all directories
+        run: find . -type d | sort
+        working-directory: cg_mobile_app
+      
+      - name: Debug - List all APK files
         run: find . -name "*.apk"
         working-directory: cg_mobile_app
       
@@ -40,4 +48,4 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           groups: testers
-          file: cg_mobile_app/app/release/app-release.apk
+          file: cg_mobile_app/app/build/outputs/apk/release/app-release.apk  # Changed path to standard output location
