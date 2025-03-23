@@ -23,6 +23,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.text.SimpleDateFormat
 import android.widget.EditText
 import java.util.*
+import android.widget.Button
 
 
 class HomeActivity : AppCompatActivity() {
@@ -40,7 +41,6 @@ class HomeActivity : AppCompatActivity() {
     private var firestoreListener: ListenerRegistration? = null
 
     // UI component properties
-    private lateinit var greetingText: TextView
     private lateinit var weatherCard: View
     private lateinit var reportCard: View
     private lateinit var tipsCard: View
@@ -130,9 +130,6 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun initializeUIComponents() {
-        // User info components
-        greetingText = findViewById(R.id.greetingText)
-
         // Initialize chat input and send button
         val chatInput = findViewById<EditText>(R.id.chat_input)
         val sendButton = findViewById<CardView>(R.id.send_button)
@@ -231,7 +228,6 @@ class HomeActivity : AppCompatActivity() {
                             userName
                         }
 
-                        // Update drawer profile info
                         userNameText.text = displayName
                         userEmailText.text = user.email ?: "No email available"
                         userStatusText.text = "Active Gardener"
@@ -278,6 +274,12 @@ class HomeActivity : AppCompatActivity() {
             closeDrawer()
         }
 
+        // Add profile image click listener to change profile picture
+        val profileImage = findViewById<ImageView>(R.id.profileImage)
+        profileImage.setOnClickListener {
+            showProfilePictureOptions()
+        }
+
         // Logout button click listener
         val logoutButton = findViewById<View>(R.id.logoutButton)
         logoutButton.setOnClickListener {
@@ -286,11 +288,11 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun openDrawer() {
-        drawerLayout.openDrawer(Gravity.RIGHT)
+        drawerLayout.openDrawer(Gravity.START)
     }
 
     private fun closeDrawer() {
-        drawerLayout.closeDrawer(Gravity.RIGHT)
+        drawerLayout.closeDrawer(Gravity.START)
     }
 
     private fun logout() {
@@ -317,6 +319,8 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun updateUserInfo() {
+        // This method previously updated the greeting text
+        // Now just update the user profile in the drawer
         val currentUser = auth.currentUser
         currentUser?.let { user ->
             // Get user data from Firestore
@@ -337,7 +341,9 @@ class HomeActivity : AppCompatActivity() {
                             userName
                         }
 
-                        greetingText.text = "Hello, $displayName!"
+                        userNameText.text = displayName
+                        userEmailText.text = user.email ?: "No email available"
+                        userStatusText.text = "Active Gardener"
                     } else {
                         // If document doesn't exist, use email from Firebase Auth
                         val displayName = if (user.email != null && user.email!!.contains("@")) {
@@ -346,7 +352,9 @@ class HomeActivity : AppCompatActivity() {
                             user.email ?: user.displayName ?: "Gardener"
                         }
 
-                        greetingText.text = "Hello, $displayName!"
+                        userNameText.text = displayName
+                        userEmailText.text = user.email ?: "No email available"
+                        userStatusText.text = "Active Gardener"
                     }
                 }
                 .addOnFailureListener {
@@ -357,10 +365,14 @@ class HomeActivity : AppCompatActivity() {
                         user.email ?: user.displayName ?: "Gardener"
                     }
 
-                    greetingText.text = "Hello, $displayName!"
+                    userNameText.text = displayName
+                    userEmailText.text = user.email ?: "No email available"
+                    userStatusText.text = "Active Gardener"
                 }
         } ?: run {
-            greetingText.text = "Hello, Gardener!"
+            userNameText.text = "Guest User"
+            userEmailText.text = "No email available"
+            userStatusText.text = "Guest"
         }
     }
 
@@ -669,10 +681,100 @@ class HomeActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(Gravity.RIGHT)) {
+        if (drawerLayout.isDrawerOpen(Gravity.START)) {
             closeDrawer()
         } else {
             super.onBackPressed()
         }
+    }
+
+    private fun showProfilePictureOptions() {
+        // Create the dialog
+        val dialog = android.app.Dialog(this)
+        
+        // Request feature before setting content view
+        dialog.window?.requestFeature(android.view.Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.profile_image_selector_dialog)
+        
+        // Set transparent background and layout parameters
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        
+        // Set dialog width to match parent with margins
+        val displayMetrics = resources.displayMetrics
+        val dialogWidth = (displayMetrics.widthPixels * 0.9).toInt() // 90% of screen width
+        dialog.window?.setLayout(dialogWidth, android.view.WindowManager.LayoutParams.WRAP_CONTENT)
+        
+        // Get references to the card views
+        val farmer1Card = dialog.findViewById<androidx.cardview.widget.CardView>(R.id.farmer1_card)
+        val farmer2Card = dialog.findViewById<androidx.cardview.widget.CardView>(R.id.farmer2_card)
+        val farmer3Card = dialog.findViewById<androidx.cardview.widget.CardView>(R.id.farmer3_card)
+        val farmer4Card = dialog.findViewById<androidx.cardview.widget.CardView>(R.id.farmer4_card)
+        val farmer5Card = dialog.findViewById<androidx.cardview.widget.CardView>(R.id.farmer5_card)
+        val farmer6Card = dialog.findViewById<androidx.cardview.widget.CardView>(R.id.farmer6_card)
+        val cancelButton = dialog.findViewById<Button>(R.id.cancelButton)
+        
+        // Set click listeners for each farmer card
+        farmer1Card.setOnClickListener {
+            updateProfileImage(R.drawable.farmer1)
+            dialog.dismiss()
+        }
+        
+        farmer2Card.setOnClickListener {
+            updateProfileImage(R.drawable.farmer2)
+            dialog.dismiss()
+        }
+        
+        farmer3Card.setOnClickListener {
+            updateProfileImage(R.drawable.farmer3)
+            dialog.dismiss()
+        }
+        
+        farmer4Card.setOnClickListener {
+            updateProfileImage(R.drawable.farmer4)
+            dialog.dismiss()
+        }
+        
+        farmer5Card.setOnClickListener {
+            updateProfileImage(R.drawable.farmer5)
+            dialog.dismiss()
+        }
+        
+        farmer6Card.setOnClickListener {
+            updateProfileImage(R.drawable.farmer6)
+            dialog.dismiss()
+        }
+        
+        // Set click listener for cancel button
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+    }
+    
+    private fun updateProfileImage(resId: Int) {
+        // Update both profile pictures
+        val profileImage = findViewById<ImageView>(R.id.profileImage)
+        profileImage.setImageResource(resId)
+        profileButton.setImageResource(resId)
+        
+        // Save user preference if user is logged in
+        auth.currentUser?.let { user ->
+            val userRef = db.collection("user_data").document(user.uid)
+            userRef.update("profilePicture", resId)
+                .addOnSuccessListener {
+                    android.util.Log.d("HomeActivity", "Profile picture preference saved")
+                }
+                .addOnFailureListener { e ->
+                    android.util.Log.e("HomeActivity", "Error saving profile picture preference: ${e.message}")
+                }
+        }
+        
+        // Show confirmation toast
+        android.widget.Toast.makeText(
+            this,
+            "Profile picture updated!",
+            android.widget.Toast.LENGTH_SHORT
+        ).show()
     }
 }
