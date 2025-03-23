@@ -30,7 +30,17 @@ jobs:
       - name: Sign APK
         working-directory: ./cg_mobile_app
         run: |
+          # Copy unsigned APK
           cp ./app/build/outputs/apk/release/app-release-unsigned.apk ./app/build/outputs/apk/release/app-release.apk
+
+          # Sign the APK using jarsigner
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore ${{ secrets.KEYSTORE_FILE_PATH }} \
+            ./app/build/outputs/apk/release/app-release.apk \
+            ${{ secrets.KEY_ALIAS }}
+
+          # Verify the APK signature
+          apksigner verify --verbose ./app/build/outputs/apk/release/app-release.apk
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
