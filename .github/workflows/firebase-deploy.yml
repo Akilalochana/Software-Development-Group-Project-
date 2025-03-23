@@ -1,12 +1,10 @@
 name: Deploy to Firebase App Distribution
-
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:  # Allows manual triggering
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,27 +19,25 @@ jobs:
           cache: gradle
       
       - name: Grant execute permission for gradlew
-        run: chmod +x ./cg_mobile_app/gradlew
+        run: chmod +x ./gradlew
       
       - name: Build with Gradle
-        working-directory: ./cg_mobile_app
         run: ./gradlew assembleRelease
       
       - name: Upload APK
-        uses: actions/upload-artifact@v4  # Updated from v3 to v4
+        uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: cg_mobile_app/app/release/app-release.apk
+          path: app/release/app-release.apk
   
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download APK from build
-        uses: actions/download-artifact@v4  # Updated from v3 to v4
+        uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: app-release
       
       - name: Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
@@ -49,5 +45,5 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
-          file: app-release/app-release.apk
-          releaseNotes: "New version available for testing"
+          file: app-release.apk
+          releaseNotes: "New version available for testing - $(date +'%Y-%m-%d %H:%M')"
