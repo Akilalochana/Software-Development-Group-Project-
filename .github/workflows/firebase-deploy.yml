@@ -50,3 +50,4 @@ jobs:
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_CREDENTIALS }}
           groups: testers
           file: app-release/app-release.apk
+          releaseNotes: "New version available for testing"
