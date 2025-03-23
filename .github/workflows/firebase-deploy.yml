@@ -113,27 +113,3 @@ jobs:
           path: | 
             **/build/outputs/apk/debug/*.apk 
           retention-days: 7
-
-      - name: Send email notification
-        if: always()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          secure: true
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: Android App Build - ${{ job.status }}
-          to: akilalochana7@gmail.com
-          from: GitHub Actions <noreply@github.com>
-          body: |
-            Build Status: ${{ job.status }}
-            
-            Repository: ${{ github.repository }}
-            Branch: ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            
-            The Android app build has ${{ job.status == 'success' && 'completed successfully! ✅' || 'failed ❌' }}
-            
-            View the GitHub Actions run at:
-            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
