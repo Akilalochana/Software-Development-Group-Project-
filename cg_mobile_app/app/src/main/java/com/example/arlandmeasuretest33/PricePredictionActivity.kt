@@ -290,6 +290,8 @@ class PricePredictionActivity : AppCompatActivity() {
             val intent = Intent(this, MainActivity::class.java)
             intent.putExtra("PLANT_TYPE", plantType)
             intent.putExtra("START_AR", true)
+            // Add flags to ensure proper back navigation
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             startActivity(intent)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -405,5 +407,12 @@ class PricePredictionActivity : AppCompatActivity() {
 
         goToArButton.visibility = View.GONE
         shareButton.visibility = View.GONE
+    }
+
+    // Update override for onBackPressed to fix navigation flow
+    override fun onBackPressed() {
+        // Instead of creating a new PlantRecommendationActivity, just finish this activity
+        // This will return to the previous activity in the back stack
+        finish()
     }
 }

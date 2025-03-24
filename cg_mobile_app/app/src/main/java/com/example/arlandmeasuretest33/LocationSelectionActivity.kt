@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -80,6 +81,12 @@ class LocationSelectionActivity : AppCompatActivity() {
         gardenNameInput = findViewById(R.id.gardenNameInput)
         locationSpinner = findViewById(R.id.locationSpinner)
         createButton = findViewById(R.id.createButton)
+        
+        // Initialize back button
+        val backButton = findViewById<ImageView>(R.id.backButton)
+        backButton.setOnClickListener {
+            onBackPressed()
+        }
 
         // Initialize location feature TextViews
         climateValueTextView = findViewById(R.id.climateValueTextView)

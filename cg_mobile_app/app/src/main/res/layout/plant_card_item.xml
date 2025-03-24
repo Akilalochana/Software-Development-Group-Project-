@@ -4,8 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="0dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
     app:cardBackgroundColor="#FFFFFF"
     app:cardUseCompatPadding="true"
     app:contentPadding="0dp">
@@ -49,8 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="12dp"
-            android:background="#F5F7F7">
+            android:padding="12dp">
 
             <TextView
                 android:id="@+id/nameText"
@@ -66,8 +65,8 @@
                 android:id="@+id/costText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textSize="13sp"
+                android:layout_marginTop="4dp"
+                android:textSize="14sp"
                 android:textColor="#757575"
                 android:maxLines="1"
                 android:ellipsize="end" />
@@ -76,18 +75,17 @@
                 android:id="@+id/growthPeriodText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textSize="13sp"
+                android:layout_marginTop="4dp"
+                android:textSize="14sp"
                 android:textColor="#757575"
                 android:maxLines="1"
                 android:ellipsize="end" />
 
-            <!-- Replace the existing Button with this MaterialButton -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/selectButton"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:layout_marginTop="10dp"
+                android:layout_height="56dp"
+                android:layout_marginTop="16dp"
                 android:text="Select"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"

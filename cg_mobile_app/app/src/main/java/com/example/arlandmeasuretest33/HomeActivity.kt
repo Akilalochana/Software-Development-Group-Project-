@@ -8,7 +8,6 @@ import android.view.Gravity
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.viewpager2.widget.ViewPager2
@@ -26,7 +25,7 @@ import java.util.*
 import android.widget.Button
 
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : BaseActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
@@ -78,7 +77,6 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_home)
 
         // Initialize Firebase Auth
@@ -122,11 +120,6 @@ class HomeActivity : AppCompatActivity() {
         } else {
             updateEmptyPlantUI()
         }
-    }
-
-    private fun enableEdgeToEdge() {
-        // Implementation for edge-to-edge display
-        // For newer Android versions, you might use WindowCompat.setDecorFitsSystemWindows
     }
 
     private fun initializeUIComponents() {

@@ -4,19 +4,19 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.firebase.firestore.FirebaseFirestore
 import android.view.LayoutInflater
 import android.widget.GridLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.cardview.widget.CardView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
 
 class PlantRecommendationActivity : AppCompatActivity() {
@@ -25,6 +25,7 @@ class PlantRecommendationActivity : AppCompatActivity() {
     private lateinit var gridLayout: GridLayout
     private lateinit var noRecommendationsText: TextView
     private lateinit var headerTitleText: TextView
+    private lateinit var subtitleText: TextView
     private lateinit var backButton: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,6 +46,7 @@ class PlantRecommendationActivity : AppCompatActivity() {
             // Initialize UI elements
             gridLayout = findViewById(R.id.gridLayout)
             headerTitleText = findViewById(R.id.headerTitleText)
+            subtitleText = findViewById(R.id.subtitleText)
             headerTitleText.text = "$gardenName - $selectedDistrict"
             backButton = findViewById(R.id.backButton)
 
@@ -232,7 +234,7 @@ class PlantRecommendationActivity : AppCompatActivity() {
         val costText = cardView.findViewById<TextView>(R.id.costText)
         val nameText = cardView.findViewById<TextView>(R.id.nameText)
         val growthPeriodText = cardView.findViewById<TextView>(R.id.growthPeriodText)
-        val selectButton = cardView.findViewById<Button>(R.id.selectButton)
+        val selectButton = cardView.findViewById<MaterialButton>(R.id.selectButton)
         val noImageText = cardView.findViewById<TextView>(R.id.noImageText)
 
         // Set text values

@@ -4,57 +4,98 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F7F7">
+    android:background="#F5F5F5">
 
-    <!-- Header with back button and title -->
-    <androidx.cardview.widget.CardView
+    <!-- Header Section - Updated to match location selection style -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="0dp"
-        android:layout_marginTop="0dp"
-        android:layout_marginBottom="12dp"
-        app:cardElevation="2dp"
-        app:cardBackgroundColor="#FFFFFF">
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingVertical="16dp"
-            android:paddingHorizontal="16dp">
+            android:orientation="horizontal">
 
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_back"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:scaleType="fitCenter"
+                android:layout_gravity="center_vertical"
+                android:contentDescription="Back"
+                android:tint="#4CAF50" />
+
+            <TextView
+                android:id="@+id/headerTitleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Garden name - District"
+                android:textSize="22sp"
+                android:textColor="#4D4D4D"
+                android:layout_marginStart="16dp"
+                android:fontFamily="sans-serif-medium"/>
+        </LinearLayout>
+    </LinearLayout>
+        
+    <!-- Recommended Plants Section with Curved Box -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFFFFF">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+            
+            <!-- Section Header with Icon -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageButton
-                    android:id="@+id/backButton"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
-                    android:src="@drawable/ic_back_arrow"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="8dp"
-                    android:scaleType="fitCenter"
-                    android:contentDescription="Back" />
-
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+                
+                <androidx.cardview.widget.CardView
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    app:cardCornerRadius="21dp"
+                    app:cardBackgroundColor="#E8F5E9"
+                    app:cardElevation="0dp">
+                    
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/aloe_vera"
+                        android:layout_gravity="center"
+                        android:contentDescription="Plant Icon"/>
+                </androidx.cardview.widget.CardView>
+                
                 <TextView
-                    android:id="@+id/headerTitleText"
-                    android:layout_width="0dp"
+                    android:id="@+id/subtitleText"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Garden name - District"
-                    android:textAlignment="center"
-                    android:textSize="22sp"
+                    android:text="Recommended Plants"
+                    android:textSize="20sp"
+                    android:textColor="#4CAF50"
                     android:textStyle="bold"
-                    android:textColor="#212121"
                     android:fontFamily="sans-serif-medium"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginEnd="36dp" />
+                    android:layout_marginStart="12dp"/>
             </LinearLayout>
-
-            <!-- Subtitle -->
+            
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -62,9 +103,7 @@
                 android:textSize="14sp"
                 android:textColor="#757575"
                 android:fontFamily="sans-serif"
-                android:textAlignment="center"
-                android:layout_marginTop="12dp"
-                android:layout_marginHorizontal="16dp" />
+                android:layout_marginBottom="8dp" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -81,18 +120,20 @@
         android:padding="16dp"
         android:visibility="gone" />
 
-    <!-- ScrollView to contain plant cards -->
+    <!-- ScrollView to contain plant cards with top margin -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="4dp">
+        android:layout_height="match_parent">
 
         <GridLayout
             android:id="@+id/gridLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:columnCount="2"
-            android:padding="8dp">
+            android:useDefaultMargins="true"
+            android:alignmentMode="alignMargins"
+            android:paddingHorizontal="8dp"
+            android:paddingBottom="16dp">
             <!-- Plant cards will be added here dynamically -->
         </GridLayout>
     </ScrollView>

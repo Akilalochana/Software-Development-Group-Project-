@@ -45,19 +45,21 @@
                     android:textSize="26sp"
                     android:textStyle="bold"
                     android:layout_alignParentStart="true"
-                    android:layout_toStartOf="@id/saveButton" />
+                    android:layout_toStartOf="@id/shareButton" />
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/saveButton"
+                    android:id="@+id/shareButton"
                     android:layout_width="wrap_content"
                     android:layout_height="56dp"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:text="Save"
+                    android:text="Share"
                     android:textAllCaps="false"
                     android:textColor="#FFFFFF"
                     android:textSize="16sp"
                     app:backgroundTint="#4CAF50"
+                    app:icon="@android:drawable/ic_menu_share"
+                    app:iconGravity="textStart"
                     style="@style/Widget.MaterialComponents.Button" />
             </RelativeLayout>
 
@@ -105,30 +107,6 @@
                         android:layout_columnWeight="1"
                         android:layout_rowWeight="1"
                         android:text="Rs. 9.75"
-                        android:textColor="#222222"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:gravity="end"
-                        android:layout_marginBottom="12dp"/>
-
-                    <!-- Fertilizer -->
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:text="Fertilizer Required:"
-                        android:textColor="#666666"
-                        android:textSize="14sp"
-                        android:layout_marginBottom="12dp"/>
-
-                    <TextView
-                        android:id="@+id/fertilizerValue"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_columnWeight="1"
-                        android:layout_rowWeight="1"
-                        android:text="22"
                         android:textColor="#222222"
                         android:textSize="14sp"
                         android:textStyle="bold"

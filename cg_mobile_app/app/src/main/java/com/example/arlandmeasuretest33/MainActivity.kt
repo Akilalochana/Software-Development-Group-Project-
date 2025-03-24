@@ -1897,4 +1897,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Add override for onBackPressed to fix navigation flow
+    override fun onBackPressed() {
+        // Check if we came from PricePredictionActivity
+        val plantType = intent.getStringExtra("PLANT_TYPE") ?: ""
+        val startAR = intent.getBooleanExtra("START_AR", false)
+        
+        if (startAR && plantType.isNotEmpty()) {
+            // We came from PricePredictionActivity, go back there
+            val intent = Intent(this, PricePredictionActivity::class.java)
+            intent.putExtra("PLANT_TYPE", plantType)
+            startActivity(intent)
+            finish()
+        } else {
+            // Default back behavior
+            super.onBackPressed()
+        }
+    }
+
 }

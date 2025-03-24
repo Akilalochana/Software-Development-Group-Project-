@@ -1,5 +1,6 @@
 package com.example.arlandmeasuretest33
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -8,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.os.ParcelFileDescriptor
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -208,19 +210,33 @@ class Report : AppCompatActivity() {
     }
 
 
-    // Add the onBackPressed method here
+    // Fix the onBackPressed method to prevent crashes
     override fun onBackPressed() {
-        AlertDialog.Builder(this)
-            .setTitle("Clear Cache")
-            .setMessage("Do you want to clear the cache?")
-            .setPositiveButton("Yes") { _, _ ->
-                clearCache()
-                super.onBackPressed()
-            }
-            .setNegativeButton("No") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
+        try {
+            AlertDialog.Builder(this)
+                .setTitle("Clear Cache")
+                .setMessage("Do you want to clear the cache?")
+                .setPositiveButton("Yes") { dialog, _ ->
+                    try {
+                        clearCache()
+                    } catch (e: Exception) {
+                        Log.e("REPORT", "Error clearing cache: ${e.message}")
+                    }
+                    dialog.dismiss()
+                    // Navigate to previous activity
+                    finish()
+                }
+                .setNegativeButton("No") { dialog, _ ->
+                    dialog.dismiss()
+                    // Navigate to previous activity
+                    finish()
+                }
+                .show()
+        } catch (e: Exception) {
+            Log.e("REPORT", "Error in onBackPressed: ${e.message}")
+            // Fallback to just finishing the activity
+            finish()
+        }
     }
 
     // Modify the fetchCropDataFromFirebase function to match your template.docx placeholders
@@ -315,7 +331,7 @@ class Report : AppCompatActivity() {
                     // Extract numeric values for calculations
                     val seedCostPerUnit = 50.0 // Cost per plant in LKR (from "cost_per_unit" field)
                     val fertilizerCostPerUnit = document.getString("Fertilizers")?.toDoubleOrNull() ?: 2.0
-                    val yieldPerPlant = expectedYieldPerPlant.replace("kg", "").trim().toDoubleOrNull() ?: 0.15
+                    val yieldPerPlant = parseYieldValue(expectedYieldPerPlant)
                     val pricePerKg = marketPricePerUnit.replace("LKR", "").trim().toDoubleOrNull() ?: 150.0
 
                     // ---- COST BREAKDOWN CALCULATIONS ----
@@ -652,7 +668,7 @@ class Report : AppCompatActivity() {
 
                     // Get expected yield per plant value
                     val yieldPerPlantStr = replacementsMap["{{expected_yield_per_plant}}"] ?: "0.15"
-                    val yieldPerPlant = yieldPerPlantStr.replace("Kg per cycle", "").trim().toDoubleOrNull() ?: 0.15
+                    val yieldPerPlant = parseYieldValue(yieldPerPlantStr)
 
                     // Quantity - Cell 1 (index 1)
                     if (yieldRow.tableCells.size > 1) {
@@ -688,7 +704,7 @@ class Report : AppCompatActivity() {
                 if (text.startsWith("Total Revenue:")) {
                     // Calculate total revenue
                     val yieldPerPlantStr = replacementsMap["{{expected_yield_per_plant}}"] ?: "0.15"
-                    val yieldPerPlant = yieldPerPlantStr.replace("Kg per cycle", "").trim().toDoubleOrNull() ?: 0.15
+                    val yieldPerPlant = parseYieldValue(yieldPerPlantStr)
                     val totalYield = yieldPerPlant * numberOfPlants
 
                     val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
@@ -720,7 +736,7 @@ class Report : AppCompatActivity() {
                 if (text.startsWith("Net Profit:")) {
                     // Calculate net profit
                     val yieldPerPlantStr = replacementsMap["{{expected_yield_per_plant}}"] ?: "0.15"
-                    val yieldPerPlant = yieldPerPlantStr.replace("Kg per cycle", "").trim().toDoubleOrNull() ?: 0.15
+                    val yieldPerPlant = parseYieldValue(yieldPerPlantStr)
                     val totalYield = yieldPerPlant * numberOfPlants
 
                     val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
@@ -918,36 +934,46 @@ class Report : AppCompatActivity() {
             val outputDocxPath = getExternalFilesDir(null)?.absolutePath + "/output.docx"
             val docxFile = File(outputDocxPath)
             if (docxFile.exists()) {
-                docxFile.delete()
-                Log.d("CACHE", "Deleted temporary Word document: $outputDocxPath")
+                try {
+                    docxFile.delete()
+                    Log.d("CACHE", "Deleted temporary Word document: $outputDocxPath")
+                } catch (e: Exception) {
+                    Log.e("CACHE", "Failed to delete Word document: ${e.message}")
+                }
             }
 
             // Delete the temporary PDF file
             val pdfFilePath = getExternalFilesDir(null)?.absolutePath + "/output.pdf"
             val pdfFile = File(pdfFilePath)
             if (pdfFile.exists()) {
-                pdfFile.delete()
-                Log.d("CACHE", "Deleted temporary PDF file: $pdfFilePath")
+                try {
+                    pdfFile.delete()
+                    Log.d("CACHE", "Deleted temporary PDF file: $pdfFilePath")
+                } catch (e: Exception) {
+                    Log.e("CACHE", "Failed to delete PDF file: ${e.message}")
+                }
             }
 
             // Optionally, delete the entire cache directory
             val cacheDir = getExternalFilesDir(null)
             if (cacheDir != null && cacheDir.exists()) {
-                cacheDir.listFiles()?.forEach { file ->
-                    file.delete()
+                try {
+                    cacheDir.listFiles()?.forEach { file ->
+                        try {
+                            if (file.name.endsWith(".docx") || file.name.endsWith(".pdf") || file.name.endsWith(".temp")) {
+                                file.delete()
+                                Log.d("CACHE", "Deleted cache file: ${file.absolutePath}")
+                            }
+                        } catch (e: Exception) {
+                            Log.e("CACHE", "Failed to delete cache file ${file.name}: ${e.message}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("CACHE", "Failed to process cache directory: ${e.message}")
                 }
-                Log.d("CACHE", "Cleared entire cache directory: ${cacheDir.absolutePath}")
-            }
-
-            // Show success message
-            runOnUiThread {
-                Toast.makeText(this, "Cache cleared successfully", Toast.LENGTH_SHORT).show()
             }
         } catch (e: Exception) {
-            Log.e("CACHE", "Failed to clear cache: ${e.message}")
-            runOnUiThread {
-                Toast.makeText(this, "Failed to clear cache", Toast.LENGTH_SHORT).show()
-            }
+            Log.e("CACHE", "Error in clearCache: ${e.message}")
         }
     }
 
@@ -963,11 +989,48 @@ class Report : AppCompatActivity() {
                 return
             }
 
+            // Try modern approach first (for Android 10+)
+            try {
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+                }
+
+                val resolver = contentResolver
+                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+                uri?.let {
+                    resolver.openOutputStream(it)?.use { outputStream ->
+                        FileInputStream(sourceFile).use { inputStream ->
+                            inputStream.copyTo(outputStream)
+                        }
+                    }
+
+                    Log.d("DOWNLOAD", "✅ PDF successfully saved using ContentResolver: $it")
+                    
+                    runOnUiThread {
+                        Toast.makeText(this, "PDF saved to Downloads folder", Toast.LENGTH_LONG).show()
+                    }
+                    
+                    // Clear cache after successful download
+                    clearCache()
+                    return
+                }
+            } catch (e: Exception) {
+                Log.e("DOWNLOAD", "ContentResolver approach failed: ${e.message}")
+                // Fall back to the traditional method below
+            }
+
+            // Fall back to traditional approach
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             val destinationFile = File(downloadsDir, fileName)
 
             if (!downloadsDir.exists()) {
-                downloadsDir.mkdirs()  // Create Downloads folder if not exists
+                val dirCreated = downloadsDir.mkdirs()  // Create Downloads folder if not exists
+                if (!dirCreated) {
+                    Log.e("DOWNLOAD", "Failed to create Downloads directory")
+                }
             }
 
             // Copy file from internal storage to Downloads folder
@@ -991,13 +1054,36 @@ class Report : AppCompatActivity() {
             // Clear cache after download
             clearCache()
 
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             Log.e("ERROR", "Failed to copy PDF to Downloads: ${e.message}")
-
+            e.printStackTrace()
 
             runOnUiThread {
-                Toast.makeText(this, "Failed to save PDF", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Failed to save PDF: ${e.message}", Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    // Add this helper function to properly parse yield values
+    private fun parseYieldValue(yieldString: String): Double {
+        return try {
+            when {
+                // Handle case when the value is just a number (integer or double)
+                yieldString.toDoubleOrNull() != null -> yieldString.toDouble()
+                
+                // Handle "X kg" or "X Kg" format
+                yieldString.toLowerCase().contains("kg") -> {
+                    val numericPart = yieldString.toLowerCase().replace("kg", "")
+                        .replace("per cycle", "").replace("per plant", "").trim()
+                    numericPart.toDoubleOrNull() ?: 0.15
+                }
+                
+                // Default fallback value if no pattern matches
+                else -> 0.15
+            }
+        } catch (e: Exception) {
+            Log.e("YIELD_PARSING", "Error parsing yield value: $yieldString", e)
+            0.15 // Default fallback value
         }
     }
 }
