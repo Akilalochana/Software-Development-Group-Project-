@@ -54,13 +54,16 @@
                     android:textStyle="bold"
                     android:textColor="#000000"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
 
                 <VideoView
                     android:id="@+id/arPlotVideo"
                     android:layout_width="0dp"
-                    android:layout_height="200dp"
+                    android:layout_height="320dp"
                     android:layout_marginTop="8dp"
+                    android:layout_marginStart="40dp"
+                    android:layout_marginEnd="40dp"
                     app:layout_constraintTop_toBottomOf="@id/arPlotTitle"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
@@ -106,13 +109,16 @@
                     android:textStyle="bold"
                     android:textColor="#000000"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
 
                 <VideoView
                     android:id="@+id/weatherVideo"
                     android:layout_width="0dp"
-                    android:layout_height="200dp"
+                    android:layout_height="320dp"
                     android:layout_marginTop="8dp"
+                    android:layout_marginStart="40dp"
+                    android:layout_marginEnd="40dp"
                     app:layout_constraintTop_toBottomOf="@id/weatherTitle"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
@@ -137,12 +143,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
             app:cardCornerRadius="8dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="#F5F5F5"
             app:layout_constraintTop_toBottomOf="@id/weatherCard"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
@@ -158,13 +166,16 @@
                     android:textStyle="bold"
                     android:textColor="#000000"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent" />
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
 
                 <VideoView
                     android:id="@+id/reportVideo"
                     android:layout_width="0dp"
-                    android:layout_height="200dp"
+                    android:layout_height="320dp"
                     android:layout_marginTop="8dp"
+                    android:layout_marginStart="40dp"
+                    android:layout_marginEnd="40dp"
                     app:layout_constraintTop_toBottomOf="@id/reportTitle"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent" />
@@ -185,4 +196,3 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
-
