@@ -49,7 +49,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy"
+            android:text="Welcome to CeilaoGrid start your farming journey with us"
             android:textColor="#9E9E9E"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
