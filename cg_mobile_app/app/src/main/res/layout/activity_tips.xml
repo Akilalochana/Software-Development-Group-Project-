@@ -44,7 +44,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:padding="16dp">
 
                 <TextView
@@ -55,19 +55,26 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="#000000"
-                    android:layout_gravity="center_horizontal"
+                    android:layout_gravity="center"
                     android:layout_marginBottom="8dp" />
 
-                <FrameLayout
-                    android:layout_width="240dp"
-                    android:layout_height="400dp"
-                    android:layout_gravity="center_horizontal">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center">
 
-                    <VideoView
-                        android:id="@+id/arPlotVideo"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                </FrameLayout>
+                    <FrameLayout
+                        android:layout_width="240dp"
+                        android:layout_height="400dp"
+                        android:layout_centerHorizontal="true">
+
+                        <VideoView
+                            android:id="@+id/arPlotVideo"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center" />
+                    </FrameLayout>
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/arPlotContent"
@@ -97,7 +104,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:padding="16dp">
 
                 <TextView
@@ -108,19 +115,26 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="#000000"
-                    android:layout_gravity="center_horizontal"
+                    android:layout_gravity="center"
                     android:layout_marginBottom="8dp" />
 
-                <FrameLayout
-                    android:layout_width="240dp"
-                    android:layout_height="400dp"
-                    android:layout_gravity="center_horizontal">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center">
 
-                    <VideoView
-                        android:id="@+id/weatherVideo"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                </FrameLayout>
+                    <FrameLayout
+                        android:layout_width="240dp"
+                        android:layout_height="400dp"
+                        android:layout_centerHorizontal="true">
+
+                        <VideoView
+                            android:id="@+id/weatherVideo"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center" />
+                    </FrameLayout>
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/weatherContent"
@@ -152,7 +166,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:padding="16dp">
 
                 <TextView
@@ -163,19 +177,26 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="#000000"
-                    android:layout_gravity="center_horizontal"
+                    android:layout_gravity="center"
                     android:layout_marginBottom="8dp" />
 
-                <FrameLayout
-                    android:layout_width="240dp"
-                    android:layout_height="400dp"
-                    android:layout_gravity="center_horizontal">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center">
 
-                    <VideoView
-                        android:id="@+id/reportVideo"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent" />
-                </FrameLayout>
+                    <FrameLayout
+                        android:layout_width="240dp"
+                        android:layout_height="400dp"
+                        android:layout_centerHorizontal="true">
+
+                        <VideoView
+                            android:id="@+id/reportVideo"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center" />
+                    </FrameLayout>
+                </RelativeLayout>
 
                 <TextView
                     android:id="@+id/reportContent"
