@@ -27,7 +27,7 @@ class TipsActivity : AppCompatActivity() {
 
     private fun setupVideos() {
         // Set up AR Plot video
-        val arPlotVideoPath = "android.resource://" + packageName + "/" + R.raw.ar_plot_video
+        val arPlotVideoPath = "android.resource://" + packageName + "/" + R.raw.arplot
         val arPlotUri = Uri.parse(arPlotVideoPath)
         arPlotVideo.setVideoURI(arPlotUri)
 
@@ -35,13 +35,13 @@ class TipsActivity : AppCompatActivity() {
         arPlotVideo.setMediaController(null)
 
         // Set up Weather video
-        val weatherVideoPath = "android.resource://" + packageName + "/" + R.raw.ar_plot_video
+        val weatherVideoPath = "android.resource://" + packageName + "/" + R.raw.weather
         val weatherUri = Uri.parse(weatherVideoPath)
         weatherVideo.setVideoURI(weatherUri)
         weatherVideo.setMediaController(null)
 
         // Set up Report video
-        val reportVideoPath = "android.resource://" + packageName + "/" + R.raw.ar_plot_video
+        val reportVideoPath = "android.resource://" + packageName + "/" + R.raw.report
         val reportUri = Uri.parse(reportVideoPath)
         reportVideo.setVideoURI(reportUri)
         reportVideo.setMediaController(null)
