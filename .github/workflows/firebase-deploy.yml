@@ -26,6 +26,7 @@ jobs:
         run: ./gradlew assembleRelease
       
       - name: Sign APK
+        id: sign_app
         uses: r0adkll/sign-android-release@v1
         with:
           releaseDirectory: ./cg_mobile_app/app/build/outputs/apk/release
