@@ -6,6 +6,7 @@ import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.regex.Pattern
+import org.json.JSONObject
 
 class ChatbotService(private val context: Context) {
 
@@ -18,6 +19,14 @@ class ChatbotService(private val context: Context) {
             apiKey = apiKey
         )
     }
+    
+    // Data class to hold the response with potential button info
+    data class BotResponse(
+        val text: String,
+        val hasButton: Boolean = false,
+        val buttonText: String = "",
+        val featureName: String = ""
+    )
 
     // Enhanced Sinhala detection pattern with more common words
     private val sinhalaPattern = Pattern.compile(
@@ -32,9 +41,73 @@ class ChatbotService(private val context: Context) {
         return sinhalaPattern.matcher(text).find()
     }
 
-    suspend fun sendMessage(message: String): String {
+    /**
+     * Detects if the user's message is requesting a specific feature
+     * @param message The user's input message
+     * @return BotResponse with button if feature detected, null otherwise
+     */
+    private fun detectFeatureRequest(message: String): BotResponse? {
+        // Convert message to lowercase for easier matching
+        val lowercaseMessage = message.lowercase()
+        
+        // Check for weather-related queries
+        if (lowercaseMessage.contains("weather") || 
+            lowercaseMessage.contains("rain") || 
+            lowercaseMessage.contains("temperature") || 
+            lowercaseMessage.contains("forecast") ||
+            lowercaseMessage.contains("climate")) {
+            
+            return BotResponse(
+                text = "I can provide you with weather information for your location, which can help you plan your farming activities. Would you like to check the weather forecast?",
+                hasButton = true,
+                buttonText = "Check Weather",
+                featureName = "weather"
+            )
+        }
+        
+        // Check for plant information queries
+        else if (lowercaseMessage.contains("plant") || 
+                lowercaseMessage.contains("crop") || 
+                lowercaseMessage.contains("grow") || 
+                lowercaseMessage.contains("cultivation") ||
+                lowercaseMessage.contains("farming techniques")) {
+            
+            return BotResponse(
+                text = "I can show you detailed information about various plants including growing conditions, care instructions, and expected yields. Would you like to explore our plant database?",
+                hasButton = true,
+                buttonText = "Explore Plants",
+                featureName = "plants"
+            )
+        }
+        
+        // Check for tips/advice queries
+        else if (lowercaseMessage.contains("tip") || 
+                lowercaseMessage.contains("advice") || 
+                lowercaseMessage.contains("help") || 
+                lowercaseMessage.contains("guide") ||
+                lowercaseMessage.contains("how to")) {
+            
+            return BotResponse(
+                text = "I have some helpful farming tips and video guides that might assist you with your agricultural needs. Would you like to see them?",
+                hasButton = true,
+                buttonText = "View Tips",
+                featureName = "tips"
+            )
+        }
+        
+        // No specific feature detected
+        return null
+    }
+
+    suspend fun sendMessage(message: String): BotResponse {
         return withContext(Dispatchers.IO) {
             try {
+                // Check if the message is about a specific feature first
+                val featureResponse = detectFeatureRequest(message)
+                if (featureResponse != null) {
+                    return@withContext featureResponse
+                }
+                
                 // Detect if input appears to be Sinhala or Singlish
                 val isUserSinhala = isSinhalaOrSinglish(message)
 
@@ -71,25 +144,23 @@ class ChatbotService(private val context: Context) {
                 val fullPrompt = "$agriculturalContext $languageInstruction User message: $message"
 
                 // Generate response
-                val response = generativeModel.generateContent(fullPrompt)
-
-                // Return the text or a default message if null
+                val response = generativeModel.generateContent(fullPrompt)                // Return the text or a default message if null
                 val responseText = response.text
                 if (responseText != null) {
-                    responseText
+                    BotResponse(text = responseText)
                 } else {
                     if (isUserSinhala) {
-                        "සමාවෙන්න, දැනට මට පිළිතුරු දීමට නොහැකිය. පසුව නැවත උත්සාහ කරන්න."
+                        BotResponse(text = "සමාවෙන්න, දැනට මට පිළිතුරු දීමට නොහැකිය. පසුව නැවත උත්සාහ කරන්න.")
                     } else {
-                        "Sorry, I couldn't generate a response. Please try again later."
+                        BotResponse(text = "Sorry, I couldn't generate a response. Please try again later.")
                     }
                 }
             } catch (e: Exception) {
                 Log.e("ChatbotService", "Error generating response", e)
                 if (isSinhalaOrSinglish(message)) {
-                    "සමාවෙන්න, දැනට මට පිළිතුරු දීමට නොහැකිය. පසුව නැවත උත්සාහ කරන්න."
+                    BotResponse(text = "සමාවෙන්න, දැනට මට පිළිතුරු දීමට නොහැකිය. පසුව නැවත උත්සාහ කරන්න.")
                 } else {
-                    "Sorry, I'm unable to respond right now. Please try again later."
+                    BotResponse(text = "Sorry, I'm unable to respond right now. Please try again later.")
                 }
             }
         }

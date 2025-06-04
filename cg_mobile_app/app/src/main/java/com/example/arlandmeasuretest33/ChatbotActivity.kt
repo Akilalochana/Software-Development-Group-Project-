@@ -1,5 +1,6 @@
 package com.example.arlandmeasuretest33
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
@@ -11,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.launch
 
-class ChatbotActivity : AppCompatActivity() {
+class ChatbotActivity : AppCompatActivity(), ChatAdapter.ButtonClickListener {
 
     private lateinit var chatRecyclerView: RecyclerView
     private lateinit var messageEditText: EditText
@@ -21,6 +22,13 @@ class ChatbotActivity : AppCompatActivity() {
 
     private lateinit var chatAdapter: ChatAdapter
     private lateinit var chatbotService: ChatbotService
+    
+    // Map of feature names to their corresponding Activity classes
+    private val featureActivities = mapOf(
+        "weather" to WeatherActivity::class.java,
+        "plants" to PlantInformationActivity::class.java,
+        "tips" to TipsActivity::class.java
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,10 +66,10 @@ class ChatbotActivity : AppCompatActivity() {
         sendButton = findViewById(R.id.sendButton)
         loadingIndicator = findViewById(R.id.loadingIndicator)
         backButton = findViewById(R.id.backButton)
-    }
-
-    private fun setupRecyclerView() {
+    }    private fun setupRecyclerView() {
         chatAdapter = ChatAdapter()
+        // Set the button click listener
+        chatAdapter.setButtonClickListener(this)
         chatRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@ChatbotActivity).apply {
                 stackFromEnd = true
@@ -84,9 +92,7 @@ class ChatbotActivity : AppCompatActivity() {
         backButton.setOnClickListener {
             finish()
         }
-    }
-
-    private fun sendMessage(message: String) {
+    }    private fun sendMessage(message: String) {
         // Add user message to chat
         addUserMessage(message)
 
@@ -97,7 +103,11 @@ class ChatbotActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val response = chatbotService.sendMessage(message)
-                addBotMessage(response)
+                if (response.hasButton) {
+                    addBotMessageWithButton(response.text, response.buttonText, response.featureName)
+                } else {
+                    addBotMessage(response.text)
+                }
             } catch (e: Exception) {
                 addBotMessage("Sorry, I encountered an error. Please try again later.")
             } finally {
@@ -111,15 +121,43 @@ class ChatbotActivity : AppCompatActivity() {
         val chatMessage = ChatMessage(message, true)
         chatAdapter.addMessage(chatMessage)
         scrollToBottom()
-    }
-
-    private fun addBotMessage(message: String) {
+    }    private fun addBotMessage(message: String) {
         val chatMessage = ChatMessage(message, false)
+        chatAdapter.addMessage(chatMessage)
+        scrollToBottom()
+    }
+    
+    /**
+     * Add a bot message with an interactive button
+     * @param message The text message to display
+     * @param buttonText The text to display on the button
+     * @param featureName The name of the feature to navigate to when button is clicked
+     */
+    private fun addBotMessageWithButton(message: String, buttonText: String, featureName: String) {
+        val chatMessage = ChatMessage(
+            message = message,
+            isFromUser = false,
+            hasButton = true,
+            buttonText = buttonText,
+            featureName = featureName
+        )
         chatAdapter.addMessage(chatMessage)
         scrollToBottom()
     }
 
     private fun scrollToBottom() {
         chatRecyclerView.smoothScrollToPosition(chatAdapter.itemCount - 1)
+    }
+    
+    /**
+     * Implementation of ButtonClickListener to handle button clicks in chat messages
+     */
+    override fun onButtonClick(featureName: String) {
+        // Navigate to the appropriate feature based on the feature name
+        val activityClass = featureActivities[featureName.lowercase()]
+        if (activityClass != null) {
+            val intent = Intent(this, activityClass)
+            startActivity(intent)
+        }
     }
 }
