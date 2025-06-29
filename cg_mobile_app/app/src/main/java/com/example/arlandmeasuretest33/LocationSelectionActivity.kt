@@ -261,10 +261,15 @@ class LocationSelectionActivity : AppCompatActivity() {
                     Toast.makeText(this, "Authentication failed: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             return
-        }
-
-        // Log authentication state
+        }        // Log authentication state
         Log.d("LocationActivity", "User authentication state: ${auth.currentUser?.uid ?: "Not authenticated"}")
+
+        // Check if current user is null
+        if (currentUser == null) {
+            Log.e("LocationActivity", "User not authenticated")
+            Toast.makeText(this, "Authentication failed: User is not logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         val userId = currentUser.uid
 

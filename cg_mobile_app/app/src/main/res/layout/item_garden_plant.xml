@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="60dp"
+    android:layout_height="60dp"
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp"
+    app:cardBackgroundColor="#E0EBE0">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="4dp">
+
+        <ImageView
+            android:id="@+id/plantIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@drawable/aloe_vera"/>
+
+        <TextView
+            android:id="@+id/plantName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Plant"
+            android:textColor="#2E7D32"
+            android:textSize="10sp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:gravity="center"/>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

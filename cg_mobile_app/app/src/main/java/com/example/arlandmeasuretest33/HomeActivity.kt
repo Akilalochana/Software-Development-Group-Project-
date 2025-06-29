@@ -23,10 +23,12 @@ import java.text.SimpleDateFormat
 import android.widget.EditText
 import java.util.*
 import android.widget.Button
+import android.util.Log
 
 
 class HomeActivity : BaseActivity() {
 
+    private val TAG = "HomeActivity"
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var viewPager: ViewPager2
@@ -156,16 +158,9 @@ class HomeActivity : BaseActivity() {
         // Make sure the plant card is clickable
         val plantCard = findViewById<CardView>(R.id.plant_card)
         plantCard.setOnClickListener {
-            // Navigate to plant detail activity - commented out until PlantDetailActivity is created
-            // val intent = Intent(this, PlantDetailActivity::class.java)
-            // startActivity(intent)
-
-            // Show a message instead
-            android.widget.Toast.makeText(
-                this,
-                "Plant details will be shown here",
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
+            // Navigate to My Plots screen when the plant card is clicked
+            val intent = Intent(this, MyPlotsActivity::class.java)
+            startActivity(intent)
         }
     }
 
@@ -280,6 +275,15 @@ class HomeActivity : BaseActivity() {
         val profileImage = findViewById<ImageView>(R.id.profileImage)
         profileImage.setOnClickListener {
             showProfilePictureOptions()
+        }
+
+        // My Plots button click listener
+        val myPlotsButton = findViewById<View>(R.id.myPlotsButton)
+        myPlotsButton.setOnClickListener {
+            // Navigate to My Plots screen
+            val intent = Intent(this, MyPlotsActivity::class.java)
+            startActivity(intent)
+            closeDrawer()
         }
 
         // Logout button click listener
@@ -445,40 +449,104 @@ class HomeActivity : BaseActivity() {
 
         // Log the path we're checking
         android.util.Log.d("HomeActivity", "Checking path: $userGardensPath")
+        
+        // Set up a real-time listener for garden CHANGES, not just a one-time fetch
+        firestoreListener = db.collection(userGardensPath)
+            .addSnapshotListener { gardensSnapshot, gardensError ->
+                if (gardensError != null) {
+                    android.util.Log.e("HomeActivity", "Error listening for garden changes: ${gardensError.message}")
+                    android.widget.Toast.makeText(
+                        this,
+                        "Error listening for garden updates",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                    return@addSnapshotListener
+                }
 
-        // Check if the user has any gardens
-        db.collection(userGardensPath)
-            .get()
-            .addOnSuccessListener { gardens ->
-                if (!gardens.isEmpty) {
-                    // Get the first garden (or you could show a selection to the user)
-                    val firstGarden = gardens.documents[0].id
-                    android.util.Log.d("HomeActivity", "Found garden: $firstGarden")
+                if (gardensSnapshot != null && !gardensSnapshot.isEmpty) {
+                    // Get the most recently updated garden
+                    val sortedGardens = gardensSnapshot.documents.sortedByDescending { doc ->
+                        val lastUpdatedTimestamp = doc.data?.get("lastUpdated") as? com.google.firebase.Timestamp
+                        val lastUpdatedLong = doc.data?.get("lastUpdated") as? Long
+                        val dateAddedTimestamp = doc.data?.get("dateAdded") as? com.google.firebase.Timestamp
+                        val dateAddedLong = doc.data?.get("dateAdded") as? Long
+                        
+                        when {
+                            lastUpdatedTimestamp != null -> lastUpdatedTimestamp.toDate().time
+                            lastUpdatedLong != null -> lastUpdatedLong
+                            dateAddedTimestamp != null -> dateAddedTimestamp.toDate().time
+                            dateAddedLong != null -> dateAddedLong
+                            else -> 0L // Default value if no timestamp is available
+                        }
+                    }
+                    
+                    // Get the first garden - either most recently updated or created
+                    val firstGardenDoc = sortedGardens.firstOrNull() ?: gardensSnapshot.documents[0]
+                    val firstGardenId = firstGardenDoc.id
+                    val gardenData = firstGardenDoc.data
+                    
+                    android.util.Log.d("HomeActivity", "Found garden: $firstGardenId with data: $gardenData")
+                    
+                    // Get garden area from the garden document
+                    val gardenAreaValue = gardenData?.get("area") ?: gardenData?.get("areaSize")
+                    
+                    // Handle different possible number types from Firestore
+                    val gardenArea = when (gardenAreaValue) {
+                        is Double -> gardenAreaValue
+                        is Float -> gardenAreaValue.toDouble()
+                        is Long -> gardenAreaValue.toDouble()
+                        is Int -> gardenAreaValue.toDouble()
+                        is String -> gardenAreaValue.toDoubleOrNull() ?: 0.0
+                        else -> 0.0
+                    }
+                    
+                    // Update the area in the UI immediately
+                    val areaTextView = findViewById<TextView>(R.id.area_size)
+                    areaTextView.text = "${String.format("%.3f", gardenArea)} sq.m"
 
-                    // Now listen to plants in this garden
-                    val userPlantsPath = "$userGardensPath/$firstGarden/plants"
-
+                    // Now listen to plants in this garden - this listener will be recreated if the garden changes
+                    val userPlantsPath = "$userGardensPath/$firstGardenId/plants"
+                    
                     // Set up the real-time listener for plants in this garden
-                    firestoreListener = db.collection(userPlantsPath)
-                        .addSnapshotListener { snapshot, error ->
-                            if (error != null) {
-                                android.util.Log.e("HomeActivity", "Error listening for plants: ${error.message}")
-                                android.widget.Toast.makeText(
-                                    this,
-                                    "Error listening for plant updates: ${error.message}",
-                                    android.widget.Toast.LENGTH_SHORT
-                                ).show()
+                    db.collection(userPlantsPath)
+                        .addSnapshotListener { plantsSnapshot, plantsError ->
+                            if (plantsError != null) {
+                                android.util.Log.e("HomeActivity", "Error listening for plants: ${plantsError.message}")
                                 return@addSnapshotListener
                             }
 
-                            if (snapshot != null && !snapshot.isEmpty) {
-                                // Get the first plant document
-                                val plantDoc = snapshot.documents[0]
-                                android.util.Log.d("HomeActivity", "Found plant: ${plantDoc.id}, data: ${plantDoc.data}")
-                                updatePlantUI(plantDoc.data)
+                            if (plantsSnapshot != null && !plantsSnapshot.isEmpty) {
+                                // Get the most recently added plant by sorting based on dateAdded
+                                val sortedPlants = plantsSnapshot.documents.sortedByDescending { doc -> 
+                                    val dateAddedTimestamp = doc.data?.get("dateAdded") as? com.google.firebase.Timestamp
+                                    val dateAddedLong = doc.data?.get("dateAdded") as? Long
+                                    
+                                    when {
+                                        dateAddedTimestamp != null -> dateAddedTimestamp.toDate().time
+                                        dateAddedLong != null -> dateAddedLong
+                                        else -> 0L // Default value if dateAdded is not available
+                                    }
+                                }
+                                
+                                // Get the latest plant (first in the sorted list)
+                                val latestPlant = sortedPlants.firstOrNull()
+                                
+                                if (latestPlant != null) {
+                                    android.util.Log.d("HomeActivity", "Found latest plant: ${latestPlant.id}, data: ${latestPlant.data}")
+                                    runOnUiThread {
+                                        updatePlantUI(latestPlant.data)
+                                    }
+                                } else {
+                                    android.util.Log.d("HomeActivity", "No plants found after sorting")
+                                    runOnUiThread {
+                                        updateEmptyPlantUI()
+                                    }
+                                }
                             } else {
                                 android.util.Log.d("HomeActivity", "No plants found")
-                                updateEmptyPlantUI()
+                                runOnUiThread {
+                                    updateEmptyPlantUI()
+                                }
                             }
                         }
                 } else {
@@ -486,15 +554,6 @@ class HomeActivity : BaseActivity() {
                     android.util.Log.d("HomeActivity", "No gardens found")
                     updateEmptyPlantUI()
                 }
-            }
-            .addOnFailureListener { exception ->
-                android.util.Log.e("HomeActivity", "Error retrieving gardens: ${exception.message}")
-                android.widget.Toast.makeText(
-                    this,
-                    "Error retrieving gardens: ${exception.message}",
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-                updateEmptyPlantUI()
             }
     }
 
@@ -510,7 +569,7 @@ class HomeActivity : BaseActivity() {
         harvestDateTextView.text = "N/A"
 
         val areaTextView = findViewById<TextView>(R.id.area_size)
-        areaTextView.text = "0 sq.m"
+        areaTextView.text = "0.000 sq.m"
 
         val growthPeriodTextView = findViewById<TextView>(R.id.growth_period)
         growthPeriodTextView.text = "0 days"
@@ -539,56 +598,51 @@ class HomeActivity : BaseActivity() {
                     .error(R.drawable.aloe_vera)
                     .into(plantIcon)
             } ?: run {
-                // If no image reference, set default image
                 plantIcon.setImageResource(R.drawable.aloe_vera)
             }
 
-            // Calculate and set planting date
-            val dateAdded = data["dateAdded"] as? Long
-            val plantingDateTextView = findViewById<TextView>(R.id.planting_date)
+            // Get dateAdded, handling different possible formats
+            val dateAddedTimestamp = data["dateAdded"] as? com.google.firebase.Timestamp
+            val dateAddedLong = data["dateAdded"] as? Long
+            
+            val dateAdded: Long? = when {
+                dateAddedTimestamp != null -> dateAddedTimestamp.toDate().time
+                dateAddedLong != null -> dateAddedLong
+                else -> null
+            }
 
-            dateAdded?.let {
-                val date = Date(it)
-                val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+            val plantingDateTextView = findViewById<TextView>(R.id.planting_date)
+            val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+
+            dateAdded?.let { timestamp ->
+                val date = Date(timestamp)
                 plantingDateTextView.text = sdf.format(date)
             } ?: run {
                 plantingDateTextView.text = "Date unknown"
             }
 
             // Calculate and set expected harvest date
-            val growthPeriod = data["growthPeriod"] as? Long ?: 0
+            val growthPeriod = data["growthPeriod"] as? Long 
+                ?: data["growthPeriodDays"] as? Long ?: 0
+            
+            // Log the growth period value for debugging
+            Log.d(TAG, "HomeActivity - growthPeriod: $growthPeriod (raw values: growthPeriod=${data["growthPeriod"]}, growthPeriodDays=${data["growthPeriodDays"]})")
             val harvestDateTextView = findViewById<TextView>(R.id.harvest_date)
 
-            dateAdded?.let {
+            dateAdded?.let { timestamp ->
                 val calendar = Calendar.getInstance()
-                calendar.time = Date(it)
+                calendar.time = Date(timestamp)
                 calendar.add(Calendar.DAY_OF_YEAR, growthPeriod.toInt())
 
-                val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
                 harvestDateTextView.text = sdf.format(calendar.time)
             } ?: run {
                 harvestDateTextView.text = "Date unknown"
             }
 
-            // Update area size info
-            val areaTextView = findViewById<TextView>(R.id.area_size)
-            // Handle different possible number types from Firestore
-            val area = when (val areaValue = data["area"]) {
-                is Double -> areaValue
-                is Float -> areaValue.toDouble()
-                is Long -> areaValue.toDouble()
-                is Int -> areaValue.toDouble()
-                is String -> areaValue.toDoubleOrNull() ?: 0.0
-                else -> 0.0
-            }
-            val roundedArea = Math.round(area * 100.0) / 100.0  // Round to 2 decimal places
-            areaTextView.text = "$roundedArea sq.m"
-
             // Update growth period info
             val growthPeriodTextView = findViewById<TextView>(R.id.growth_period)
             growthPeriodTextView.text = "$growthPeriod days"
         } ?: run {
-            // Handle null data case
             updateEmptyPlantUI()
         }
     }
@@ -788,3 +842,4 @@ class HomeActivity : BaseActivity() {
         ).show()
     }
 }
+

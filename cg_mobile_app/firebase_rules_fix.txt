@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow anyone to read the entire "districts" collection
+    match /districts/{document} {
+      allow read: if true;  // Allow all reads without authentication
+      allow write: if request.auth != null;  // Writes still require authentication
+      
+      // Also allow reading of subcollections without authentication
+      match /{subcollection}/{document=**} {
+        allow read: if true;
+      }
+    }
+    
+    // Allow authenticated users to read the entire "commodities" collection
+    match /commodities/{document} {
+      allow read: if request.auth != null;
+    } 
+    
+    // Allow authenticated users to read the "top_vegetables" collection
+    match /top_vegetables/{document} {
+      allow read: if request.auth != null;
+    }
+    
+    // Allow authenticated users to read and write to their own user data
+    match /user_data/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Explicitly allow access to user_gardens subcollection
+      match /user_gardens/{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Allow authenticated users to read and write to user_data documents using email-based IDs
+    match /user_data/{emailId} {
+      allow read, write: if request.auth != null && request.auth.token.email.replace('.', '_').replace('@', '_') == emailId;
+      
+      // Explicitly allow access to user_gardens subcollection for email-based documents
+      match /user_gardens/{document=**} {
+        allow read, write: if request.auth != null && request.auth.token.email.replace('.', '_').replace('@', '_') == emailId;
+      }
+    }
+    
+    match /user_data/{userId} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == userId || 
+         request.auth.token.email.replace('.', '_').replace('@', '_') == userId);
+      
+      match /user_gardens/{document=**} {
+        allow read, write: if request.auth != null && 
+          (request.auth.uid == userId || 
+           request.auth.token.email.replace('.', '_').replace('@', '_') == userId);
+      }
+    }
+    
+    // NEW ADDITION: Allow authenticated users to read legacy user_gardens data
+    // This is needed to fix your access denied errors
+    match /user_gardens/{gardenId} {
+      // Allow any authenticated user to read legacy garden data
+      allow read: if request.auth != null;
+      
+      // Allow writing if user is the creator or document doesn't exist yet
+      allow write: if request.auth != null && 
+                  (resource == null || resource.data.createdBy == request.auth.uid);
+      
+      // Also allow reading plants in legacy gardens
+      match /plants/{plantId} {
+        allow read: if request.auth != null;
+      }
+    }
+  }
+}
