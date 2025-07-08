@@ -109,13 +109,13 @@ class PlantRecommendationActivity : AppCompatActivity() {
                                     // Handle cost_per_unit field with proper type conversion
                                     val costPerUnit = try {
                                         when (val costValue = document.get("cost_per_unit")) {
-                                            is Number -> costValue.toInt()
-                                            is String -> costValue.toString().toIntOrNull() ?: 0
-                                            else -> 0
+                                            is Number -> costValue.toDouble()
+                                            is String -> costValue.toString().toDoubleOrNull() ?: 0.0
+                                            else -> 0.0
                                         }
                                     } catch (e: Exception) {
                                         Log.e(TAG, "Error parsing cost for ${document.id}: ${e.message}")
-                                        0
+                                        0.0
                                     }
 
                                     // Handle growth_cycle_duration field with proper type conversion
@@ -238,7 +238,7 @@ class PlantRecommendationActivity : AppCompatActivity() {
         val noImageText = cardView.findViewById<TextView>(R.id.noImageText)
 
         // Set text values
-        costText.text = "Cost per unit : Rs.${plant.costPerUnit}"
+        costText.text = "Cost per unit : Rs.${String.format("%.2f", plant.costPerUnit)}"
         nameText.text = plant.name
         growthPeriodText.text = "Growth Period : ${plant.growthPeriod} days"
 
@@ -413,7 +413,7 @@ class PlantRecommendationActivity : AppCompatActivity() {
     // Data class to hold plant information with all fields
     data class PlantInfo(
         val name: String,
-        val costPerUnit: Int,
+        val costPerUnit: Double,
         val growthPeriod: Int,
         val imageRef: String,
         val fertilizer: Int = 0,
