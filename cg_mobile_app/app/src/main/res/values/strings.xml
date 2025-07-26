@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">ARlandMeasuretest33</string>
     <string name="download_pdf">Download PDF</string>
+    <string name="crop_report">Crop Report</string>
+    <string name="download_report">Download Report</string>
+    <string name="report_for">Report for %1$s</string>
+    <string name="garden_label">Garden: </string>
+    <string name="district_label">District: </string>
+    <string name="date_label">Date: </string>
+    <string name="back">Back</string>
 </resources>

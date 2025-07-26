@@ -3,16 +3,21 @@ package com.example.arlandmeasuretest33
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
 import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -34,7 +39,7 @@ val db = FirebaseFirestore.getInstance()
 class Report : AppCompatActivity() {
     private lateinit var lottieView: LottieAnimationView
     private lateinit var pdfImageView: ImageView
-    private lateinit var downloadButton: ImageView  // Change to ImageView
+    private lateinit var downloadButton: Button
     private lateinit var auth: FirebaseAuth
     private var pdfFilePath: String = ""
     private var plantSpacing: Double = 0.0 // Space needed per plant in sq meters
@@ -51,8 +56,25 @@ class Report : AppCompatActivity() {
 
         // UI Elements
         lottieView = findViewById(R.id.lottie_view)
-        val recyclerView = findViewById<RecyclerView>(R.id.pdfRecyclerView)
+        val reportContentLayout = findViewById<View>(R.id.reportContentLayout)
         downloadButton = findViewById(R.id.downloadButton)
+        
+        // Summary card fields
+        val plantTypeText = findViewById<TextView>(R.id.plantTypeText)
+        val reportDateText = findViewById<TextView>(R.id.reportDateText)
+        val landAreaValue = findViewById<TextView>(R.id.landAreaValue)
+        val plantsValue = findViewById<TextView>(R.id.plantsValue)
+        val monthlyCostValue = findViewById<TextView>(R.id.monthlyCostValue)
+        val monthlyIncomeValue = findViewById<TextView>(R.id.monthlyIncomeValue)
+        val expectedYieldValue = findViewById<TextView>(R.id.expectedYieldValue)
+        val marketPriceValue = findViewById<TextView>(R.id.marketPriceValue)
+        val growthDurationValue = findViewById<TextView>(R.id.growthDurationValue)
+        
+        // Profit summary fields
+        val totalRevenueValue = findViewById<TextView>(R.id.totalRevenueValue)
+        val totalCostValue = findViewById<TextView>(R.id.totalCostValue)
+        val netProfitValue = findViewById<TextView>(R.id.netProfitValue)
+        val footerText = findViewById<TextView>(R.id.footerText)
 
         // Paths
         val templatePath = copyAssetToInternalStorage("template.docx", this)
@@ -65,21 +87,35 @@ class Report : AppCompatActivity() {
             return
         }
 
-        // Show loading screen
-        lottieView.visibility = View.VISIBLE
-        recyclerView.visibility = View.GONE
-        downloadButton.visibility = View.GONE
-
-        // Get AR measurements from intent and calculate number of plants
+        // Show report UI directly without loading animation
+        lottieView.visibility = View.GONE
+        reportContentLayout.visibility = View.VISIBLE
+        
+        // Log the source of the report request (AR screen vs View Reports button)
+        logReportSource()
+        
+        // Get measurements from intent or use defaults if coming from View Reports button
         getArMeasurementsAndCalculatePlants()
 
         // Initialize Firebase
         auth = FirebaseAuth.getInstance()
-        currentUser =auth.currentUser
-        // Get garden name from SharedPreferences instead of intent
+        currentUser = auth.currentUser
+        
+        // Get garden name from SharedPreferences
         val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
         val gardenName = sharedPreferences.getString("GARDEN_NAME", "") ?: ""
         val plantName = sharedPreferences.getString("CURRENT_PLANT_NAME", "") ?: ""
+        
+        // Set current date in the format YYYY-MM-DD
+        val dateFormatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+        val currentDate = dateFormatter.format(java.util.Date())
+        reportDateText.text = currentDate
+        
+        // Set initial plant type
+        plantTypeText.text = "$userDistrict / $plantName"
+        
+        // Set footer text with current date
+        footerText.text = "Report generated on $currentDate • Ceilão.Grid Agricultural Analytics"
 //        var district = ""
 
 //        // Reference to the specific garden document's plants subcollectionk
@@ -116,14 +152,112 @@ class Report : AppCompatActivity() {
             userDocRef.get()
                 .addOnSuccessListener { document ->
                     val district = document.getString("district") ?: ""
-
+                    
                     // Now that we have the district, fetch plant data
                     getUserPlantData(district, gardenName, plantName) { success ->
                         if (success) {
-                            println("hello")
                             // Proceed to fetch crop data and process document
                             fetchCropDataFromFirebase(userDistrict, userPlantName) { replacements ->
-                                println("Replacements"+replacements)
+                                // Update UI with fetched data
+                                runOnUiThread {
+                                    // Update plant name display
+                                    val plantTypeText = findViewById<TextView>(R.id.plantTypeText)
+                                    plantTypeText.text = "$userDistrict / $userPlantName"
+                                    
+                                    // Update measurements
+                                    val landAreaValue = findViewById<TextView>(R.id.landAreaValue)
+                                    landAreaValue.text = String.format("%.2f Sq.m", totalSqm)
+                                    
+                                    val plantsValue = findViewById<TextView>(R.id.plantsValue)
+                                    plantsValue.text = numberOfPlants.toString()
+                                    
+                                    // Update income values
+                                    val income = replacements["{{expected_income_per_month}}"] ?: "0.00"
+                                    
+                                    // Calculate total cost based on plants for consistency
+                                    val seedsCost = 50.0 * numberOfPlants
+                                    val fertilizerCost = 2.0 * 10
+                                    val calculatedCost = seedsCost + fertilizerCost
+                                    
+                                    // Update the UI with the calculated cost
+                                    val monthlyCostValue = findViewById<TextView>(R.id.monthlyCostValue)
+                                    monthlyCostValue.text = "LKR ${String.format("%.2f", calculatedCost)}"
+                                    
+                                    // Always update the replacements map with the calculated cost for PDF generation
+                                    replacements["{{estimated_expenses_per_Month}}"] = String.format("%.2f", calculatedCost)
+                                    
+                                    val monthlyIncomeValue = findViewById<TextView>(R.id.monthlyIncomeValue)
+                                    
+                                    // Always calculate income based on yield and price for consistency
+                                    val yieldPerPlant = parseYieldValue(replacements["{{expected_yield_per_plant}}"] ?: "150") // 150g = 0.15kg
+                                    val totalYield = yieldPerPlant * numberOfPlants
+                                    val priceString = replacements["{{market_price_per_unit}}"] ?: "150"
+                                    val pricePerKg = priceString.toDoubleOrNull()?.toInt()?.toDouble() ?: 150.0
+                                    val calculatedIncome = totalYield * pricePerKg
+                                    
+                                    if (income == "0" || income == "0.00") {
+                                        monthlyIncomeValue.text = "LKR ${String.format("%.2f", calculatedIncome)}"
+                                        // Also update the replacements map for PDF generation
+                                        replacements["{{expected_income_per_month}}"] = String.format("%.2f", calculatedIncome)
+                                    } else {
+                                        monthlyIncomeValue.text = "LKR $income"
+                                    }
+                                    
+                                    // Update yield and market price
+                                    val yieldValue = replacements["{{expected_yield_per_plant}}"] ?: "0"
+                                    val marketPrice = replacements["{{market_price_per_unit}}"] ?: "0"
+                                    val growthDuration = replacements["{{growth_cycle_duration}}"] ?: "0"
+                                    
+                                    // Check if yield value contains unit information
+                                    val expectedYieldValue = findViewById<TextView>(R.id.expectedYieldValue)
+                                    if (yieldValue.contains("kg", ignoreCase = true)) {
+                                        // Convert kg to g for display
+                                        val numericPart = yieldValue.toLowerCase().replace("kg", "").trim()
+                                        val valueInGrams = try {
+                                            (numericPart.toDouble() * 1000).toInt().toString()
+                                        } catch (e: Exception) {
+                                            yieldValue
+                                        }
+                                        expectedYieldValue.text = "$valueInGrams g per cycle"
+                                    } else {
+                                        expectedYieldValue.text = "$yieldValue g per cycle"
+                                    }
+                                    
+                                    val marketPriceValue = findViewById<TextView>(R.id.marketPriceValue)
+                                    val roundedMarketPrice = if (marketPrice == "0") {
+                                        "150" // Default value if price is zero
+                                    } else {
+                                        marketPrice.toDoubleOrNull()?.toInt()?.toString() ?: marketPrice
+                                    }
+                                    marketPriceValue.text = "LKR $roundedMarketPrice/Kg"
+                                    
+                                    val growthDurationValue = findViewById<TextView>(R.id.growthDurationValue)
+                                    growthDurationValue.text = "$growthDuration Days"
+                                    
+                                    // Update profit summary
+                                    // Calculate actual total revenue based on yield per plant, number of plants, and market price
+                                    val yieldPerPlantForRevenue = parseYieldValue(yieldValue) // This now converts grams to kg
+                                    val totalYieldForRevenue = yieldPerPlantForRevenue * numberOfPlants
+                                    val cleanMarketPrice = marketPrice.replace("LKR", "").trim()
+                                    val pricePerKgForRevenue = cleanMarketPrice.toDoubleOrNull()?.toInt()?.toDouble() ?: 150.0
+                                    val calculatedTotalRevenue = totalYieldForRevenue * pricePerKgForRevenue
+                                    
+                                    // Use the already calculated cost value directly
+                                    val totalCostDouble = calculatedCost
+                                    
+                                    // Calculate net profit
+                                    val calculatedNetProfit = calculatedTotalRevenue - totalCostDouble
+                                    
+                                    val totalRevenueValue = findViewById<TextView>(R.id.totalRevenueValue)
+                                    totalRevenueValue.text = "LKR ${String.format("%.2f", calculatedTotalRevenue)}"
+                                    
+                                    val totalCostValue = findViewById<TextView>(R.id.totalCostValue)
+                                    totalCostValue.text = "LKR ${String.format("%.2f", totalCostDouble)}"
+                                    
+                                    val netProfitValue = findViewById<TextView>(R.id.netProfitValue)
+                                    netProfitValue.text = "LKR ${String.format("%.2f", calculatedNetProfit)}"
+                                }
+                                
                                 Thread {
                                     modifyWordDocument(
                                         templatePath,
@@ -151,7 +285,38 @@ class Report : AppCompatActivity() {
 
         // Set Download Button Click Event
         downloadButton.setOnClickListener {
+            // Show loading indicator or disable button
+            downloadButton.isEnabled = false
+            downloadButton.text = "Downloading..."
+            
+            // Download the PDF
             downloadPdfToDownloads(pdfFilePath, "Ceilão Grid Report.pdf")
+            
+            // Re-enable button after a short delay
+            Handler(mainLooper).postDelayed({
+                downloadButton.isEnabled = true
+                downloadButton.text = "Download Full Report (PDF)"
+            }, 2000)
+        }
+        
+        // Set up the Back to Home text view
+        val backToHomeText = findViewById<TextView>(R.id.backToHomeText)
+        
+        // Add underline to the text
+        backToHomeText.paintFlags = backToHomeText.paintFlags or android.graphics.Paint.UNDERLINE_TEXT_FLAG
+        
+        // Set click listener to navigate to home
+        backToHomeText.setOnClickListener {
+            val intent = Intent(this, HomeActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+            startActivity(intent)
+            finish()
+        }
+        
+        // Set up the back button at the top
+        val backButton = findViewById<ImageView>(R.id.backButton)
+        backButton.setOnClickListener {
+            onBackPressed() // Use the existing back press logic
         }
     }
 
@@ -240,168 +405,244 @@ class Report : AppCompatActivity() {
     }
 
     // Modify the fetchCropDataFromFirebase function to match your template.docx placeholders
-    private fun fetchCropDataFromFirebase(district: String, cropName: String, callback: (Map<String, String>) -> Unit) {
+    private fun fetchCropDataFromFirebase(district: String, cropName: String, callback: (MutableMap<String, String>) -> Unit) {
         val replacementsMap = mutableMapOf<String, String>()
 
         // Set default values in case of error
         val defaultValues = mapOf(
             "description" to "Description not available",
-            "estimated_expenses_per_Month" to "0",
+            // Removed estimated_expenses_per_Month as we'll use totalCost directly
             "expected_income_per_month" to "0",
             "expected_yield_per_plant" to "0",
             "market_price_per_unit" to "0",
             "growth_cycle_duration" to "0",
-            "spacing" to "0.25"
+            "spacing" to "0.25",
+            "cost_per_unit" to "N/A",
+            "Fertilizer" to "N/A"
         )
 
         // Reference to the crop document in Firestore
         val cropRef = db.collection("districts").document(district).collection("crops").document(cropName)
         println("abc" + cropRef)
 
-        cropRef.get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    // Format current date
-                    val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd").format(java.util.Date())
-
-                    // Add date to replacements
-                    replacementsMap["{{date}}"] = currentDate
-
-                    // Add plant type to replacements
-                    replacementsMap["{{plant_type}}"] = "$district/$cropName"
-
-                    // Get basic crop data from Firestore
-                    val description = document.getString("description") ?: defaultValues["description"]!!
-                    val estimatedExpenses = document.getString("estimated_expenses_per_Month") ?: defaultValues["estimated_expenses_per_Month"]!!
-                    val expectedIncome = document.getString("expected_income_per_month") ?: defaultValues["expected_income_per_month"]!!
-                    val expectedYieldPerPlant = document.getString("expected_yield_per_plant") ?: defaultValues["expected_yield_per_plant"]!!
-                    val marketPricePerUnit = document.getString("market_price_per_unit") ?: defaultValues["market_price_per_unit"]!!
-                    val growthCycleDuration = document.getString("growth_cycle_duration") ?: defaultValues["growth_cycle_duration"]!!
-
-                    // Basic crop information
-                    replacementsMap["{{description}}"] = description
-                    replacementsMap["{{estimated_expenses_per_Month}}"] = estimatedExpenses
-                    replacementsMap["{{expected_income_per_month}}"] = expectedIncome
-                    replacementsMap["{{expected_yield_per_plant}}"] = expectedYieldPerPlant
-                    replacementsMap["{{market_price_per_unit}}"] = marketPricePerUnit
-                    replacementsMap["{{growth_cycle_duration}}"] = growthCycleDuration
-
-                    // Get plant spacing for calculation
-                    // Parse the spacing format (e.g., "25*5" from cm to square meters)
-                    val spacingString = document.getString("spacing") ?: defaultValues["spacing"]!!
-                    val plantSpacing = if (spacingString.contains("*")) {
-                        // Format like "25*5" (in cm)
-                        val dimensions = spacingString.split("*")
-                        if (dimensions.size == 2) {
-                            try {
-                                // Convert from cm² to m²
-                                val length = dimensions[0].trim().toDouble() / 100
-                                val width = dimensions[1].trim().toDouble() / 100
-                                length * width
-                            } catch (e: Exception) {
-                                defaultValues["spacing"]!!.toDouble()
+        // First get the commodity price data
+        val commodityRef = db.collection("commodities").document(cropName)
+        Log.d("FETCH_DEBUG", "Fetching commodity data for $cropName")
+        Log.d("COMMODITY_PRICE", "Attempting to fetch price data for $cropName from commodities collection")
+        
+        commodityRef.get()
+            .addOnSuccessListener { commodityDoc ->
+                var latestPrice = defaultValues["market_price_per_unit"]!!
+                Log.d("FETCH_DEBUG", "Default price value: $latestPrice")
+                
+                if (commodityDoc != null && commodityDoc.exists()) {
+                    Log.d("FETCH_DEBUG", "Found commodity document for $cropName")
+                    
+                    // Special handling for Drumstick plant - sometimes the data format is different
+                    if (cropName.equals("Drumstick", ignoreCase = true)) {
+                        Log.d("COMMODITY_PRICE", "Special handling for Drumstick plant")
+                        
+                        // Try getting price directly if it's stored differently
+                        val directPrice = commodityDoc.getString("price") ?: commodityDoc.getDouble("price")?.toString()
+                        if (!directPrice.isNullOrEmpty()) {
+                            latestPrice = directPrice
+                            Log.d("COMMODITY_PRICE", "Found direct price for Drumstick: $latestPrice")
+                        }
+                    }
+                    
+                    // Get the predictions field which contains date-price pairs
+                    val predictions = commodityDoc.get("predictions") as? Map<*, *>
+                    
+                    if (predictions != null && predictions.isNotEmpty()) {
+                        Log.d("FETCH_DEBUG", "Found predictions: ${predictions.keys}")
+                        // Find the latest date
+                        var latestDate: String? = null
+                        
+                        for (dateKey in predictions.keys) {
+                            val dateStr = dateKey.toString()
+                            if (latestDate == null || dateStr > latestDate) {
+                                latestDate = dateStr
                             }
-                        } else {
-                            defaultValues["spacing"]!!.toDouble()
                         }
-                    } else {
-                        // Just a single value
-                        try {
-                            spacingString.toDouble()
-                        } catch (e: Exception) {
-                            defaultValues["spacing"]!!.toDouble()
+                        
+                        // Get the price for the latest date
+                        latestDate?.let {
+                            val priceObj = predictions[it]
+                            // Try multiple ways to get the price value
+                            val price = when {
+                                priceObj is String -> priceObj
+                                priceObj is Number -> priceObj.toString()
+                                priceObj is Map<*, *> -> priceObj["price"]?.toString() ?: priceObj.values.firstOrNull()?.toString()
+                                else -> priceObj?.toString()
+                            }
+                            
+                            if (!price.isNullOrEmpty()) {
+                                try {
+                                    // Try to convert to double to ensure it's a valid number
+                                    val priceValue = price.toDoubleOrNull()
+                                    if (priceValue != null && priceValue > 0) {
+                                        latestPrice = price
+                                        Log.d("COMMODITY_PRICE", "Found latest price for $cropName: $latestPrice on date $latestDate")
+                                    } else {
+                                        Log.d("COMMODITY_PRICE", "Invalid price for $cropName: $price, using default")
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("COMMODITY_PRICE", "Error parsing price for $cropName: $e")
+                                }
+                            }
                         }
                     }
-
-                    // Update the plant spacing value in the class
-                    this.plantSpacing = plantSpacing
-
-                    // Calculate number of plants based on the area
-                    if (totalSqm > 0) {
-                        numberOfPlants = (totalSqm / plantSpacing).toInt()
-                        if (numberOfPlants < 1 && totalSqm > 0) {
-                            numberOfPlants = 1
-                        }
-                    }
-
-                    // Add basic area information to replacements
-                    replacementsMap["{{sqm}}"] = String.format("%.2f", totalSqm)
-                    replacementsMap["{{number_of_plants}}"] = numberOfPlants.toString()
-
-                    // Extract numeric values for calculations
-                    val seedCostPerUnit = 50.0 // Cost per plant in LKR (from "cost_per_unit" field)
-                    val fertilizerCostPerUnit = document.getString("Fertilizers")?.toDoubleOrNull() ?: 2.0
-                    val yieldPerPlant = parseYieldValue(expectedYieldPerPlant)
-                    val pricePerKg = marketPricePerUnit.replace("LKR", "").trim().toDoubleOrNull() ?: 150.0
-
-                    // ---- COST BREAKDOWN CALCULATIONS ----
-
-                    // Seeds/Plants costs
-                    val seedsQuantity = numberOfPlants
-                    val seedsTotalCost = seedCostPerUnit * seedsQuantity
-
-                    // Fertilizers costs (10kg as specified)
-                    val fertilizerQuantity = 10
-                    val fertilizerTotalCost = fertilizerCostPerUnit * fertilizerQuantity
-
-                    // Total costs
-                    val totalCost = seedsTotalCost + fertilizerTotalCost
-
-                    // ---- REVENUE ESTIMATION CALCULATIONS ----
-
-                    // Total yield
-                    val totalYield = yieldPerPlant * numberOfPlants
-
-                    // Total revenue
-                    val totalRevenue = totalYield * pricePerKg
-
-                    // Net profit
-                    val netProfit = totalRevenue - totalCost
-
-                    // ADD THESE LINES HERE - Update estimated expenses and expected income
-                    replacementsMap["{{estimated_expenses_per_Month}}"] = String.format("%.2f", totalCost)
-                    replacementsMap["{{expected_income_per_month}}"] = String.format("%.2f", netProfit)
-
-                    // ---- ADD CALCULATIONS TO TEMPLATE PLACEHOLDERS ----
-
-                    // Cost table - Seeds/Plants row
-                    replacementsMap["{{}}"] = String.format("%.2f", seedCostPerUnit) // Cost per unit
-                    replacementsMap["{{}}"] = seedsQuantity.toString() // Quantity
-                    replacementsMap["{{}}"] = String.format("%.2f", seedsTotalCost) // Total Cost
-
-                    // Cost table - Fertilizers row
-                    replacementsMap["{{}}"] = String.format("%.2f", fertilizerCostPerUnit) // Cost per unit
-                    replacementsMap["{{}}"] = fertilizerQuantity.toString() // Quantity
-                    replacementsMap["{{}}"] = String.format("%.2f", fertilizerTotalCost) // Total Cost
-
-                    // Cost table - Total Cost
-                    replacementsMap["{{}}"] = String.format("%.2f", totalCost) // Total Cost at bottom of table
-
-                    // Revenue table
-                    replacementsMap["{{}}"] = String.format("%.2f", totalYield) // Quantity
-                    replacementsMap["{{}}"] = String.format("%.2f", pricePerKg) // Price per Unit
-                    replacementsMap["{{}}"] = String.format("%.2f", totalRevenue) // Total Revenue
-
-                    // Profit calculation
-                    replacementsMap["{{}}"] = String.format("%.2f", totalRevenue) // Total Revenue
-                    replacementsMap["{{}}"] = String.format("%.2f", totalCost) // Total Cost
-                    replacementsMap["{{}}"] = String.format("%.2f", netProfit) // Net Profit
-
-                    Log.d("FIREBASE", "✅ Successfully calculated all values for the report")
                 } else {
-                    Log.e("FIREBASE", "No data found for $district/$cropName")
-                    // Use default values if no document exists
-                    setDefaultReplacements(replacementsMap, district, cropName, defaultValues)
+                    Log.d("COMMODITY_PRICE", "No commodity data found for $cropName")
                 }
+                
+                // Ensure Drumstick has a valid price if nothing else worked
+                if (cropName.equals("Drumstick", ignoreCase = true) && (latestPrice == "0" || latestPrice.isEmpty())) {
+                    latestPrice = "150" // Default price for Drumstick
+                    Log.d("COMMODITY_PRICE", "Using default price for Drumstick: $latestPrice")
+                }
+                
+                // Now get the crop data
+                cropRef.get()
+                    .addOnSuccessListener { document ->
+                        if (document != null && document.exists()) {
+                            // Format current date
+                            val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd").format(java.util.Date())
 
-                // Call the callback with the final map
-                callback(replacementsMap)
+                            // Add date to replacements
+                            replacementsMap["{{date}}"] = currentDate
+
+                            // Add plant type to replacements
+                            replacementsMap["{{plant_type}}"] = "$district/$cropName"
+
+                            // Get basic crop data from Firestore
+                            val description = document.getString("description") ?: defaultValues["description"]!!
+                            // Removed separate retrieval of estimated_expenses_per_Month as we'll use totalCost directly
+                            val expectedIncome = document.getString("expected_income_per_month") ?: defaultValues["expected_income_per_month"]!!
+                            val expectedYieldPerPlant = document.getString("expected_yield_per_plant") ?: defaultValues["expected_yield_per_plant"]!!
+                            val growthCycleDuration = document.getString("growth_cycle_duration") ?: defaultValues["growth_cycle_duration"]!!
+                            val costPerUnit = document.getString("cost_per_unit") ?: defaultValues["cost_per_unit"]!!
+                            val fertilizer = document.getString("Fertilizer") ?: defaultValues["Fertilizer"]!!
+                            
+                            // Log the values for debugging
+                            Log.d("FETCH_DEBUG", "Income: $expectedIncome, Yield: $expectedYieldPerPlant")
+                            Log.d("FETCH_DEBUG", "Using market price: $latestPrice")
+                            Log.d("FETCH_DEBUG", "Cost per unit: $costPerUnit, Fertilizer: $fertilizer")
+
+                            // Basic crop information
+                            replacementsMap["{{description}}"] = description
+                            // We'll set estimated_expenses_per_Month later based on calculated total cost
+                            replacementsMap["{{expected_income_per_month}}"] = expectedIncome
+                            replacementsMap["{{expected_yield_per_plant}}"] = expectedYieldPerPlant
+                            replacementsMap["{{market_price_per_unit}}"] = latestPrice // Use the latest price from commodities
+                            replacementsMap["{{growth_cycle_duration}}"] = growthCycleDuration
+                            replacementsMap["{{cost_per_unit}}"] = costPerUnit
+                            replacementsMap["{{fertilizer}}"] = fertilizer
+
+                            // Get plant spacing for calculation
+                            // Parse the spacing format (e.g., "25*5" from cm to square meters)
+                            val spacingString = document.getString("spacing") ?: defaultValues["spacing"]!!
+                            val plantSpacing = if (spacingString.contains("*")) {
+                                // Format like "25*5" (in cm)
+                                val dimensions = spacingString.split("*")
+                                if (dimensions.size == 2) {
+                                    try {
+                                        // Convert from cm² to m²
+                                        val length = dimensions[0].trim().toDouble() / 100
+                                        val width = dimensions[1].trim().toDouble() / 100
+                                        length * width
+                                    } catch (e: Exception) {
+                                        defaultValues["spacing"]!!.toDouble()
+                                    }
+                                } else {
+                                    defaultValues["spacing"]!!.toDouble()
+                                }
+                            } else {
+                                // Just a single value
+                                try {
+                                    spacingString.toDouble()
+                                } catch (e: Exception) {
+                                    defaultValues["spacing"]!!.toDouble()
+                                }
+                            }
+
+                            // Update the plant spacing value in the class
+                            this.plantSpacing = plantSpacing
+
+                            // Calculate number of plants based on the area
+                            if (totalSqm > 0) {
+                                numberOfPlants = (totalSqm / plantSpacing).toInt()
+                                if (numberOfPlants < 1 && totalSqm > 0) {
+                                    numberOfPlants = 1
+                                }
+                            }
+
+                            Log.d("FIREBASE", "✅ Successfully calculated all values for the report")
+                            
+                            // Update the replacement map with the calculated values
+                            replacementsMap["{{land_area}}"] = String.format("%.2f", totalSqm)
+                            replacementsMap["{{number_of_plants}}"] = numberOfPlants.toString()
+
+                            callback(replacementsMap)
+                        } else {
+                            Log.d("FIREBASE", "❌ Crop document doesn't exist. Setting default values.")
+                            setDefaultReplacements(replacementsMap, district, cropName, defaultValues)
+                            callback(replacementsMap)
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("FIREBASE", "❌ Error getting crop data: ${e.message}")
+                        setDefaultReplacements(replacementsMap, district, cropName, defaultValues)
+                        callback(replacementsMap)
+                    }
             }
-            .addOnFailureListener { exception ->
-                Log.e("FIREBASE", "Error fetching crop data: ${exception.message}")
-                // Use default values on error
-                setDefaultReplacements(replacementsMap, district, cropName, defaultValues)
-                callback(replacementsMap)
+            .addOnFailureListener { e ->
+                Log.e("COMMODITY_PRICE", "Error getting commodity data: ${e.message}")
+                
+                // Continue with crop data even if commodity data fails
+                cropRef.get()
+                    .addOnSuccessListener { document ->
+                        // Process crop data as above...
+                        if (document != null && document.exists()) {
+                            // Format current date and continue with the same code as above...
+                            // [Code omitted for brevity - identical to the success case above]
+                            
+                            val currentDate = java.text.SimpleDateFormat("yyyy-MM-dd").format(java.util.Date())
+                            replacementsMap["{{date}}"] = currentDate
+                            replacementsMap["{{plant_type}}"] = "$district/$cropName"
+                            
+                            // Get basic crop data with default market price
+                            val description = document.getString("description") ?: defaultValues["description"]!!
+                            // Removed separate retrieval of estimated_expenses_per_Month as we'll use totalCost directly
+                            val expectedIncome = document.getString("expected_income_per_month") ?: defaultValues["expected_income_per_month"]!!
+                            val expectedYieldPerPlant = document.getString("expected_yield_per_plant") ?: defaultValues["expected_yield_per_plant"]!!
+                            val marketPricePerUnit = document.getString("market_price_per_unit") ?: defaultValues["market_price_per_unit"]!!
+                            val growthCycleDuration = document.getString("growth_cycle_duration") ?: defaultValues["growth_cycle_duration"]!!
+                            val costPerUnit = document.getString("cost_per_unit") ?: defaultValues["cost_per_unit"]!!
+                            val fertilizer = document.getString("Fertilizer") ?: defaultValues["Fertilizer"]!!
+                            
+                            // Basic crop information
+                            replacementsMap["{{description}}"] = description
+                            // We'll set estimated_expenses_per_Month later based on calculated total cost
+                            replacementsMap["{{expected_income_per_month}}"] = expectedIncome
+                            replacementsMap["{{expected_yield_per_plant}}"] = expectedYieldPerPlant
+                            replacementsMap["{{market_price_per_unit}}"] = marketPricePerUnit
+                            replacementsMap["{{growth_cycle_duration}}"] = growthCycleDuration
+                            replacementsMap["{{cost_per_unit}}"] = costPerUnit
+                            replacementsMap["{{fertilizer}}"] = fertilizer
+                            
+                            callback(replacementsMap)
+                        } else {
+                            Log.d("FIREBASE", "❌ Crop document doesn't exist. Setting default values.")
+                            setDefaultReplacements(replacementsMap, district, cropName, defaultValues)
+                            callback(replacementsMap)
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("FIREBASE", "❌ Error getting crop data: ${e.message}")
+                        setDefaultReplacements(replacementsMap, district, cropName, defaultValues)
+                        callback(replacementsMap)
+                    }
             }
     }
 
@@ -419,11 +660,12 @@ class Report : AppCompatActivity() {
         replacementsMap["{{date}}"] = currentDate
         replacementsMap["{{plant_type}}"] = "$district/$cropName"
         replacementsMap["{{description}}"] = defaultValues["description"]!!
-        replacementsMap["{{estimated_expenses_per_Month}}"] = defaultValues["estimated_expenses_per_Month"]!!
         replacementsMap["{{expected_income_per_month}}"] = defaultValues["expected_income_per_month"]!!
         replacementsMap["{{expected_yield_per_plant}}"] = defaultValues["expected_yield_per_plant"]!!
         replacementsMap["{{market_price_per_unit}}"] = defaultValues["market_price_per_unit"]!!
         replacementsMap["{{growth_cycle_duration}}"] = defaultValues["growth_cycle_duration"]!!
+        replacementsMap["{{cost_per_unit}}"] = defaultValues["cost_per_unit"]!!
+        replacementsMap["{{fertilizer}}"] = defaultValues["Fertilizer"]!!
 
         // Set a minimum area if not available
         if (totalSqm <= 0) {
@@ -465,10 +707,13 @@ class Report : AppCompatActivity() {
 
         // Net profit
         val netProfit = totalRevenue - totalCost
-
-        // Update these lines in setDefaultReplacements
+        
+        // Always set estimated_expenses_per_Month to totalCost
         replacementsMap["{{estimated_expenses_per_Month}}"] = String.format("%.2f", totalCost)
         replacementsMap["{{expected_income_per_month}}"] = String.format("%.2f", netProfit)
+        
+        // Log the calculated default values
+        Log.d("DEFAULT_VALUES", "Calculated cost: ${String.format("%.2f", totalCost)}, net profit: ${String.format("%.2f", netProfit)}")
 
 
         // Fill all the empty placeholders with calculated values
@@ -499,17 +744,27 @@ class Report : AppCompatActivity() {
     // Function to get AR measurements from intent and calculate plants
     private fun getArMeasurementsAndCalculatePlants() {
         try {
-            // Get area and perimeter from intent extras (from AR activity)
-            totalSqm = intent.getFloatExtra("AR_AREA", 0f).toDouble()
-            perimeter = intent.getFloatExtra("AR_PERIMETER", 0f).toDouble()
+            // Check if we have AR_AREA and AR_PERIMETER extras - these will be present when coming from MainActivity (AR)
+            // but not when coming from HomeActivity "View Reports" button
+            if (intent.hasExtra("AR_AREA") && intent.hasExtra("AR_PERIMETER")) {
+                // Get area and perimeter from intent extras (from AR activity)
+                totalSqm = intent.getFloatExtra("AR_AREA", 0f).toDouble()
+                perimeter = intent.getFloatExtra("AR_PERIMETER", 0f).toDouble()
+                
+                Log.d("REPORT", "Area from AR: $totalSqm sq m, Perimeter: $perimeter m")
+            } else {
+                Log.d("REPORT", "No AR measurement data, using default garden size")
+                // This is the case when opened from HomeActivity "View Reports" button
+                totalSqm = 1.0 // Default to 1 square meter when not from AR
+                perimeter = 4.0 // Default perimeter for a 1x1m square
+            }
 
+            // If still no valid measurements, use defaults
             if (totalSqm <= 0) {
-                Log.d("REPORT", "No AR area data found, using default value")
+                Log.d("REPORT", "Invalid area, using default value")
                 totalSqm = 0.41 // Default value from screenshot (0.41 m²)
                 perimeter = 2.65 // Default value from screenshot (2.65 m)
             }
-
-            Log.d("REPORT", "Area from AR: $totalSqm sq m, Perimeter: $perimeter m")
 
             // Note: We'll calculate the number of plants after fetching the spacing from Firebase
             // This happens in fetchCropDataFromFirebase now
@@ -608,9 +863,25 @@ class Report : AppCompatActivity() {
                 if (costTable.rows.size > 1) {
                     val seedsRow = costTable.rows[1]
 
+                    // Get cost per unit from replacements or default
+                    val costPerUnitStr = replacementsMap["{{cost_per_unit}}"] ?: "N/A"
+                    val costPerUnit = if (costPerUnitStr != "N/A") {
+                        try {
+                            costPerUnitStr.toDouble()
+                        } catch (e: NumberFormatException) {
+                            0.0
+                        }
+                    } else {
+                        0.0
+                    }
+
                     // Cost per unit - Cell 1 (index 1)
                     if (seedsRow.tableCells.size > 1) {
-                        setCellText(seedsRow.getCell(1), String.format("%.2f", 50.0) + " LKR")
+                        if (costPerUnitStr == "N/A") {
+                            setCellText(seedsRow.getCell(1), "N/A")
+                        } else {
+                            setCellText(seedsRow.getCell(1), String.format("%.2f", costPerUnit) + " LKR")
+                        }
                     }
 
                     // Quantity - Cell 2 (index 2)
@@ -620,8 +891,12 @@ class Report : AppCompatActivity() {
 
                     // Total Cost - Cell 3 (index 3)
                     if (seedsRow.tableCells.size > 3) {
-                        val seedsTotalCost = 50.0 * numberOfPlants
-                        setCellText(seedsRow.getCell(3), String.format("%.2f", seedsTotalCost) + " LKR")
+                        if (costPerUnitStr == "N/A") {
+                            setCellText(seedsRow.getCell(3), "N/A")
+                        } else {
+                            val seedsTotalCost = costPerUnit * numberOfPlants
+                            setCellText(seedsRow.getCell(3), String.format("%.2f", seedsTotalCost) + " LKR")
+                        }
                     }
                 }
 
@@ -629,20 +904,37 @@ class Report : AppCompatActivity() {
                 if (costTable.rows.size > 2) {
                     val fertRow = costTable.rows[2]
 
+                    // Get fertilizer info from replacements
+                    val fertilizerStr = replacementsMap["{{fertilizer}}"] ?: "N/A"
+                    
+                    // Parse fertilizer cost as a numeric value
+                    val fertilizerCost = try {
+                        if (fertilizerStr != "N/A") {
+                            // Try to extract numeric value from the string
+                            val numericValue = fertilizerStr.replace(Regex("[^0-9.]"), "")
+                            if (numericValue.isNotEmpty()) numericValue.toDouble() else 2.0
+                        } else {
+                            2.0 // Default fertilizer cost per plant
+                        }
+                    } catch (e: Exception) {
+                        Log.e("REPORT", "Error parsing fertilizer cost: $fertilizerStr, using default", e)
+                        2.0 // Default fertilizer cost per plant
+                    }
+                    
                     // Cost per unit - Cell 1 (index 1)
                     if (fertRow.tableCells.size > 1) {
-                        setCellText(fertRow.getCell(1), String.format("%.2f", 2.0) + " LKR")
+                        setCellText(fertRow.getCell(1), String.format("%.2f", fertilizerCost) + " LKR/plant")
                     }
 
                     // Quantity - Cell 2 (index 2)
                     if (fertRow.tableCells.size > 2) {
-                        setCellText(fertRow.getCell(2), "10 Kg")
+                        setCellText(fertRow.getCell(2), numberOfPlants.toString())
                     }
 
                     // Total Cost - Cell 3 (index 3)
                     if (fertRow.tableCells.size > 3) {
-                        val fertTotalCost = 2.0 * 10
-                        setCellText(fertRow.getCell(3), String.format("%.2f", fertTotalCost) + " LKR")
+                        val totalFertilizerCost = fertilizerCost * numberOfPlants
+                        setCellText(fertRow.getCell(3), String.format("%.2f", totalFertilizerCost) + " LKR")
                     }
                 }
 
@@ -652,9 +944,43 @@ class Report : AppCompatActivity() {
 
                     // Total Cost - Cell 3 (index 3)
                     if (totalRow.tableCells.size > 3) {
-                        val seedsTotalCost = 50.0 * numberOfPlants
-                        val fertTotalCost = 2.0 * 10
-                        val totalCost = seedsTotalCost + fertTotalCost
+                        // Calculate seeds/plants cost
+                        val costPerUnitStr = replacementsMap["{{cost_per_unit}}"] ?: "N/A"
+                        val costPerUnit = if (costPerUnitStr != "N/A") {
+                            try {
+                                costPerUnitStr.toDouble()
+                            } catch (e: NumberFormatException) {
+                                0.0
+                            }
+                        } else {
+                            0.0
+                        }
+                        
+                        val seedsTotalCost = if (costPerUnitStr != "N/A") {
+                            costPerUnit * numberOfPlants
+                        } else {
+                            0.0
+                        }
+                        
+                        // Calculate fertilizer cost
+                        val fertilizerStr = replacementsMap["{{fertilizer}}"] ?: "N/A"
+                        val fertilizerCost = try {
+                            if (fertilizerStr != "N/A") {
+                                // Try to extract numeric value from the string
+                                val numericValue = fertilizerStr.replace(Regex("[^0-9.]"), "")
+                                if (numericValue.isNotEmpty()) numericValue.toDouble() else 2.0
+                            } else {
+                                2.0 // Default fertilizer cost per plant
+                            }
+                        } catch (e: Exception) {
+                            Log.e("REPORT", "Error parsing fertilizer cost for total: $fertilizerStr, using default", e)
+                            2.0 // Default fertilizer cost per plant
+                        }
+                        
+                        val totalFertilizerCost = fertilizerCost * numberOfPlants
+                        
+                        // Sum up total costs
+                        val totalCost = seedsTotalCost + totalFertilizerCost
                         setCellText(totalRow.getCell(3), String.format("%.2f", totalCost) + " LKR")
                     }
                 }
@@ -668,29 +994,61 @@ class Report : AppCompatActivity() {
 
                     // Get expected yield per plant value
                     val yieldPerPlantStr = replacementsMap["{{expected_yield_per_plant}}"] ?: "0.15"
-                    val yieldPerPlant = parseYieldValue(yieldPerPlantStr)
+                    // Ensure yield value is not 0
+                    val effectiveYieldStr = if (yieldPerPlantStr == "0") "150" else yieldPerPlantStr
+                    val yieldPerPlant = parseYieldValue(effectiveYieldStr)
 
                     // Quantity - Cell 1 (index 1)
                     if (yieldRow.tableCells.size > 1) {
                         val totalYield = yieldPerPlant * numberOfPlants
-                        setCellText(yieldRow.getCell(1), String.format("%.2f", totalYield) + " Kg")
+                        // Convert back to grams for display
+                        val totalYieldInGrams = totalYield * 1000
+                        setCellText(yieldRow.getCell(1), String.format("%.0f", totalYieldInGrams) + " g")
                     }
 
                     // Price per Unit - Cell 2 (index 2)
                     if (yieldRow.tableCells.size > 2) {
                         // Get market price per unit value
                         val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
-                        val pricePerUnit = pricePerUnitStr.toDoubleOrNull() ?: 150.0
-                        setCellText(yieldRow.getCell(2), String.format("%.2f", pricePerUnit) + " LKR/Kg")
+                        // Use default price if zero
+                        val effectivePriceStr = if (pricePerUnitStr == "0" || pricePerUnitStr.trim().isEmpty()) "150" else pricePerUnitStr
+                        
+                        // More robust parsing with fallback
+                        val pricePerUnit = try {
+                            val parsed = effectivePriceStr.toDoubleOrNull() ?: 150.0
+                            if (parsed <= 0) 150 else parsed.toInt()
+                        } catch (e: Exception) {
+                            Log.e("REPORT", "Error parsing price: $effectivePriceStr, using default", e)
+                            150
+                        }
+                        
+                        setCellText(yieldRow.getCell(2), String.format("%d", pricePerUnit) + " LKR/Kg")
+                        
+                        // Log for debugging
+                        Log.d("REPORT", "Using price per unit: $pricePerUnit from raw value: $pricePerUnitStr")
                     }
 
                     // Total Revenue - Cell 3 (index 3)
                     if (yieldRow.tableCells.size > 3) {
                         val totalYield = yieldPerPlant * numberOfPlants
                         val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
-                        val pricePerUnit = pricePerUnitStr.toDoubleOrNull() ?: 150.0
+                        // Use default price if zero
+                        val effectivePriceStr = if (pricePerUnitStr == "0" || pricePerUnitStr.trim().isEmpty()) "150" else pricePerUnitStr
+                        
+                        // More robust parsing with fallback
+                        val pricePerUnit = try {
+                            val parsed = effectivePriceStr.toDoubleOrNull() ?: 150.0
+                            if (parsed <= 0) 150.0 else parsed
+                        } catch (e: Exception) {
+                            Log.e("REPORT", "Error parsing price for revenue: $effectivePriceStr, using default", e)
+                            150.0
+                        }
+                        
                         val totalRevenue = totalYield * pricePerUnit
                         setCellText(yieldRow.getCell(3), String.format("%.2f", totalRevenue) + " LKR")
+                        
+                        // Log for debugging
+                        Log.d("REPORT", "Total Revenue: $totalRevenue (Yield: $totalYield × Price: $pricePerUnit)")
                     }
                 }
             }
@@ -704,12 +1062,28 @@ class Report : AppCompatActivity() {
                 if (text.startsWith("Total Revenue:")) {
                     // Calculate total revenue
                     val yieldPerPlantStr = replacementsMap["{{expected_yield_per_plant}}"] ?: "0.15"
-                    val yieldPerPlant = parseYieldValue(yieldPerPlantStr)
+                    // Use default yield if zero
+                    val effectiveYieldStr = if (yieldPerPlantStr == "0") "150" else yieldPerPlantStr
+                    val yieldPerPlant = parseYieldValue(effectiveYieldStr)
                     val totalYield = yieldPerPlant * numberOfPlants
 
                     val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
-                    val pricePerUnit = pricePerUnitStr.toDoubleOrNull() ?: 150.0
+                    // Use default price if zero or invalid
+                    val effectivePriceStr = if (pricePerUnitStr == "0" || pricePerUnitStr.trim().isEmpty()) "150" else pricePerUnitStr
+                    
+                    // More robust price parsing with fallback
+                    val pricePerUnit = try {
+                        val parsed = effectivePriceStr.toDoubleOrNull() ?: 150.0
+                        if (parsed <= 0) 150.0 else parsed
+                    } catch (e: Exception) {
+                        Log.e("REPORT", "Error parsing price for total revenue paragraph: $effectivePriceStr, using default", e)
+                        150.0
+                    }
+                    
                     val totalRevenue = totalYield * pricePerUnit
+                    
+                    // Log for debugging
+                    Log.d("REPORT", "Profit Paragraph - Total Revenue: $totalRevenue (Yield: $totalYield × Price: $pricePerUnit)")
 
                     // Replace the paragraph text
                     for (run in paragraph.runs) {
@@ -720,10 +1094,39 @@ class Report : AppCompatActivity() {
 
                 // Total Cost paragraph
                 if (text.startsWith("Total Cost:")) {
-                    // Calculate total cost
-                    val seedsTotalCost = 50.0 * numberOfPlants
-                    val fertTotalCost = 2.0 * 10
-                    val totalCost = seedsTotalCost + fertTotalCost
+                    // Calculate seeds/plants cost
+                    val costPerUnitStr = replacementsMap["{{cost_per_unit}}"] ?: "N/A"
+                    val costPerUnit = if (costPerUnitStr != "N/A") {
+                        try {
+                            costPerUnitStr.toDouble()
+                        } catch (e: NumberFormatException) {
+                            50.0 // Default cost per plant
+                        }
+                    } else {
+                        50.0 // Default cost per plant
+                    }
+                    
+                    val seedsTotalCost = costPerUnit * numberOfPlants
+                    
+                    // Calculate fertilizer cost
+                    val fertilizerStr = replacementsMap["{{fertilizer}}"] ?: "N/A"
+                    val fertilizerCost = try {
+                        if (fertilizerStr != "N/A") {
+                            // Try to extract numeric value from the string
+                            val numericValue = fertilizerStr.replace(Regex("[^0-9.]"), "")
+                            if (numericValue.isNotEmpty()) numericValue.toDouble() else 2.0
+                        } else {
+                            2.0 // Default fertilizer cost per plant
+                        }
+                    } catch (e: Exception) {
+                        Log.e("REPORT", "Error parsing fertilizer cost for profit calc: $fertilizerStr, using default", e)
+                        2.0 // Default fertilizer cost per plant
+                    }
+                    
+                    val totalFertilizerCost = fertilizerCost * numberOfPlants
+                    
+                    // Sum up total costs
+                    val totalCost = seedsTotalCost + totalFertilizerCost
 
                     // Replace the paragraph text
                     for (run in paragraph.runs) {
@@ -736,16 +1139,62 @@ class Report : AppCompatActivity() {
                 if (text.startsWith("Net Profit:")) {
                     // Calculate net profit
                     val yieldPerPlantStr = replacementsMap["{{expected_yield_per_plant}}"] ?: "0.15"
-                    val yieldPerPlant = parseYieldValue(yieldPerPlantStr)
+                    // Use default yield if zero
+                    val effectiveYieldStr = if (yieldPerPlantStr == "0") "150" else yieldPerPlantStr
+                    val yieldPerPlant = parseYieldValue(effectiveYieldStr)
                     val totalYield = yieldPerPlant * numberOfPlants
 
                     val pricePerUnitStr = replacementsMap["{{market_price_per_unit}}"] ?: "0"
-                    val pricePerUnit = pricePerUnitStr.toDoubleOrNull() ?: 150.0
+                    // Use default price if zero or invalid
+                    val effectivePriceStr = if (pricePerUnitStr == "0" || pricePerUnitStr.trim().isEmpty()) "150" else pricePerUnitStr
+                    
+                    // More robust price parsing with fallback
+                    val pricePerUnit = try {
+                        val parsed = effectivePriceStr.toDoubleOrNull() ?: 150.0
+                        if (parsed <= 0) 150.0 else parsed
+                    } catch (e: Exception) {
+                        Log.e("REPORT", "Error parsing price for net profit: $effectivePriceStr, using default", e)
+                        150.0
+                    }
+                    
                     val totalRevenue = totalYield * pricePerUnit
+                    
+                    // Log for debugging
+                    Log.d("REPORT", "Net Profit Calculation - Revenue: $totalRevenue (Yield: $totalYield × Price: $pricePerUnit)")
 
-                    val seedsTotalCost = 50.0 * numberOfPlants
-                    val fertTotalCost = 2.0 * 10
-                    val totalCost = seedsTotalCost + fertTotalCost
+                    // Calculate seeds/plants cost
+                    val costPerUnitStr = replacementsMap["{{cost_per_unit}}"] ?: "N/A"
+                    val costPerUnit = if (costPerUnitStr != "N/A") {
+                        try {
+                            costPerUnitStr.toDouble()
+                        } catch (e: NumberFormatException) {
+                            50.0 // Default cost per plant
+                        }
+                    } else {
+                        50.0 // Default cost per plant
+                    }
+                    
+                    val seedsTotalCost = costPerUnit * numberOfPlants
+                    
+                    // Calculate fertilizer cost
+                    val fertilizerStr = replacementsMap["{{fertilizer}}"] ?: "N/A"
+                    val fertilizerCost = try {
+                        if (fertilizerStr != "N/A") {
+                            // Try to extract numeric value from the string
+                            val numericValue = fertilizerStr.replace(Regex("[^0-9.]"), "")
+                            if (numericValue.isNotEmpty()) numericValue.toDouble() else 2.0
+                        } else {
+                            2.0 // Default fertilizer cost per plant
+                        }
+                    } catch (e: Exception) {
+                        Log.e("REPORT", "Error parsing fertilizer cost for net profit: $fertilizerStr, using default", e)
+                        2.0 // Default fertilizer cost per plant
+                    }
+                    
+                    val totalFertilizerCost = fertilizerCost * numberOfPlants
+                    
+                    // Sum up total costs
+                    val totalCost = seedsTotalCost + totalFertilizerCost
 
                     val netProfit = totalRevenue - totalCost
 
@@ -858,16 +1307,14 @@ class Report : AppCompatActivity() {
 
                 // Verify file exists and has content before updating UI
                 if (pdfFile.exists() && pdfFile.length() > 0) {
-                    // Update UI only after PDF is successfully created
+                    // PDF is created successfully, just show toast
                     runOnUiThread {
-                        lottieView.visibility = View.GONE
-                        renderPdfToRecyclerView(pdfFile.absolutePath)
                         downloadButton.visibility = View.VISIBLE
+                        Toast.makeText(this, "Report generated successfully!", Toast.LENGTH_SHORT).show()
                     }
                 } else {
                     Log.e("ERROR", "PDF file created but appears to be empty or missing")
                     runOnUiThread {
-                        lottieView.visibility = View.GONE
                         Toast.makeText(this, "Error creating PDF. Please try again.", Toast.LENGTH_LONG).show()
                     }
                 }
@@ -877,17 +1324,22 @@ class Report : AppCompatActivity() {
 
             // If the current API key failed, try the next one
             currentApiKeyIndex = (currentApiKeyIndex + 1) % apiKeys.size
-            runOnUiThread {
-                lottieView.visibility = View.GONE
+            
+            // If we've already tried all keys but still failing, show error
+            if (currentApiKeyIndex == 0) {
+                runOnUiThread {
+                    Toast.makeText(this, "PDF generation failed, showing report summary only.", Toast.LENGTH_LONG).show()
+                }
+                return
             }
-
+            
             // Recursively call the function to try the next API key
             convertWordToPdf(inputDocx, outputPdf)
         }
     }
 
-    // Function to render PDF first page to a RecyclerView
-    private fun renderPdfToRecyclerView(pdfPath: String) {
+    // This function is kept for future reference if needed, but is not used in the current UI
+    private fun previewPdfInView(pdfPath: String) {
         val file = File(pdfPath)
         if (!file.exists()) {
             Log.e("ERROR", "PDF file does not exist: $pdfPath")
@@ -895,34 +1347,28 @@ class Report : AppCompatActivity() {
         }
 
         try {
+            // Verify the PDF is valid by attempting to open it
             val fileDescriptor = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
             val pdfRenderer = PdfRenderer(fileDescriptor)
             val pageCount = pdfRenderer.pageCount
-
-            val bitmaps = ArrayList<Bitmap>()
-            for (i in 0 until pageCount) {
-                val page = pdfRenderer.openPage(i)
-                val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
-                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                bitmaps.add(bitmap)
-                page.close()
-            }
+            
+            // Log successful PDF validation
+            Log.d("PDF_VALIDATION", "PDF is valid with $pageCount pages")
+            
+            // Close resources
             pdfRenderer.close()
-
-            val recyclerView = findViewById<RecyclerView>(R.id.pdfRecyclerView)
-            recyclerView.layoutManager = LinearLayoutManager(this)
-            recyclerView.adapter = PdfPageAdapter(bitmaps)
-
+            fileDescriptor.close()
+            
+            // Update UI to show PDF is ready for download
             runOnUiThread {
-                lottieView.visibility = View.GONE
-                recyclerView.visibility = View.VISIBLE
-                downloadButton.visibility = View.VISIBLE
+                downloadButton.isEnabled = true
+                downloadButton.text = "Download Full Report (PDF)"
             }
         } catch (e: IOException) {
-            Log.e("ERROR", "Failed to render PDF: ${e.message}")
+            Log.e("ERROR", "Failed to validate PDF: ${e.message}")
             runOnUiThread {
-                lottieView.visibility = View.GONE
-                Toast.makeText(this, "Failed to render PDF", Toast.LENGTH_LONG).show()
+                downloadButton.isEnabled = false
+                Toast.makeText(this, "PDF validation failed", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -1069,21 +1515,44 @@ class Report : AppCompatActivity() {
         return try {
             when {
                 // Handle case when the value is just a number (integer or double)
-                yieldString.toDoubleOrNull() != null -> yieldString.toDouble()
+                yieldString.toDoubleOrNull() != null -> {
+                    // Assuming the value is in grams, convert to kg
+                    yieldString.toDouble() / 1000.0
+                }
                 
-                // Handle "X kg" or "X Kg" format
+                // Handle "X kg" or "X Kg" format (keep as is)
                 yieldString.toLowerCase().contains("kg") -> {
                     val numericPart = yieldString.toLowerCase().replace("kg", "")
                         .replace("per cycle", "").replace("per plant", "").trim()
                     numericPart.toDoubleOrNull() ?: 0.15
                 }
                 
-                // Default fallback value if no pattern matches
+                // Handle "X g" or "X g" format (convert to kg)
+                yieldString.toLowerCase().contains("g") && !yieldString.toLowerCase().contains("kg") -> {
+                    val numericPart = yieldString.toLowerCase().replace("g", "")
+                        .replace("per cycle", "").replace("per plant", "").trim()
+                    val grams = numericPart.toDoubleOrNull() ?: 150.0
+                    grams / 1000.0 // Convert grams to kg
+                }
+                
+                // Default fallback value if no pattern matches (assume 150g = 0.15kg)
                 else -> 0.15
             }
         } catch (e: Exception) {
             Log.e("YIELD_PARSING", "Error parsing yield value: $yieldString", e)
-            0.15 // Default fallback value
+            0.15 // Default fallback value (150g = 0.15kg)
+        }
+    }
+
+    // Log the source of the report request
+    private fun logReportSource() {
+        val hasArData = intent.hasExtra("AR_AREA") && intent.hasExtra("AR_PERIMETER")
+        val source = if (hasArData) "AR Screen" else "View Reports Button"
+        Log.d("REPORT", "Report requested from: $source")
+        
+        // Log all available extras for debugging
+        intent.extras?.keySet()?.forEach { key ->
+            Log.d("REPORT", "Intent extra: $key = ${intent.extras?.get(key)}")
         }
     }
 }

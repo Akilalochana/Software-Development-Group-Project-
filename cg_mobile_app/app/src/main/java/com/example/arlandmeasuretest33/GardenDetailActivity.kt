@@ -54,6 +54,15 @@ class GardenDetailActivity : AppCompatActivity() {
         backButton = findViewById(R.id.backButton)
         progressBar = findViewById(R.id.progressBar)
         
+        // Try to find refresh button if it exists in the layout
+        val refreshButton = findViewById<View>(R.id.backButton) // Use back button as a backup
+        
+        // Add refresh functionality to either the dedicated button or the back button (with long press)
+        refreshButton?.setOnLongClickListener {
+            refreshGardenData()
+            true // Consume the long click
+        }
+        
         // Set up RecyclerView
         plantsRecyclerView.layoutManager = LinearLayoutManager(this)
         
@@ -119,6 +128,142 @@ class GardenDetailActivity : AppCompatActivity() {
         }
     }
     
+    /**
+     * Try alternative approaches to find a garden when the standard approach fails
+     */
+    private fun tryAlternativeApproachesForGarden(gardenId: String) {
+        Log.d(TAG, "Trying alternative approaches to find garden: $gardenId")
+        showProgress(true)
+        
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Log.w(TAG, "User not authenticated, cannot try alternative approaches")
+            showProgress(false)
+            return
+        }
+        
+        val userId = currentUser.uid
+        
+        // 1. Try a direct query with a where clause instead of a document reference
+        Log.d(TAG, "Trying query approach to find garden")
+        db.collection("user_data")
+            .document(userId)
+            .collection("user_gardens")
+            .whereEqualTo("__name__", gardenId)  // This queries by document ID
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (!querySnapshot.isEmpty) {
+                    Log.d(TAG, "Found garden using query approach!")
+                    val gardenDoc = querySnapshot.documents.first()
+                    updateUIFromGardenDocument(gardenDoc, userId)
+                } else {
+                    // 2. Try querying by name field if it exists
+                    db.collection("user_data")
+                        .document(userId)
+                        .collection("user_gardens")
+                        .whereEqualTo("name", gardenId)
+                        .get()
+                        .addOnSuccessListener { nameQuerySnapshot ->
+                            if (!nameQuerySnapshot.isEmpty) {
+                                Log.d(TAG, "Found garden by name field!")
+                                val gardenDoc = nameQuerySnapshot.documents.first()
+                                updateUIFromGardenDocument(gardenDoc, userId)
+                            } else {
+                                // 3. Try listing all gardens for debugging
+                                Log.d(TAG, "Listing all gardens for debugging")
+                                listAllGardensForUser(userId)
+                            }
+                        }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error with query approach: ${e.message}")
+                showProgress(false)
+            }
+    }
+    
+    /**
+     * List all gardens for a user to help debug
+     */
+    private fun listAllGardensForUser(userId: String) {
+        Log.d(TAG, "Listing all gardens for user: $userId")
+        
+        db.collection("user_data")
+            .document(userId)
+            .collection("user_gardens")
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (querySnapshot.isEmpty) {
+                    Log.d(TAG, "No gardens found for user: $userId")
+                    Toast.makeText(this, "No gardens found in your account. Try creating a new garden.", Toast.LENGTH_LONG).show()
+                } else {
+                    Log.d(TAG, "Found ${querySnapshot.size()} gardens:")
+                    querySnapshot.documents.forEach { doc ->
+                        Log.d(TAG, "Garden: ${doc.id}, data: ${doc.data}")
+                    }
+                    
+                    // Show a dialog with available gardens
+                    val gardenNames = querySnapshot.documents.map { it.id }
+                    showGardenSelectionDialog(gardenNames, userId)
+                }
+                showProgress(false)
+            }
+            .addOnFailureListener { e ->
+                Log.e(TAG, "Error listing gardens: ${e.message}")
+                showProgress(false)
+            }
+    }
+    
+    /**
+     * Show a dialog allowing the user to select from available gardens
+     */
+    private fun showGardenSelectionDialog(gardenNames: List<String>, userId: String) {
+        if (gardenNames.isEmpty()) return
+        
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Select a Garden")
+        builder.setItems(gardenNames.toTypedArray()) { _, which ->
+            val selectedGardenId = gardenNames[which]
+            Log.d(TAG, "User selected garden: $selectedGardenId")
+            
+            // Load the selected garden
+            db.collection("user_data")
+                .document(userId)
+                .collection("user_gardens")
+                .document(selectedGardenId)
+                .get()
+                .addOnSuccessListener { gardenDoc ->
+                    if (gardenDoc.exists()) {
+                        updateUIFromGardenDocument(gardenDoc, userId)
+                    }
+                }
+        }
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.dismiss()
+            finish()
+        }
+        builder.show()
+    }
+    
+    /**
+     * Update UI from a garden document
+     */
+    private fun updateUIFromGardenDocument(gardenDoc: com.google.firebase.firestore.DocumentSnapshot, userId: String) {
+        val gardenName = gardenDoc.id
+        val createdDate = gardenDoc.getTimestamp("createdDate")?.toDate() ?: Date()
+        val areaSize = gardenDoc.getDouble("areaSize") ?: gardenDoc.getDouble("area") ?: 0.0
+        val district = gardenDoc.getString("district") ?: "Not specified"
+        val soilType = gardenDoc.getString("soilType") ?: "Not specified"
+        val climate = gardenDoc.getString("climate") ?: "Not specified"
+        val rainfall = gardenDoc.getString("rainfall") ?: "Not specified"
+        val sunlight = gardenDoc.getString("sunlight") ?: "Not specified"
+        
+        updateUI(gardenName, createdDate, areaSize, district, soilType, climate, rainfall, sunlight)
+        
+        // Get plants in this garden
+        loadPlantsForStandardGarden(userId, gardenName)
+    }
+    
     private fun loadGardenDetails(gardenId: String, isLegacyPath: Boolean) {
         showProgress(true)
         
@@ -140,6 +285,9 @@ class GardenDetailActivity : AppCompatActivity() {
         
         val userId = currentUser.uid
         
+        // Log the exact path we're trying to access
+        Log.d(TAG, "Attempting to access garden at path: user_data/$userId/user_gardens/$gardenId")
+        
         // Get garden details
         db.collection("user_data")
             .document(userId)
@@ -147,7 +295,12 @@ class GardenDetailActivity : AppCompatActivity() {
             .document(gardenId)
             .get()
             .addOnSuccessListener { gardenDoc ->
+                Log.d(TAG, "Firestore response received for garden: $gardenId, exists: ${gardenDoc.exists()}")
+                
                 if (gardenDoc.exists()) {
+                    // Log the data we received for debugging
+                    Log.d(TAG, "Garden data: ${gardenDoc.data}")
+                    
                     // Set garden details
                     val gardenName = gardenDoc.id
                     val createdDate = gardenDoc.getTimestamp("createdDate")?.toDate() ?: Date()
@@ -162,14 +315,25 @@ class GardenDetailActivity : AppCompatActivity() {
                     // Get plants in this garden
                     loadPlantsForStandardGarden(userId, gardenId)
                 } else {
-                    // Silently handle missing garden details
-                    Log.w(TAG, "Garden details not found")
-                    finish()
+                    // Document doesn't exist - provide more helpful information
+                    Log.w(TAG, "Garden document not found at path: user_data/$userId/user_gardens/$gardenId")
+                    Toast.makeText(this, "Garden '$gardenId' not found. Please check the garden name.", Toast.LENGTH_LONG).show()
+                    
+                    // Try alternative approaches before giving up
+                    tryAlternativeApproachesForGarden(gardenId)
                 }
             }
             .addOnFailureListener { e ->
-                Log.e(TAG, "Error loading garden details", e)
-                // Silently handle error loading garden details
+                Log.e(TAG, "Error loading garden details: ${e.message}", e)
+                // Show error message to help diagnose the issue
+                Toast.makeText(this, "Failed to load garden: ${e.message}", Toast.LENGTH_SHORT).show()
+                
+                // Check if this is a permission issue
+                if (e.message?.contains("PERMISSION_DENIED") == true) {
+                    Log.w(TAG, "Firestore permission denied - check security rules")
+                    Toast.makeText(this, "Permission denied. Please check you have access to this garden.", Toast.LENGTH_LONG).show()
+                }
+                
                 showProgress(false)
             }
     }
@@ -589,6 +753,59 @@ class GardenDetailActivity : AppCompatActivity() {
     
     private fun showProgress(show: Boolean) {
         progressBar.visibility = if (show) View.VISIBLE else View.GONE
+    }
+    
+    /**
+     * Refresh garden data by reloading from Firestore
+     */
+    private fun refreshGardenData() {
+        // Get garden ID and name from intent again
+        val gardenId = intent.getStringExtra("GARDEN_ID")
+        val gardenName = intent.getStringExtra("GARDEN_NAME")
+        val isLegacyPath = intent.getBooleanExtra("IS_LEGACY_PATH", false)
+        
+        Log.d(TAG, "Refreshing garden data - ID: $gardenId, Name: $gardenName")
+        Toast.makeText(this, "Refreshing garden data...", Toast.LENGTH_SHORT).show()
+        
+        if (gardenId != null) {
+            showProgress(true)
+            
+            val currentUser = auth.currentUser
+            if (currentUser != null) {
+                val userId = currentUser.uid
+                
+                // Use Source.SERVER to force a fresh fetch from the server
+                val source = com.google.firebase.firestore.Source.SERVER
+                
+                // Try to load using document path first
+                db.collection("user_data")
+                    .document(userId)
+                    .collection("user_gardens")
+                    .document(gardenId)
+                    .get(source) // Force server fetch
+                    .addOnSuccessListener { gardenDoc ->
+                        if (gardenDoc.exists()) {
+                            Log.d(TAG, "Refresh successful - found garden: $gardenId")
+                            updateUIFromGardenDocument(gardenDoc, userId)
+                        } else {
+                            Log.w(TAG, "Refresh failed - garden not found: $gardenId")
+                            // List all available gardens as a fallback
+                            listAllGardensForUser(userId)
+                        }
+                        showProgress(false)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Refresh failed with error: ${e.message}", e)
+                        Toast.makeText(this, "Failed to refresh: ${e.message}", Toast.LENGTH_SHORT).show()
+                        showProgress(false)
+                    }
+            } else {
+                Toast.makeText(this, "Please sign in to access your garden data", Toast.LENGTH_LONG).show()
+                showProgress(false)
+            }
+        } else {
+            Toast.makeText(this, "Garden ID not available", Toast.LENGTH_SHORT).show()
+        }
     }
     
     /**

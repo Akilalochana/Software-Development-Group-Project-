@@ -398,16 +398,24 @@ class HomeActivity : BaseActivity() {
 
         // Reports button - view garden reports
         viewReportsButton.setOnClickListener {
-            // Uncommented for when ReportsActivity is available
-            // val intent = Intent(this, ReportsActivity::class.java)
-            // startActivity(intent)
-
-            // Show a message instead
-            android.widget.Toast.makeText(
-                this,
-                "Reports feature coming soon",
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
+            // Launch the Report activity
+            val intent = Intent(this, Report::class.java)
+            
+            // If the user has a current garden selected, pass its information
+            val sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE)
+            val currentGarden = sharedPreferences.getString("GARDEN_NAME", "")
+            val currentPlant = sharedPreferences.getString("CURRENT_PLANT_NAME", "")
+            
+            if (!currentGarden.isNullOrEmpty()) {
+                intent.putExtra("GARDEN_NAME", currentGarden)
+            }
+            
+            if (!currentPlant.isNullOrEmpty()) {
+                intent.putExtra("PLANT_NAME", currentPlant)
+            }
+            
+            // Start the Report activity
+            startActivity(intent)
         }
 
         // Tips button - get gardening tips
