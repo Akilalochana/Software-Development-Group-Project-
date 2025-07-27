@@ -107,6 +107,9 @@
         <activity
             android:name=".GardenDetailActivity"
             android:exported="false" />
+        <activity
+            android:name=".WateringCycleActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
