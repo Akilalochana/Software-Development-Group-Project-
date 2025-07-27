@@ -27,6 +27,10 @@ class ChatbotService(private val context: Context) {
         val buttonText: String = "",
         val featureName: String = ""
     )
+    
+    // Store recent user messages to detect repetition
+    private val recentUserMessages = mutableListOf<String>()
+    private val MAX_MESSAGE_HISTORY = 10 // Keep track of last 10 messages
 
     // Enhanced Sinhala detection pattern with more common words
     private val sinhalaPattern = Pattern.compile(
@@ -39,6 +43,33 @@ class ChatbotService(private val context: Context) {
     // Check if text appears to be Sinhala or Singlish
     private fun isSinhalaOrSinglish(text: String): Boolean {
         return sinhalaPattern.matcher(text).find()
+    }
+    
+    /**
+     * Add a message to the history and maintain maximum size
+     */
+    private fun addMessageToHistory(message: String) {
+        val normalizedMessage = message.trim().lowercase()
+        recentUserMessages.add(normalizedMessage)
+        
+        // Maintain max size
+        if (recentUserMessages.size > MAX_MESSAGE_HISTORY) {
+            recentUserMessages.removeAt(0)
+        }
+    }
+    
+    /**
+     * Check if the user is sending the same message repeatedly
+     * @return true if the same message appears 3 or more times in recent history
+     */
+    private fun checkForRepetitiveMessages(message: String): Boolean {
+        val normalizedMessage = message.trim().lowercase()
+        
+        // Count occurrences of this message in history
+        val occurrences = recentUserMessages.count { it == normalizedMessage }
+        
+        // If it appears 2 times already and this would be the 3rd time, consider it repetitive
+        return occurrences >= 2
     }
 
     /**
@@ -102,6 +133,20 @@ class ChatbotService(private val context: Context) {
     suspend fun sendMessage(message: String): BotResponse {
         return withContext(Dispatchers.IO) {
             try {
+                // Check for repetitive messages
+                val isRepetitive = checkForRepetitiveMessages(message)
+                if (isRepetitive) {
+                    val isUserSinhala = isSinhalaOrSinglish(message)
+                    return@withContext if (isUserSinhala) {
+                        BotResponse(text = "ඔබ එකම ප්‍රශ්නය නැවත නැවත අසමින් සිටින බව පෙනේ. කරුණාකර වෙනත් ප්‍රශ්නයක් අසන්න හෝ ඔබේ ප්‍රශ්නය වඩාත් පැහැදිලිව සඳහන් කරන්න.")
+                    } else {
+                        BotResponse(text = "I notice you're asking the same question repeatedly. Please try a different question or provide more details about what you're looking for.")
+                    }
+                }
+                
+                // Store this message in the history
+                addMessageToHistory(message)
+                
                 // Check if the message is about a specific feature first
                 val featureResponse = detectFeatureRequest(message)
                 if (featureResponse != null) {
@@ -138,6 +183,26 @@ class ChatbotService(private val context: Context) {
                     you can only assist with the 16 specified crops. Always tailor your answers to Sri Lankan farming 
                     contexts, considering local climate, traditions, and challenges. Keep answers practical, clear, and 
                     actionable for farmers with varying levels of technical knowledge.
+                    
+                    IMPORTANT FACTUAL ACCURACY GUIDELINES:
+                    - If you're uncertain about any specific detail, acknowledge your uncertainty instead of providing 
+                      potentially incorrect information. For example, say "I don't have specific information about X" 
+                      rather than guessing.
+                    - Base your advice on established farming knowledge applicable to tropical climates and Sri Lankan 
+                      conditions specifically.
+                    - For factual claims about growing seasons, pest treatments, or yields, only provide information that 
+                      is commonly accepted for these crops in Sri Lanka.
+                    - Clearly distinguish between traditional practices and modern/scientific approaches when relevant.
+                    - When discussing quantities (fertilizer amounts, water needs, etc.), provide ranges rather than 
+                      precise figures if exact measurements vary by specific conditions.
+                    - Do not recommend experimental techniques or practices without explicitly labeling them as such.
+                      
+                    RESPONSE FORMAT GUIDELINES:
+                    - Keep all responses concise and brief, typically 2-3 short paragraphs maximum.
+                    - Use bullet points instead of long paragraphs when providing steps or lists.
+                    - Focus on the most important information that directly answers the user's question.
+                    - Avoid lengthy explanations, background information, or tangential details.
+                    - For complex topics, provide only the key points and most practical advice.
                 """.trimIndent()
 
                 // Combine the context, language instruction, and user message
